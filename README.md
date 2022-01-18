@@ -1,2 +1,2 @@
 # webserv
-팀원: spark / skim / hybae / kkim / juhpark
+팀원: spark / skim / hybae / kkim / Juhpark
