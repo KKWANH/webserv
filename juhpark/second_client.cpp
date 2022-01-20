@@ -44,10 +44,7 @@ int main()
 		std::cout << "용건이 뭔데? 끝꺼면 q만 치십쇼 : " ;
 		std::cin >> qurey;
 		if (strcmp(qurey, "q") == 0)
-		{
-			std::cout << "끝" << std::endl;
 			break ;
-		}
 		send(sock, qurey, strlen(qurey), 0);
 		len = recv(sock, qurey, 1024 -1, 0);
 		qurey[len] = 0;
