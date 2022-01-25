@@ -30,7 +30,8 @@ int main()
 
 	//1.1에 200(잘된단뜻)
 	httpTestHeaderString += "HTTP/1.1 200 OK\r\n";
-	httpTestHeaderString += "Content-Type: text/html\r\n";
+//	httpTestHeaderString += "HTTP/1.1 403 Forbidden\r\n";
+	httpTestHeaderString += "Content-Type: text/html; charset=utf-8\r\n";
 	httpTestHeaderString += "\r\n";
 	httpTestHeaderString += "<html>";
 	httpTestHeaderString += "<head><title>이거 탭에 보임?</title></head>";
@@ -83,7 +84,6 @@ int main()
 		std::cout << "KEVENT SET ERROR : " << std::strerror(errno) << std::endl;
 		return (1);
 	}
-	std::cout << "asd " << std::endl;
 
 	while (1)
 	{
@@ -99,10 +99,12 @@ int main()
 		}
 		else
 		{
+			std::cout << "이벤트 갯수 : " << result << std::endl;
 			for (int i = 0; i < result; i++)
 			{
 				if (getEvent[i].ident == s_server)//연결성공시
 				{
+					std::cout << "fd : " << getEvent[i].ident << " index : " << i << std::endl;
 					s_client = accept(s_server, (struct sockaddr*)&addr_client, &address_size);//요청을 받아들인다
 					if (s_client == -1)
 					{
@@ -118,19 +120,33 @@ int main()
 						return (1);
 					}
 				}
-				else//얜 요청을 보낼떄인가봐 
+				else//표준입력이라던가, 표준 출력이라던가 암튼 그런거일때..?
+				//얜 요청을 보낼떄인가봐
+				//저기선 read랑 write이벤트를 시퀸스가 바뀔때마다 각각 처리해야 한다고 한다
 				{
+					std::cout << "클라 fd : " << s_client << std::endl;
 					read_len = read(getEvent[i].ident, buffer, 1024);
+					if (read_len == -1)
+					{	
+						std::cout << "READ ERROR : " << std::strerror(errno) << std::endl;
+						return (1);
+					}
+					std::cout << "fd : " << getEvent[i].ident << " index : " << i << std::endl;
 					std::cout << "response : " << std::string(buffer, read_len) << std::endl;
 					write(getEvent[i].ident, httpTestHeaderString.data(), httpTestHeaderString.length());
 					//이건 몰랐네, c_str랑 c_str의 strlen써야 하는 줄
 					EV_SET(&setEvent, getEvent[i].ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	//				EV_SET(&setEvent, getEvent[i].ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+	//				//이놈 주석을 풀면 뭔가 나
 					if (kevent(kfd, &setEvent, 1, NULL, 0, NULL) == -1)
 					{
 						std::cout << "KEVENT SET ERROR : " << std::strerror(errno) << std::endl;
 						return (1);
 					}
 					close(getEvent[i].ident); // 만약 HTTP 1.1이라면 영속성으로 인해 필요할 때만 연결을 종료해야함
+					//근데 저걸 주석 처리하면 bind자체가 안됨
+					//심지어 저걸 주석 풀어도 안되고
+					//브라우저를 직접 열고 닫아야 되더라
 				}
 			}
 		}
