@@ -30,6 +30,7 @@ int		main(void)
 		if (requestMsg::parsingRequestMsg(socketController.getClientSocket(), &requestMsg) == -1)
 			return (-1);
 		std::string msg = serverProcess::process(socketController.getClientSocket(), &requestMsg);
+		std::cout << msg.c_str() << std::endl;
 		write(socketController.getClientSocket(), msg.c_str(), msg.length());
 		close(socketController.getClientSocket());
 	}

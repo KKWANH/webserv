@@ -17,6 +17,7 @@ class serverProcess {
 			*uri = config.getConfig("root") + target;
 			const char	*uri_char = uri->c_str();
 
+			std::cout << "uri_char : " << uri_char << std::endl;
 			if ((dp = opendir(uri_char)) == NULL)
 				return (1);
 

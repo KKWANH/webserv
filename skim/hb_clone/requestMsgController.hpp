@@ -53,6 +53,8 @@ class requestMsg : public HTTPMsg {
 			int	start = 0;
 			int	last = msg.find(' ');
 
+			// std::cout << "parseStartLine" << std::endl;
+			// std::cout << msg << std::endl << std::endl;
 			method = msg.substr(start, last);
 			if (checkMethod() == -1)
 				return (-1);
@@ -60,14 +62,24 @@ class requestMsg : public HTTPMsg {
 			start = last + 1;
 			last = msg.find(' ' , start);
 			request_target = msg.substr(start, last - start);
+			// std::cout << "request_target : " << request_target << std::endl;
 			if (checkTarget() == -1)
 				return (-1);
 
 			start = last + 1;
+			last = msg.find('/', start);
+			isHTTP = msg.substr(start, last - start + 1);
+			// std::cout << "isHTTP : " << isHTTP << std::endl;
+			if (checkHTTP() == -1)
+				return (-1);
+
+			start = last + 1;
 			http_version = atof(msg.substr(start).c_str());
+			// std::cout << "http_version : " << http_version << std::endl;
 			if (checkHttpVersion() == -1)
 				return (-1);
 
+			printStartLine();
 			// header_field parsing을 위해 start_line 이후의 위치를 반환
 			return (start + 5);
 		}

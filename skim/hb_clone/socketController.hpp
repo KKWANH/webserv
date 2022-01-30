@@ -49,7 +49,7 @@ class socketController {
 			server_addr.sin_family = AF_INET;
 			server_addr.sin_port = htons(PORT);
 
-			// bint
+			// bind
 			if (bind(server_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1)
 			{
 				std::cout << "Error: Fail binding" << std::endl;
