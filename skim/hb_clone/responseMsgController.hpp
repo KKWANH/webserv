@@ -52,7 +52,7 @@ class responseMsg : public HTTPMsg {
 		// Content-Type: text/html
 		void		setHeaderField(void) {
 			header_field.insert(std::make_pair<std::string, std::string>("Content-Type", "text/html"));
-			header_field.insert(std::make_pair<std::string, std::string>("Content-Length", "138"));
+			header_field.insert(std::make_pair<std::string, std::string>("Content-Length", "500"));
 			header_field.insert(std::make_pair<std::string, std::string>("Accept-Ranges", "bytes"));
 		}
 

@@ -44,12 +44,13 @@ class serverProcess {
 				responseMsg.setMsgBody(uri + "/index.html");
 			}
 			else if (flag == 1) {
+				std::cout << "404?" << std::endl;
 				responseMsg.setStatusCode(404);
-				responseMsg.setMsgBody(config.getConfig("root") + "/html/404.html");
+				responseMsg.setMsgBody(config.getConfig("root") + "/404.html");
 			}
 			else {
 				responseMsg.setStatusCode(403);
-				responseMsg.setMsgBody(config.getConfig("root") + "/html/403.html");
+				responseMsg.setMsgBody(config.getConfig("root") + "/403.html");
 			}
 			responseMsg.setHttpVersion(requestMsg->http_version);
 			responseMsg.setReason();
