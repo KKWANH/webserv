@@ -16,31 +16,17 @@ class SocketController {
 		int									bind_check, listen_check;
 	
 	public:
-
-		int									getSocketServer() {
-			return (this->socket_server);
+		int									getSocketServer()								{ return (this->socket_server); }
+		int									getSocketClient()								{ return (this->socket_client); }
+		struct sockaddr_in	getAddressServer()							{ return (this->address_server); }
+		struct sockaddr_in	getAddressClient()							{ return (this->address_client); }
+		struct sockaddr*		getConvertedAddressClient()			{ return ((struct sockaddr*)&this->address_client);}
+		socklen_t*					getSocketLength()	{
+			c_len = (sizeof(address_client));
+			return (&c_len);
 		}
 
-		int									getSocketClient() {
-			return (this->socket_client);
-		}
-
-		struct sockaddr_in	getAddressServer() {
-			return (this->address_server);
-		}
-
-		struct sockaddr_in	getAddressClient() {
-			return (this->address_client);
-		}
-
-		struct sockaddr*		getConvertedAddressClient() {
-			return ((struct sockaddr*)&this->address_client);
-		}
-
-		void								setSocketClient(int accept) {
-			this->socket_client = accept;
-			return ;
-		}
+		void								setSocketClient(int accept) 		{ this->socket_client = accept;	}
 
 		int									init() {
 			// Create Socket on Server
