@@ -2,71 +2,66 @@
 # define SERVERPROCESS_HPP
 
 #include "./HTTPMessageController.hpp"
+#include "./SocketController.hpp"
+#include "./KernelQueueController.hpp"
+#include "./ConfigController.hpp"
 #include <dirent.h>
+#include <sys/stat.h>
 
 extern ConfigController config;
 
 class ServerProcess {
 	public:
-		// TODO: 권한으로 파일 탐색이 안 되는 경우에 대한 처리 추가 필요
-		// request message에서 요청 된 uri에 index 파일이 있는지 확인
-		// 파일이 있으면 0, 없으면 1, 해당 uri 자체가 없으면 -1 반환
-		static	int			findIndexFile(int socket_client, std::string target, std::string* uri) {
-			int						flag = 0;
-			DIR						*dp;
-			struct dirent	*dir;
-			*uri = config.getConfig("root") + target;
-			const char*		uri_char = uri->c_str();
-			//std::cout << "URI : " << *uri << std::endl;
+		static int				serverProcess(SocketController* Socket, KernelQueueController* Kqueue) {
+			while (true) {
+				// queue에 event 적용
+				Kqueue->setPollingCount(
+					kevent(Kqueue->getKq(),
+					Kqueue->getChangeList(),
+					Kqueue->getChangeCount(),
+					Kqueue->getEventList(),
+					BUFSIZ,
+					NULL)
+				);
 
-			if ((dp = opendir(uri_char)) == NULL) {
-				//std::cout << "DIR Open Error" << std::endl;
-				return (1);
-			}
+				// 적용된 event 초기화
+				Kqueue->clearChangeList();
+				Kqueue->resetChangeCount();
 
-			while((dir = readdir(dp)) != NULL) {
-				if (dir->d_ino == 0)
-					continue;
-				if (strcmp(config.getConfig("index").c_str(), dir->d_name) == 0) {
-					flag = 1;
-					break;
+				// queue내 남아있는 이벤트만큼 반복
+				for (int i = 0; i < Kqueue->getPollingCount(); i++) {
+					if (Kqueue->getEventList(i)->filter == EVFILT_READ) {
+						std::cout << "[READ]\t";
+						// server read
+						if ((int)Kqueue->getEventList(i)->ident == Socket->getSocketServer()) {
+							Socket->setSocketClient(accept(Socket->getSocketServer(), Socket->getConvertedAddressClient(), Socket->getSocketLength()));
+							fcntl(Socket->getSocketClient(), F_SETFL, O_NONBLOCK);
+							Kqueue->setReadKqueue(Socket->getSocketClient());
+							std::cout << "Server connect : [" << Socket->getSocketClient() << "]" << std::endl;
+						}
+						// TODO: file 크기가 큰 경우 나눠서 통신하는 기능 구현
+						// client read
+						else {
+							int fd = Kqueue->getEventList(i)->ident;
+							char buf[BUFSIZ];
+							recv(fd, buf, BUFSIZ, 0);
+							if (Kqueue->addRequestMessage(fd, buf) == -1)
+								return (-1);
+							Kqueue->setWriteKqueue(fd);
+						}
+					}
+					// write
+					else if (Kqueue->getEventList(i)->filter == EVFILT_WRITE) {
+						int fd = Kqueue->getEventList(i)->ident;
+						std::cout << "[WRITE]\tmessage : [" << fd << "]" << std::endl;
+						Kqueue->getRequestMessage(fd)->printRequestMessage();
+						std::string msg = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
+						write(fd, msg.c_str(), msg.size());
+						Kqueue->removeRequestMessage(fd);
+						close(fd);
+					}
 				}
 			}
-			closedir(dp);
-			return (flag == 1 ? 0 : 1);
-		}
-
-		// server process
-		static std::string	serverProcess(int socket_client, RequestMessage* requestMessage) {
-			ResponseMessage 	responseMessage;
-			std::string				uri;
-			int								flag;
-
-			flag = findIndexFile(socket_client, requestMessage->request_target, &uri);
-			std::cout << "URI : " << uri << std::endl;
-			if (flag == 0){
-				responseMessage.setStatusCode(200);
-				responseMessage.setMessageBody(uri + "/index.html");
-				//std::cout << "index file location : " << uri << std::endl;
-			}
-			else if (flag == 1) {
-				responseMessage.setStatusCode(404);
-				responseMessage.setMessageBody(config.getConfig("root") + "/html/404.html");
-				//std::cout << "there is no index file" << std::endl;
-			}
-			else {
-				responseMessage.setStatusCode(403);
-				responseMessage.setMessageBody(config.getConfig("root") + "/html/403.html");
-				//std::cout << "incorrect location" << std::endl;
-			}
-			responseMessage.setHttpVersion(requestMessage->http_version);
-			responseMessage.setReasonPhrase();
-			responseMessage.setStartLine();
-			responseMessage.setHeaderField();
-			std::string rtn = responseMessage.makeResponseMessage();
-			//std::cout << responseMessage.getStartLine() << std::endl;
-			//std::cout << rtn << std::endl;
-			return (rtn);
 		}
 };
 
