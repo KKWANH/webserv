@@ -11,14 +11,18 @@
 configController config;
 extern configController		config;
 
-int		main(void)
+int		main(int ac, char *av[])
 {
 	// config 파일에 대한 설정을 해준다.
 	if (config.setConfig() == -1)
 		return (-1);
 	// config.printConfig();
-
 	socketController	socketController;
+
+	if (ac >= 2)
+		socketController.setPort(atoi(av[1]));
+	else
+		socketController.setPort(9090);
 	if (socketController.init() == -1)
 		return (-1);
 

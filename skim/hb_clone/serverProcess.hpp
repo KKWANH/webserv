@@ -17,7 +17,6 @@ class serverProcess {
 			*uri = config.getConfig("root") + target;
 			const char	*uri_char = uri->c_str();
 
-			std::cout << "uri_char : " << uri_char << std::endl;
 			if ((dp = opendir(uri_char)) == NULL)
 				return (1);
 
@@ -39,7 +38,7 @@ class serverProcess {
 			int				flag;
 
 			flag = findIndexFile(client_sock, requestMsg->request_target, &uri);
-			std::cout << "URI : " << uri << std::endl;
+
 			if (flag == 0) {
 				responseMsg.setStatusCode(200);
 				responseMsg.setMsgBody(uri + "/index.html");
