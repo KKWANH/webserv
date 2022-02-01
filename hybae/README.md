@@ -4,7 +4,7 @@
 
 
 
-| Date         | Discription                            | Issue                                                    | etc  |
+| Date         | Description                            | Issue                                                    | etc  |
 | ------------ | -------------------------------------- | -------------------------------------------------------- | ---- |
 | Jan 24, 2022 | `feat`<br />  blocking HTTP server     |                                                          |      |
 | Jan 26, 2022 | `test`<br />  polling test code        |                                                          |      |
