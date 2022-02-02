@@ -46,7 +46,7 @@ int main()
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_addr.sin_port = htons(8080);
+    server_addr.sin_port = htons(8000);
     if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1)
         exit_with_perror("bind() error\n" + string(strerror(errno)));
 
@@ -71,12 +71,17 @@ int main()
     /* main loop */
     int new_events;
     struct kevent* curr_event;
+	struct timespec pollingTime;
+	pollingTime.tv_sec = 1;
+	pollingTime.tv_nsec = 0;
     while (1)
     {
         /*  apply changes and return new events(pending events) */
-        new_events = kevent(kq, &change_list[0], change_list.size(), event_list, 8, NULL);
+        new_events = kevent(kq, &change_list[0], change_list.size(), event_list, 8, &pollingTime);
         if (new_events == -1)
             exit_with_perror("kevent() error\n" + string(strerror(errno)));
+		if (new_events == 0)
+			std::cout << "통신 존버중" << std::endl;
 
         change_list.clear(); // clear change_list for new changes
 

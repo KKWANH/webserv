@@ -48,9 +48,12 @@ int main()
 			std::cout << "끝" << std::endl;
 			break ;
 		}
-		send(sock, qurey, strlen(qurey), 0);
+		if (send(sock, qurey, strlen(qurey), 0) == -1)
+			std::cout << "SEND ERROR" << std::endl;
 		std::cout << " 난 이리 보냄 " << qurey << std::endl;
 		len = recv(sock, qurey, 1024 -1, 0);
+		if (len == -1)
+			std::cout << "RECV ERRROR" << std::endl;
 		qurey[len] = 0;
 		std::cout << "서버가 말하길 : " << qurey << std::endl;
 	}
