@@ -98,7 +98,7 @@ int		main(int ac, char *av[])
 	change_event(setEvent, ser_socket, EVFILT_READ, EV_ADD);
 
 	while (1) {
-		result = kevent(kfd, NULL, 0, getEvent, 10, &pollingTime);
+		result = kevent(kfd, &setEvent[0], setEvent.size(), getEvent, 10, &pollingTime);
 		if (result == -1) {
 			std::cout << "kevent() error" << std::strerror(errno) << std::endl;
 			return (1);
