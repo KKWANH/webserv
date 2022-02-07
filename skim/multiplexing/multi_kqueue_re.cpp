@@ -116,7 +116,7 @@ int		main(int ac, char *av[])
 				std::cout << "fd INSERT" << std::endl;
 				change_event(setEvent, cli_socket, EVFILT_READ, EV_ADD | EV_ENABLE);
 				change_event(setEvent, cli_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE);
-			} else if (getEvent[i].ident == EVFILT_READ) { // read
+			} else if (getEvent[i].filter == EVFILT_READ) { // read
 				read_len = read(getEvent[i].ident, buf, 1024);
 				std::cout << "data : " << std::string(buf, read_len) <<  std::endl;
 				if (read_len == 0) {
@@ -130,7 +130,7 @@ int		main(int ac, char *av[])
 				}
 				change_event(setEvent, getEvent[i].ident, EVFILT_READ, EV_ADD | EV_DISABLE);
 				change_event(setEvent, getEvent[i].ident, EVFILT_WRITE, EV_ADD | EV_ENABLE);
-			} else if (getEvent[i].ident == EVFILT_WRITE) { // write
+			} else if (getEvent[i].filter == EVFILT_WRITE) { // write
 				if (write(getEvent[i].ident, httpTestHeaderString.data(), httpTestHeaderString.length()) == -1) {
 					std::cout << "write error : " << std::strerror(errno) << std::endl;
 					return (1);
