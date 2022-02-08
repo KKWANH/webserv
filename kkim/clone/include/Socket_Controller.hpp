@@ -13,7 +13,7 @@
 
 /**
 * -------------------------------------------------------------
-* > ConfigController
+* > SocketController
 *
 * (constructor) (bool):	Set private resources, and discriminate either the mime or the config
 *

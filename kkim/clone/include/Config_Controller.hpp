@@ -116,7 +116,7 @@ class
 				_itr;
 			_itr = _cnt.begin();
 			std::cout		<< ANSI_BLU << "[INF] "
-							<< ANSI_RES << "Config file debugging" << std::endl;
+							<< ANSI_RES << "debugging" << std::endl;
 			while (true)
 			{
 				std::cout		<< _itr->first << "\t: " << _itr->second << std::endl;
