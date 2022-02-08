@@ -8,6 +8,10 @@
 #include <sys/event.h>
 #include <sys/types.h>
 #include <vector>
+#include <map>
+#include <fstream>
+#include "config.hpp"
+
 
 void change_events(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter,
         uint16_t flags)
@@ -18,42 +22,85 @@ void change_events(std::vector<struct kevent>& change_list, uintptr_t ident, int
     change_list.push_back(temp_event);
 }
 
-int main()
+std::string read_html(Config con)
+{
+	std::string res; 
+	std::ifstream fin(con.get_root() + "/" + con.get_page());
+	if (!fin)
+	{
+		std::cout << "fopen ERROR : " << std::strerror(errno) << std::endl;
+		return (NULL);
+	}
+	std::string tmp;
+	while (1)
+	{
+		getline(fin, tmp);
+		if (fin.eof())
+			break ;
+		res += tmp;
+	}
+	return (res);
+}
+
+int main(int argc, char **argv)
 {
 	//기존 소켓의 친구들
-	int s_server, s_client;
+	int s_server;
 	struct sockaddr_in addr_server, addr_client;
 	char buffer[1024];
 	socklen_t address_size;
+	std::map<int, std::string> client_list;
 
 	//kqueue에 쓰일 친구들
 	int kfd;
 	struct timespec pollingTime;
-//	struct kevent setEvent;
 	std::vector<struct kevent> setEvent;
 	struct kevent getEvent[10];
 	int result = 0;
 	int read_len = 0;
 
-	//HTTP응답 헤더 스트링
+	//config설정
+	Config con;
+	int code = con.parse_config(argc, argv);
+	//응답 헤더에 쓰일 친구들
 	std::string httpTestHeaderString;
+	std::string f_read;
+
+	f_read = read_html(con);
+	if (f_read.length() == 0)
+		return (1);
+	//HTTP응답 헤더 스트링
 
 
 	//1.1에 200(잘된단뜻)
-	httpTestHeaderString += "HTTP/1.1 200 OK\r\n";
-//	httpTestHeaderString += "HTTP/1.1 403 Forbidden\r\n";
-	httpTestHeaderString += "Content-Type: text/html; charset=utf-8\r\n";
-	httpTestHeaderString += "\r\n";
-	httpTestHeaderString += "<html>";
-	httpTestHeaderString += "<head><title>이거 탭에 보임?</title></head>";
-	httpTestHeaderString += "<body>";
-	httpTestHeaderString += "<b><center> HI THERE! </center></b>";
-	httpTestHeaderString += "</body>";
-	httpTestHeaderString += "</html>";
+	if (code == 200)
+	{
+		//httpTestHeaderString += "HTTP/1.1 200 OK\r\n";
+		httpTestHeaderString += "HTTP/1.1 ";
+		httpTestHeaderString += std::to_string(code);
+		httpTestHeaderString += " OK\r\n";
+		httpTestHeaderString += "Content-Type: text/html; charset=utf-8\r\n";
+		httpTestHeaderString += "Content-Length: ";
+		httpTestHeaderString += std::to_string(f_read.size());
+		httpTestHeaderString += "\r\n\r\n";
+		httpTestHeaderString += f_read;
 
+	}
+	else if (code == 403)
+	{
+		httpTestHeaderString += "HTTP/1.1 ";
+		httpTestHeaderString += std::to_string(code);
+		httpTestHeaderString += " Forbidden\r\n";
+		httpTestHeaderString += "Content-Type: text/html; charset=utf-8\r\n";
+		httpTestHeaderString += "Content-Length: ";
+		httpTestHeaderString += std::to_string(f_read.size());
+		httpTestHeaderString += "\r\n\r\n";
+		httpTestHeaderString += f_read;
+	}	
+	
 	//kqueue만들고 시간생성
 	kfd = kqueue();
-	pollingTime.tv_sec = 1;
+	pollingTime.tv_sec = con.get_timeout();
 	pollingTime.tv_nsec = 0;
 
 	//PF_INET는 IPv4를 쓰겠다는 거고
@@ -73,7 +120,7 @@ int main()
 	memset(&addr_server, 0, sizeof(addr_server));
 	addr_server.sin_family = AF_INET;
 	addr_server.sin_addr.s_addr = htonl(INADDR_ANY);
-	addr_server.sin_port = htons(8080);
+	addr_server.sin_port = htons(8082);
 
 	if (bind(s_server, (struct sockaddr*)&addr_server, sizeof(addr_server)) == -1)
 	{
@@ -115,6 +162,7 @@ int main()
 		{
 			if (getEvent[i].ident == s_server)//연결성공시
 			{
+				int s_client;
 				s_client = accept(s_server, (struct sockaddr*)&addr_client, &address_size);//요청을 받아들인다
 				if (s_client == -1)
 				{
@@ -122,41 +170,40 @@ int main()
 					return (1);
 				}
 				fcntl(s_client, F_SETFL, O_NONBLOCK);
-				std::cout << "YEAH ACCESS SUCESS" << std::endl;//라고 서버측에서 말하고
+				std::cout << s_client << " : YEAH ACCESS SUCESS" << std::endl;//라고 서버측에서 말하고
 				change_events(setEvent, s_client, EVFILT_READ, EV_ADD | EV_ENABLE);
 				change_events(setEvent, s_client, EVFILT_WRITE, EV_ADD | EV_ENABLE);
+				client_list[s_client] = "";//여기에 클라의 메세지를 적으면 된다
 			}
 			else if (getEvent[i].filter == EVFILT_READ)//표준입력이라던가, 표준 출력이라던가 암튼 그런거일때..?
 			//얜 요청을 보낼떄인가봐
 			//저기선 read랑 write이벤트를 시퀸스가 바뀔때마다 각각 처리해야 한다고 한다
 			{
-				std::cout << "클라 fd : " << s_client << std::endl;
 				read_len = read(getEvent[i].ident, buffer, 1024);
 				if (read_len == -1)
 				{	
 					std::cout << "READ ERROR : " << std::strerror(errno) << std::endl;
-					close(s_client);
+					close(getEvent[i].ident);
+					client_list.erase(getEvent[i].ident);
 					close(s_server);
 					return (1);
 				}
 				else if (read_len == 0)
 				{
-					std::cout << "client " << s_client << " is DISCONNECTED bye~" << std::endl;
-					close(s_client);
+					std::cout << "client " << getEvent[i].ident << " is DISCONNECTED bye~" << std::endl;
+					close(getEvent[i].ident);
+					client_list.erase(getEvent[i].ident);
 					//요건 입력이 나올게 없다면 끊어준다 이런것임
 					//근데 처음엔 이거 없이 쓰다가 낭패를 보았다 
 				}
-				change_events(setEvent, getEvent[i].ident, EVFILT_READ, EV_ADD | EV_DISABLE);
-				change_events(setEvent, getEvent[i].ident, EVFILT_WRITE, EV_ADD | EV_ENABLE);
-				/*
-				else
+				else if (client_list.find(getEvent[i].ident) != client_list.end())
 				{
-					std::cout << "fd : " << getEvent[i].ident << " index : " << i << std::endl;
-					std::cout << "response : " << std::string(buffer, read_len) << std::endl;
-					write(s_client, buffer, read_len);
+					change_events(setEvent, getEvent[i].ident, EVFILT_READ, EV_ADD | EV_DISABLE);
+					change_events(setEvent, getEvent[i].ident, EVFILT_WRITE, EV_ADD | EV_ENABLE);
+					buffer[read_len] = '\0';
+					client_list[getEvent[i].ident] += buffer;
+					std::cout << "client " << getEvent[i].ident << " says : " << client_list[getEvent[i].ident] << std::endl;
 				}
-				*/
-//				EV_SET(&setEvent, getEvent[i].ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
 
 			}
 			//write이벤트를 시행해야 할때
@@ -165,24 +212,20 @@ int main()
 			//HTTP사이트 같은걸 뿌리냐
 			else if (getEvent[i].filter == EVFILT_WRITE)
 			{
-				if (read_len)
+				if (client_list.find(getEvent[i].ident) != client_list.end() && read_len)
+		//		if (read_len)
 				{
-					std::cout << "fd 가 같니??: " << getEvent[i].ident << std::endl;
-					//서버의 fd는 4
-					//이벤트의 fd는 5
-					//클라의 fd는 6
-					std::cout << "buffer : " << buffer << std::endl;
-					write(s_client, buffer, read_len);
-	//				std::cout << "여길 왔다고? 어떻게??" << std::endl;
+					std::cout << "buffer "<< getEvent[i].ident <<  " : " << buffer << std::endl;
 					if (write(getEvent[i].ident, httpTestHeaderString.data(), httpTestHeaderString.length()) == -1)
 					{
 						std::cout << "WRITE ERROR : " << std::strerror(errno) << std::endl;
+						close(getEvent[i].ident);
+						client_list.erase(getEvent[i].ident);
 						return (1);
 					}
 					change_events(setEvent, getEvent[i].ident, EVFILT_WRITE, EV_ADD | EV_DISABLE);
 					change_events(setEvent, getEvent[i].ident, EVFILT_READ, EV_ADD | EV_ENABLE);
-		//			EV_SET(&setEvent[i], getEvent[i].ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-		//			setEvent.erase(setEvent.begin() + i);
+					client_list[getEvent[i].ident].clear();
 				}
 				//->근데 아래로 옮기고 난 뒤엔 해보지는 않았어
 			}
@@ -190,6 +233,10 @@ int main()
 		}
 	}
 
+	//220202 ->되긴 되는데, 에코통신은 이제 놓아줄 때가 된듯
+	//그리고 계속 수신대기라서 그런지 계속 히오스가 돌게되네
+
+	
 	/*
 	//accept로 클라의 소켓을 받아온다
 	address_size = sizeof(addr_client);
