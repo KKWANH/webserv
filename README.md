@@ -122,6 +122,10 @@ Parse header field and save to _header_field(map).
 </details>
 
 # 2. Git Commit Convention
+```
+:gitmoji: [키워드] 설명
+```
+
 ## 2.1. Commit Keyword
 |키워드|설명|
 |-----------|----------------------|
