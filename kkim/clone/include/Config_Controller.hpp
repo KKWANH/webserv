@@ -57,7 +57,7 @@ class
 			}
 		}
 
-		int
+		void
 			setUri(std::string _nam)
 		{
 			if (strcmp(&_nam.c_str()[strlen(_nam.c_str())-7], ".config") == 0)
