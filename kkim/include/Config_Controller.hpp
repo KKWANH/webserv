@@ -13,16 +13,27 @@
 # define				DEFAULT_MIME_TYP	"./config/mime.types"
 
 /**
-* -------------------------------------------------------------
-* > ConfigController
-*
-* (constructor) (bool):	Set private resources, and discriminate either the mime or the config
-*
-* - Member functions:
-* getConfig:			Find config value with key
-* setUri:				Set _uri as arv, save default if the parameter is wrong
-* ------------------------------------------------------------- *
+-------------------------------------------------------------
+> ConfigController
+: add ConfigController and MIMEController
+
+- Protected Variables:
+_cnt        			string, Contents
+_uri	  	            string, URI
+_mim       			  	bool, check is this mimetype or not
+
+- Constructor
+bool _is_mim            Set _mim as the bool
+
+- Member functions:
+getContent:			    Find config value with key
+setUri:			    	Set _uri as arv, save default if the parameter is wrong
+                        Only used in non-mime type
+setContent:             Read file and save contents
+printContent:           Print contents (debugging)
+-------------------------------------------------------------
 */
+
 class
 	ConfigController
 {
@@ -35,6 +46,11 @@ class
 			_mim;
 	
 	public:
+        /**
+        Get a bool from user, set _mim as that bool.
+
+        @param is_mim   bool, is this mimetype or not
+        */
 		ConfigController(bool _is_mim)
 		{
 			_mim = _is_mim;
@@ -44,6 +60,12 @@ class
 				_uri = DEFAULT_MIME_TYP;
 		}
 
+        /**
+        Get content's value with parameter key.
+
+        @return         string, value of content(_cnt)
+        @param _key     string, _key
+        */
 		std::string
 			getContent(std::string _key)
 		{
@@ -57,6 +79,12 @@ class
 			}
 		}
 
+        /**
+        Set _uri as parameter: file name.
+        If the file's extension is not .config, save original one.
+
+        @param _nam     string, file name
+        */
 		void
 			setUri(std::string _nam)
 		{
@@ -68,6 +96,13 @@ class
 							<< ANSI_BLU << "[INF]" << ANSI_RES << DEFAULT_CONFIG << std::endl;
 		}
 
+        /**
+        Save configs into content(_cnt).
+        Print error if the file is wrong(not exist or not readable).
+
+        @return         bool, is it failed of not
+        @param _nam     string, file name
+        */
 		int
 			setContent(std::string _nam)
 		{
@@ -108,7 +143,6 @@ class
 			return				(0);
 		}
 
-		// just for testing
 		void
 			printConfig(void)
 		{

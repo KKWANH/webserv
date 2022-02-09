@@ -22,19 +22,20 @@ extern ConfigController	_cnf(false);
 extern ConfigController	_mim(true);
 
 /**
-* -------------------------------------------------------------
-* > HTTPMessage
-* - Protected Variables:
-* _header_field			map(string, string), store header field
-* _start_line			string, Save start lines
-* _msg_body				string, Save the message body
-*
-* - Member functions:
-* Getter:				MessageBody, StartLine
-* parseHeaderField		Parse header field and save to _header_field(map). returns last index + 1.
-* setHeaderField		Insert new pair to _header_field
-* printHeaderField		We know it remains for debugging
-* ------------------------------------------------------------- *
+-------------------------------------------------------------
+> HTTPMessage
+
+- Protected Variables:
+_header_field			map(string, string), store header field
+_start_line	  		    string, Save start lines
+_msg_body			  	string, Save the message body
+
+- Member functions:
+Getter:				    MessageBody, StartLine
+parseHeaderField		Parse header field and save to _header_field(map).
+setHeaderField		    Insert new pair to _header_field
+printHeaderField		We know it remains for debugging
+-------------------------------------------------------------
 */
 
 class					HTTPMessage
@@ -51,10 +52,14 @@ class					HTTPMessage
 		std::string		getMessageBody(void)	{ return (_msg_body); }
 		std::string		getStartLine(void)		{ return (_start_line); }
 
-		// TODO:
-		// message : 클라이언트 측에서 전송하는 데이터
-		// pos : start_line을 parsing하고 난 이후의 위치
+        /**
+        Parse header field and save to _header_field(map).
 
+        @return         last_index + 1
+        @param  _msg    클라이언트 측에서 전송하는 데이터
+        @param  pos     start_line을 parsing하고 난 이후의 위
+        @todo           
+        */
 		int
 			parseHeaderField(std::string _msg, int &_pos)
 		{
@@ -106,37 +111,34 @@ class					HTTPMessage
 };
 
 /**
-* -------------------------------------------------------------
-* > RequestMessage : Son of HTTPMessage
+-------------------------------------------------------------
+> RequestMessage : HTTPMessage
 *
-* - Private Variables:
-* _mth					string, Save method
-* _rqu					string, Save request url
-* _dir					string, Save directory
-* _fil					string, Save file name
-* _chk					string, Check is this HTTP
-* _ver					double, HTTP version
+- Private Variables:
+_mth					string, Save method
+_rqu					string, Save request url
+_dir					string, Save directory
+_fil					string, Save file name
+_chk					string, Check is this HTTP
+_ver					double, HTTP version
 *
-* - Member functions:
-* Getter:				Method, RequestTarget, UriDirectory. UriFile, HttpVersion
-* resetMessage			Reset all variables (even parents' variables)
-* setHeaderField		Insert new pair to _header_field
-* printHeaderField		We know it remains for debugging
-* parseMethod			Parse method and save to _mth.
-*						The method returns an error if it is not one of the following:
-*						- GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE
-* parseTarget			Parse request target and save to _rqu, _dir, _fil.
-* parseIsHTTP			Parse HTTP version and save to _chk, _ver.
-*						The method returns an error if it is not one of the following:
-*						HTTP/
-* parseHTTPVersion		Parse HTTP version and save to _ver.
-*						The method returns an error if it is not one of the following:
-*						1.0, 1.1, 2.0, 3.0
-* parseStartLine		Execute all parsing functions. Share index _stt, _end.
-* parseRequestTarget	Parse start line, header field.
-*						PROBLEM: missing parsing function for POST - message body
-* printRequestTarget	We know it remains for debugging
-* ------------------------------------------------------------- *
+- Member functions:
+Getter:				Method, RequestTarget, UriDirectory. UriFile, HttpVersion
+resetMessage		변수 초기화
+setHeaderField		_header_field에 페어(Key - Value) 추가
+printHeaderField	ㄷ~ㅂ~ㄱ
+parseMethod			method 파싱해서 _mth에 저장
+                    - GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE
+parseTarget		    request target 파싱 후 저장
+parseIsHTTP		    HTTP/ 체크 및 파싱 후 저장
+parseHTTPVersion	HTTP 버전 파싱 후 저장
+                    1.0, 1.1, 2.0
+parseStartLine		파싱 메인?
+parseRequestTarget	Start Line, Header Field 파싱
+                    TODO: POST - message body 파싱 필요
+printRequestTarget	디~버~깅
+
+------------------------------------------------------------- *
 */
 
 class					RequestMessage : public HTTPMessage
@@ -171,8 +173,16 @@ class					RequestMessage : public HTTPMessage
 			return ;
 		}
 
+        /**
+        메소드 파싱.
+        GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE중에 없으면 에러
+
+        @param  _stt |
+        @param  _end | 공용 변수
+        @param  _msg |
+        */
 		int
-			parseMethod(int* _stt, int* _end, std::string& _msg)
+			parseMethod(int _stt, int _end, std::string& _msg)
 		{
 			*_stt = 0;
 			*_end = _msg.find(' ');
@@ -194,8 +204,16 @@ class					RequestMessage : public HTTPMessage
 			return (ERROR);
 		}
 
+        /**
+        request target 파싱.
+        GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE중에 없으면 에러
+
+        @param  _stt |
+        @param  _end | 공용 변수
+        @param  _msg |
+        */
 		int
-			parseTarget(int* _stt, int* _end, std::string& _msg)
+			parseTarget(int _stt, int _end, std::string& _msg)
 		{
 			*_stt = *_end + 1;
 			*_end = _msg.find(' ', *_stt);
@@ -222,8 +240,15 @@ class					RequestMessage : public HTTPMessage
 			return (ERROR);
 		}
 
+        /**
+        HTTP/ 파싱
+
+        @param  _stt |
+        @param  _end | 공용 변수
+        @param  _msg |
+        */
 		int
-			parseIsHTTP(int* _stt, int* _end, std::string& _msg)
+			parseIsHTTP(int _stt, int _end, std::string& _msg)
 		{
 			*_stt = *_end + 1;
 			*_end = _msg.find(' ', *_stt);
@@ -236,8 +261,16 @@ class					RequestMessage : public HTTPMessage
 			return (ERROR);
 		}
 
+        /**
+        HTTP 버전 파싱
+        1.0, 1.1, 2.0
+
+        @param  _stt |
+        @param  _end | 공용 변수
+        @param  _msg |
+        */
 		int
-			parseHTTPVersion(int* _stt, int* _end, std::string& _msg)
+			parseHTTPVersion(int _stt, int _end, std::string& _msg)
 		{
 			*_stt = *_end + 1;
 			*_end = _msg.find('\r', *_stt);
@@ -245,15 +278,20 @@ class					RequestMessage : public HTTPMessage
 				return (ERROR);
 
 			_ver = atof(_msg.substr(*_stt, *end).c_str());
-			_ver = floor(_ver * 10) / 10;
+			_ver = floor(_ver 10) / 10;
 			if (_ver == 1.0 ||
 				_ver == 1.1 ||
-				_ver == 2.0 ||
-				_ver == 3.0)
+				_ver == 2.0)
 				return (0);
 			return (ERROR);
 		}
 
+        /**
+        스타트라인 파싱 함수 시작파트.
+        공용으로 쓰던 _stt, _end 여기서 만듦
+
+        @param  _msg 메시지
+        */
 		int
 			parseStartLine(std::string& _msg)
 		{
@@ -270,6 +308,12 @@ class					RequestMessage : public HTTPMessage
 			return (_stt + 5);
 		}
 
+        /**
+        Startline, HeaderField 파싱.
+
+        @param  _msg 메시지
+        @todo   parseStartLine이랑 합치기
+        */
 		int
 			parseRequestMessage(int _fdN, std::string& _msg)
 		{
@@ -298,23 +342,24 @@ class					RequestMessage : public HTTPMessage
 };
 
 /**
-* -------------------------------------------------------------
-* > ResponseMessage : Son of HTTPMessage
-* - why separate with RequestMessage: 'cause they have different start-line
+-------------------------------------------------------------
+> ResponseMessage : Son of HTTPMessage
 *
-* - Protected Variables:
-* _ver					double, HTTP version
-* _sta					int, status code
-* _rea					std::string, reason phrase
-* _ext					std::string, extension
+- why separate with RequestMessage: 'cause they have different start-line
 *
-* - Member functions:
-* resetMessage			Reset all variables (even parents' variables)
-* setter(simple)		Setter for simple variables (_ver, _sta, _ext)
-* setReasonPhrase		Give a reason phrase that fits the status code
-* setResponseHeader...	Set header field.
+- Protected Variables:
+_ver					double, HTTP version
+_sta					int, status code
+_rea					std::string, reason phrase
+_ext					std::string, extension
+*
+- Member functions:
+resetMessage			Reset all variables (even parents' variables)
+setter(simple)		Setter for simple variables (_ver, _sta, _ext)
+setReasonPhrase		Give a reason phrase that fits the status code
+setResponseHeader...	Set header field.
 *						PROBLEM: set content-length 0 if the file is binary
-* ------------------------------------------------------------- *
+------------------------------------------------------------- *
 */
 
 class					ResponseMessage : public HTTPMessage
@@ -363,7 +408,7 @@ class					ResponseMessage : public HTTPMessage
 			{
 				case 200:	_rea += "OK";		break;
 				case 403:	_rea += "Forbidden";	break;
-				case 494:	_rea += "Not Found";	break;
+				case 404:	_rea += "Not Found";	break;
 				default :	_rea += "Error";		break;
 			}
 		}
