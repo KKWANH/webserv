@@ -1,65 +1,67 @@
 #ifndef SERVERPROCESS_HPP
 # define SERVERPROCESS_HPP
 
-#include "./requestMsgController.hpp"
-#include "./responseMsgController.hpp"
 #include <dirent.h>
+#include <sys/stat.h>
+
+#include "requestMsgController.hpp"
+#include "responseMsgController.hpp"
+#include "socketController.hpp"
+#include "KernelQueueController.hpp"
+#include "configController.hpp"
 
 extern configController		config;
 
 class serverProcess {
 	public:
-		static int			findIndexFile(int client_sock, std::string target, std::string *uri) {
-			int				flag = 0;
-			DIR				*dp;
-			struct dirent	*dir;
+		static int		ServerProcess(socketController *socket, KernelQueueController *kqueue)
+			{
+				while (1)
+				{
+					kqueue->setPollingCount(
+						kevent(kqueue->getKq(),
+						kqueue->getChangeList(),
+						kqueue->getChangeCount(),
+						kqueue->getEventList(),
+						BUFSIZ,
+						NULL)
+					);
 
-			*uri = config.getConfig("root") + target;
-			const char	*uri_char = uri->c_str();
+					kqueue->clearChangeList();
+					kqueue->resetChangeCount();
 
-			if ((dp = opendir(uri_char)) == NULL)
-				return (1);
+					for (int i = 0; kqueue->getPollingCount(); i++) {
+						if (kqueue->getEventList(i)->filter == EVFILT_READ) {
+							std::cout << "[READ]\t";
 
-			while ((dir = readdir(dp)) != NULL) {
-				if (dir->d_ino == 0)
-					continue ;
-				if (strcmp(config.getConfig("index").c_str(), dir->d_name) == 0) {
-					flag = 1;
-					break ;
+							if ((int)kqueue->getEventList(i)->ident == socket->getServerSocket()) {
+								socket->setClientSock(accept(socket->getServerSocket(), socket->getConvertAddressClient(), socket->getSocketLength()));
+								fcntl(socket->getClientSocket(), F_SETFL, O_NONBLOCK);
+								kqueue->setReadKqueue(socket->getClientSocket());
+								std::cout << " Server Connect : [ " << socket->getClientSocket() << " ]" << std::endl;
+							}
+
+							else {
+								int 	fd = kqueue->getEventList(i)->ident;
+								char	buf[BUFSIZ];
+								recv(fd, buf, BUFSIZ, 0);
+								if (kqueue->addRequestMsg(fd, buf) == -1)
+									return (-1);
+								kqueue->setWriteKqueue(fd);
+							}
+						}
+						else if (kqueue->getEventList(i)->filter == EVFILT_WRITE) {
+							int fd = kqueue->getEventList(i)->ident;
+							std::cout << "[WRITE]\t[" << fd << "]" << std::endl;
+							// kqueue->getRequestMessage(fd)->printRequestMsg();
+							std::string msg = responseMsg::setResponseMsg(kqueue->getRequestMessage(fd));
+							write(fd, msg.c_str(), msg.size());
+							kqueue->removeRequestMessage(fd);
+							close(fd);
+						}
+					}
 				}
 			}
-			closedir(dp);
-			return (flag == 1 ? 0 : 1);
-		}
-
-		static std::string	process(int client_sock, requestMsg *requestMsg) {
-			responseMsg		responseMsg;
-			std::string		uri;
-			int				flag;
-
-			flag = findIndexFile(client_sock, requestMsg->request_target, &uri);
-
-			if (flag == 0) {
-				responseMsg.setStatusCode(200);
-				responseMsg.setMsgBody(uri + "/index.html");
-			}
-			else if (flag == 1) {
-				std::cout << "404?" << std::endl;
-				responseMsg.setStatusCode(404);
-				responseMsg.setMsgBody(config.getConfig("root") + "/404.html");
-			}
-			else {
-				responseMsg.setStatusCode(403);
-				responseMsg.setMsgBody(config.getConfig("root") + "/403.html");
-			}
-			responseMsg.setHttpVersion(requestMsg->http_version);
-			responseMsg.setReason();
-			responseMsg.setStartLine();
-			responseMsg.setHeaderField();
-
-			std::string rtn = responseMsg.makeResponseMsg();
-			return (rtn);
-		}
 };
 
 #endif

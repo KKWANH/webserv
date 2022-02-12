@@ -10,6 +10,8 @@
 #include <utility>
 #include <sstream>
 #include <fstream>
+#include <dirent.h>
+#include <sys/stat.h>
 
 class HTTPMsg {
 	protected:
@@ -19,6 +21,10 @@ class HTTPMsg {
 	public:
 		std::string	getStartLine(void) {
 			return (this->start_line);
+		}
+
+		std::string	getMsgBody(void) {
+			return (msg_body);
 		}
 
 		void		printHeaderField(void) {
@@ -55,6 +61,10 @@ class HTTPMsg {
 					break ;
 			}
 			return ;
+		}
+
+		void		setHeaderField(std::string key, std::string value) {
+			header_field.insert(std::make_pair<std::string, std::string>(key, value));
 		}
 };
 

@@ -13,7 +13,7 @@ class socketController {
 	private:
 		int					server_sock, client_sock;
 		struct sockaddr_in	server_addr, client_addr;
-		socklen_t			addr_size;
+		socklen_t			c_len;
 		int					port;
 	public:
 		int					getServerSocket(void) {
@@ -34,6 +34,11 @@ class socketController {
 
 		struct sockaddr*	getConvertAddressClient(void) {
 			return ((struct sockaddr*)&this->client_addr);
+		}
+
+		socklen_t			*getSocketLength(void) {
+			c_len = sizeof(client_addr);
+			return (&c_len);
 		}
 
 		void				setPort(int _port) {

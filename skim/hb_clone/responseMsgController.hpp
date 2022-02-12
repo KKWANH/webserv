@@ -1,7 +1,9 @@
 #ifndef RESPONSECONTROLLER_HPP
 # define RESPONSECONTROLLER_HPP
 
-#include "httpMsgController.hpp"
+#include "./configController.hpp"
+#include "./MIMEController.hpp"
+#include "./httpMsgController.hpp"
 
 
 // http 응답 메세지 형태 ex)
@@ -16,21 +18,39 @@
 // Content-Length: 29769 // 무엇에 대한 길이인가...?
 // Content-Type: text/html
 
+extern configController	config;
+extern MIMEController	mime;
+
 class responseMsg : public HTTPMsg {
 	protected:
 		double		http_version;
 		int			status_code;
 		std::string	reason;
+		std::string	extension;
 	public:
-		void		setHttpVersion(double version) {
+		void				resetMessage(void) {
+			start_line = "";
+			header_field.clear();
+			msg_body = "";
+			http_version = 0;
+			status_code = 0;
+			reason = "";
+			extension = "";
+		}
+
+		void				setHttpVersion(double version) {
 			this->http_version = version;
 		}
 
-		void		setStatusCode(int code) {
+		void				setStatusCode(int code) {
 			this->status_code = code;
 		}
 
-		void		setReason(void) {
+		void				setExtension(std::string _extension) {
+			this->extension = _extension;
+		}
+
+		void				setReason(void) {
 			switch(status_code) {
 				case 200:
 					this->reason += "OK";
@@ -50,28 +70,27 @@ class responseMsg : public HTTPMsg {
 		// Accept-Ranges: bytes
 		// Content-Length: 29769 // 무엇에 대한 길이인가...?
 		// Content-Type: text/html
-		void		setHeaderField(void) {
-			header_field.insert(std::make_pair<std::string, std::string>("Content-Type", "text/html"));
-			header_field.insert(std::make_pair<std::string, std::string>("Content-Length", "500"));
+		void				setResponseHeaderField(void) {
+			header_field.insert(std::make_pair<std::string, std::string>("Content-Type", mime.getMIME(extension)));
+			setHeaderField("Content-Length", std::to_string(this->getMsgBody().length()));
 			header_field.insert(std::make_pair<std::string, std::string>("Accept-Ranges", "bytes"));
 		}
 
 		// HTTP/1.1 200 OK
-		void		setStartLine(void) {
-			std::stringstream	ss_http_version; // string에서 각 정보를 추출하여 다루기 좋은 라이브러리
-			ss_http_version << http_version;
-			std::stringstream	ss_status_code;;
-			ss_status_code << status_code;
+		void				setStartLine(int status_code, double http_version) {
+			this->setHttpVersion(http_version);
+			this->setStatusCode(status_code);
+			this->setReason();
 
 			start_line += "HTTP/";
-			start_line += ss_http_version.str();
+			start_line += std::to_string(http_version);
 			start_line += " ";
-			start_line += ss_status_code.str();
+			start_line += std::to_string(status_code);
 			start_line += " ";
 			start_line += reason;
 		}
 
-		std::string	makeResponseMsg(void) {
+		std::string			makeResponseMsg(void) {
 			std::map<std::string, std::string>::iterator	it;
 			std::string	rtn;
 
@@ -89,12 +108,88 @@ class responseMsg : public HTTPMsg {
 		}
 
 		// rdbuf에 대하여 좀 더 조사해볼 것!
-		void		setMsgBody(std::string uri) {
-			std::ifstream		file(uri);
-			std::stringstream	ss_file;
+		void				setMsgBody(std::string uri) {
+			std::cout << "URI : " << uri << std::endl;
+			if (extension.compare("jpg") == 0 || extension.compare("ico") == 0) {
+				std::cout << "IMAGE" << std::endl;
+				std::string temp;
+				int pos = uri.find_last_of(".");
+				temp =	uri.substr(pos - 5);
+				std::ifstream is(uri, std::ifstream::binary);
+				if (is) {
+					is.seekg(0, is.end);
+					int	length = is.tellg();
+					is.seekg(0, is.beg);
 
-			ss_file << file.rdbuf();
-			msg_body = ss_file.str();
+					char	*buffer = NULL;
+
+					is.read((char *)buffer, length);
+					std::string	tmp(buffer);
+					msg_body = tmp;
+					is.close();
+				}
+			} else {
+				std::ifstream	file(uri);
+				std::string		line;
+				int				i = 0;
+
+				while (std::getline(file, line)) {
+					msg_body += line;
+					msg_body += "\n";
+					i++;
+					if (i == 5)
+						std::cout << "BODY : \n" << msg_body << std::endl;
+				}
+			}
+		}
+
+		int					isDirOrFile(requestMsg *reqMsg, std::string *uri) {
+			int				flag = 0;
+			DIR				*dp;
+			struct dirent	*dir;
+
+			*uri = config.getConfig("root") + reqMsg->getUriDir();
+
+			if ((dp = opendir(uri->c_str())) == NULL) {
+				std::cout << "opendir error" << std::endl;
+				*uri = config.getConfig("root") + "/403.html";
+				return (403);
+			}
+			if (reqMsg->getUriDir().compare("/") != 0)
+				*uri += "/";
+			*uri += reqMsg->getUriFile();
+			while ((dir = readdir(dp)) != NULL) {
+				if (dir->d_ino == 0)
+					continue ;
+				if (strcmp(reqMsg->getUriFile().c_str(), dir->d_name) == 0) {
+					std::string _ext;
+					int pos = reqMsg->getUriFile().find_last_of(".");
+					_ext = reqMsg->getUriFile().substr(pos + 1);
+					this->setExtension(_ext);
+					flag = 200;
+					break ;
+				}
+			}
+			if (flag != 200) {
+				*uri = config.getConfig("root") + "/404.html";
+				flag = 404;
+				this->setExtension("html");
+			}
+			closedir(dp);
+			return (flag);
+		}
+
+		static std::string	setResponseMsg(requestMsg *reqMsg) {
+			responseMsg		resMsg;
+			std::string		uri;
+			int				flag;
+
+			flag = resMsg.isDirOrFile(reqMsg, &uri);
+			resMsg.setStartLine(flag, reqMsg->getHttpVersion());
+			resMsg.setMsgBody(uri);
+			resMsg.setResponseHeaderField();
+			std::string rtn = resMsg.makeResponseMsg();
+			return (rtn);
 		}
 };
 

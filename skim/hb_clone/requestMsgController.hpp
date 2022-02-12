@@ -1,6 +1,8 @@
 #ifndef REQUESTMSGCONTROLLER_HPP
 # define REQUESTMSGCONTROLLER_HPP
 
+#include "./configController.hpp"
+#include "./MIMEController.hpp"
 #include "./httpMsgController.hpp"
 
 // HTTP 요청 메세지 형태 ex)
@@ -8,15 +10,46 @@
 // Host: developer.mozilla.org
 // Accept-Language: fr
 
-// response 의 변수는은 protected 이지만, request 변수는 왜 public 인가...?
+extern configController	config;
+extern MIMEController	mime;
+
 class requestMsg : public HTTPMsg {
-	public:
+	private:
 		std::string	method;
 		std::string	request_target;
+		std::string	uri_dir;
+		std::string	uri_file;
 		std::string	isHTTP;
 		double		http_version;
 
-		int			checkMethod(void) {
+	public:
+		std::string	getMethod(void) { return (method); }
+		std::string	getRequestTarget(void) { return (request_target); }
+		std::string	getUriDir(void) { return (uri_dir); }
+		std::string getUriFile(void) { return (uri_file); }
+		double		getHttpVersion(void) { return (http_version); }
+
+		void		resetMessage(void) {
+			start_line = "";
+			header_field.clear();
+			msg_body = "";
+			method = "";
+			request_target = "";
+			uri_dir = "";
+			uri_file = "";
+			isHTTP = "";
+			http_version = 0;
+		}
+
+
+		int			parseMethod(int *start, int *end, std::string &msg) {
+			*start = 0;
+			*end = msg.find(' ');
+			if (*end == -1)
+				return (-1);
+			std::cout << msg.substr(*start, *end) << std::endl;
+			method = msg.substr(*start, *end);
+
 			if (method.compare("GET") == 0 ||
 					method.compare("POST") == 0 ||
 					method.compare("PUT") == 0 ||
@@ -31,86 +64,89 @@ class requestMsg : public HTTPMsg {
 		}
 
 		// uri가 올바른지 판단하는 함수
-		int			checkTarget(void) {
-			if (request_target.length() > 0 && request_target[0] == '/')
+		int			parseTarget(int *start, int *end, std::string &msg) {
+			*start = *end + 1;
+			*end = msg.find(' ', *start);
+			if (*end == -1)
+				return (-1);
+			this->request_target = msg.substr(*start, *end - *start);
+			if (request_target.length() > 0 && request_target[0] == '/') {
+				int dir_pos = request_target.find_last_of('/');
+				int file_pos = request_target.find_last_of('.');
+				if (dir_pos < file_pos) {
+					uri_dir = request_target.substr(0, dir_pos);
+					uri_file = request_target.substr(dir_pos + 1);
+				} else {
+					uri_dir = request_target;
+					uri_file = config.getConfig("index");
+				}
 				return (0);
+			}
 			return (-1);
 		}
 
-		int			checkHTTP(void) {
+		int			parseIsHTTP(int *start, int *end, std::string &msg) {
+			*start = *end + 1;
+			*end = msg.find('/', *start);
+			if (*end == -1)
+				return (-1);
+			this->isHTTP = msg.substr(*start, *end - *start + 1);
+
 			if (isHTTP.compare("HTTP/") == 0)
 				return (0);
 			return (-1);
 		}
 
-		int			checkHttpVersion(void) {
+		int			parseHTTPVersion(int *start, int *end, std::string &msg) {
+			*start = *end + 1;
+			*end = msg.find("\r\n", *start);
+			if (*end == -1)
+				return (-1);
+			http_version = atof(msg.substr(*start).c_str());
+
 			if (http_version == 1.0 || http_version == 1.1 || http_version == 2.0)
 				return (0);
 			return (-1);
 		}
 
 		int			parseStartLine(std::string &msg) {
-			int	start = 0;
-			int	last = msg.find(' ');
+			int start, end;
 
-			// std::cout << "parseStartLine" << std::endl;
-			// std::cout << msg << std::endl << std::endl;
-			method = msg.substr(start, last);
-			if (checkMethod() == -1)
+			if (this->parseMethod(&start, &end, msg) == -1)
 				return (-1);
-
-			start = last + 1;
-			last = msg.find(' ' , start);
-			request_target = msg.substr(start, last - start);
-			// std::cout << "request_target : " << request_target << std::endl;
-			if (checkTarget() == -1)
+			if (this->parseTarget(&start, &end, msg) == -1)
 				return (-1);
-
-			start = last + 1;
-			last = msg.find('/', start);
-			isHTTP = msg.substr(start, last - start + 1);
-			// std::cout << "isHTTP : " << isHTTP << std::endl;
-			if (checkHTTP() == -1)
+			if (this->parseIsHTTP(&start, &end, msg) == -1)
 				return (-1);
-
-			start = last + 1;
-			http_version = atof(msg.substr(start).c_str());
-			// std::cout << "http_version : " << http_version << std::endl;
-			if (checkHttpVersion() == -1)
+			if (this->parseHTTPVersion(&start, &end, msg) == -1)
 				return (-1);
-
-			printStartLine();
-			// header_field parsing을 위해 start_line 이후의 위치를 반환
 			return (start + 5);
 		}
 
-		void		printStartLine(void) {
-			std::cout << "Method\t: " << method << std::endl;
-			std::cout << "Target\t: " << request_target << std::endl;
-			std::cout << "isHTTP\t: " << isHTTP << std::endl;
-			std::cout << "Version\t: " << http_version << std::endl;
-		}
-
-		static int	parsingRequestMsg(int client_sock, requestMsg *requestMsg) {
+		int			parsingRequestMsg(int client_sock, std::string &msg) {
 			int		n;
-			char	charMsg[1024];
-			read(client_sock, &charMsg, 1024);
-			std::string stringMsg(charMsg);
 
-			if ((n = requestMsg->parseStartLine(stringMsg)) == -1) {
+			std::cout << "client_sodk : " << client_sock << std::endl;
+			std::cout << "msg : " << msg << std::endl;
+
+			if ((n = this->parseStartLine(msg)) == -1) {
 				std::cout << "Error: parsing start line" << std::endl;
 				close(client_sock);
 				return (-1);
 			}
-			requestMsg->parseHeaderField(stringMsg, n);
+			this->parseHeaderField(msg, n);
 			return (0);
 		}
 
-		static void		printRequestMsg(requestMsg *requestMsg, struct sockaddr_in client_addr) {
-			requestMsg->printStartLine();
-			requestMsg->printHeaderField();
-			std::cout << "CLI ADDR\t: " << inet_ntoa(client_addr.sin_addr) << std::endl;
-			std::cout << "CLI PORT\t: " << ntohs(client_addr.sin_port) << std::endl;
+		void		printRequestMsg() {
+			std::string rtn;
+
+			std::cout << "METHOD : " << this->method << std::endl;
+			std::cout << "DIR : " << this->uri_dir << std::endl;
+			std::cout << "FILE : " << this->uri_file << std::endl;
+			std::cout << "HTTP : " << this->isHTTP + std::to_string(this->http_version) << std::endl;
+
+			return ;
 		}
 };
 
