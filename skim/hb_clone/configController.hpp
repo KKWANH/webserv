@@ -7,25 +7,24 @@
 #include <iostream>
 #include <fstream>
 
+#define DEFAULT_URI "/Users/soobin/Desktop/webserv/skim/hb_clone/webserv.conf"
+
 class configController {
 	private:
 		std::map<std::string, std::string>	config;
 		std::string							configUri;
 	public:
+		configController() : configUri(DEFAULT_URI) {}
+
 		std::string		getConfig(std::string const &key) {
 			return (this->config[key]);
 		}
 
 		// config 파일을 읽어 각 key, value를 map 형식으로 저장하여 준다.
 		int				setConfig(void) {
-			configUri = "./werserv.config";
+			configUri = "./webserv.config";
 			std::string		key, value, temp;
 			std::ifstream	fileRead(configUri.c_str());
-
-			if (fileRead.is_open() == false) {
-				std::cout << "Error: Can't open config file" << std::endl;
-				return (-1);
-			}
 
 			if (fileRead.peek() == std::ifstream::traits_type::eof()) {
 				std::cout << "Error: Config file is empty" << std::endl;
