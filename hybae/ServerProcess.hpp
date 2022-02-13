@@ -10,6 +10,8 @@
 
 extern ConfigController config;
 
+#define TEMP_BUFSIZ 128
+
 class ServerProcess {
 	public:
 		static int				serverProcess(SocketController* Socket, KernelQueueController* Kqueue) {
@@ -42,12 +44,28 @@ class ServerProcess {
 						// TODO: file 크기가 큰 경우 나눠서 통신하는 기능 구현
 						// client read
 						else {
+							
 							int fd = Kqueue->getEventList(i)->ident;
-							char buf[BUFSIZ];
-							recv(fd, buf, BUFSIZ, 0);
-							if (Kqueue->addRequestMessage(fd, buf) == -1)
+							char buf[TEMP_BUFSIZ];
+							int n;
+							n = read(fd, buf, TEMP_BUFSIZ - 1);
+							std::cout << "N : " << n << std::endl;
+							if (n == -1) {
+								std::cout << "RECV ERROR" << std::endl;
 								return (-1);
-							Kqueue->setWriteKqueue(fd);
+							}
+							else if (n == TEMP_BUFSIZ - 1) {
+								buf[n] = '\0';
+								Kqueue->sumMessage(fd, buf);
+							}
+							else {
+								buf[n] = '\0';
+								Kqueue->sumMessage(fd, buf);
+								std::cout << "GET ALL" << std::endl;
+								if (Kqueue->addRequestMessage(fd) == -1)
+								return (-1);
+								Kqueue->setWriteKqueue(fd);
+							}
 						}
 					}
 					// write
@@ -55,8 +73,11 @@ class ServerProcess {
 						int fd = Kqueue->getEventList(i)->ident;
 						std::cout << "[WRITE]\tmessage : [" << fd << "]" << std::endl;
 						Kqueue->getRequestMessage(fd)->printRequestMessage();
-						std::string msg = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
-						write(fd, msg.c_str(), msg.size());
+						
+						ResponseMessage responseMessage;
+						responseMessage.setResponseMessage(fd, Kqueue->getRequestMessage(fd));
+						//std::cout << responseMessage.getMsg() << std::endl;
+						//write(fd, responseMessage.getMsg(), strlen(responseMessage.getMsg()));
 						Kqueue->removeRequestMessage(fd);
 						close(fd);
 					}
