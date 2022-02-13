@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 
-#define DEFAULT_URI "/Users/soobin/Desktop/webserv/skim/hb_clone_2/config/default.config"
+#define DEFAULT_URI "/Users/soobin/Desktop/webserv/main/config/default.config"
 
 class ConfigController {
 	private:
