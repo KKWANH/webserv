@@ -3,6 +3,7 @@ htm: text/html
 shtml: text/html
 css: text/css
 xml: text/xml
+ico: image/x-icon
 gif: image/gif
 jpeg: image/jpeg
 jpg: image/jpeg
