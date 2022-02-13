@@ -18,8 +18,8 @@
 # include				"Server_Process.hpp"
 # include				"Config_Controller.hpp"
 
-extern ConfigController	_cnf(false);
-extern ConfigController	_mim(true);
+extern ConfigController	_config;
+extern ConfigController	_mime;
 
 /**
 -------------------------------------------------------------
@@ -182,15 +182,15 @@ class					RequestMessage : public HTTPMessage
         @param  _msg |
         */
 		int
-			parseMethod(int _stt, int _end, std::string& _msg)
+			parseMethod(int* _stt, int* _end, std::string& _msg)
 		{
 			*_stt = 0;
 			*_end = _msg.find(' ');
 			if (*_end == ERROR)
 				return (ERROR);
 
-			std::cout	<< _msg.substr(*_stt, *end) << std::endl;
-			_mth = _msg.substr(*_stt, *end);
+			std::cout	<< _msg.substr(*_stt, *_end) << std::endl;
+			_mth = _msg.substr(*_stt, *_end);
 			if (_mth.compare("GET")		== 0 ||
 				_mth.compare("POST")	== 0 ||
 				_mth.compare("PUT")		== 0 ||
@@ -213,14 +213,14 @@ class					RequestMessage : public HTTPMessage
         @param  _msg |
         */
 		int
-			parseTarget(int _stt, int _end, std::string& _msg)
+			parseTarget(int* _stt, int* _end, std::string& _msg)
 		{
 			*_stt = *_end + 1;
 			*_end = _msg.find(' ', *_stt);
 			if (*_end == ERROR)
 				return (ERROR);
 			
-			_rqu = _msg.substr(*_stt, *end);
+			_rqu = _msg.substr(*_stt, *_end);
 			if (_rqu.length() > 0 && _rqu.at(0) == '/')
 			{
 				int _pos_dir = _rqu.find_last_of("/");
@@ -233,7 +233,7 @@ class					RequestMessage : public HTTPMessage
 				else
 				{
 					_dir = _rqu;;
-					_fil = _cnf.getContent("index");
+					_fil = _config.getContent("index");
 				}
 				return (0);
 			}
@@ -248,14 +248,14 @@ class					RequestMessage : public HTTPMessage
         @param  _msg |
         */
 		int
-			parseIsHTTP(int _stt, int _end, std::string& _msg)
+			parseIsHTTP(int* _stt, int* _end, std::string& _msg)
 		{
 			*_stt = *_end + 1;
 			*_end = _msg.find(' ', *_stt);
 			if (*_end == ERROR)
 				return (ERROR);
 			
-			_chk = _msg.substr(*_stt, *end);
+			_chk = _msg.substr(*_stt, *_end);
 			if (_chk.compare("HTTP/") == 0)
 				return (0);
 			return (ERROR);
@@ -270,15 +270,15 @@ class					RequestMessage : public HTTPMessage
         @param  _msg |
         */
 		int
-			parseHTTPVersion(int _stt, int _end, std::string& _msg)
+			parseHTTPVersion(int* _stt, int* _end, std::string& _msg)
 		{
 			*_stt = *_end + 1;
 			*_end = _msg.find('\r', *_stt);
 			if (*_end == ERROR)
 				return (ERROR);
 
-			_ver = atof(_msg.substr(*_stt, *end).c_str());
-			_ver = floor(_ver 10) / 10;
+			_ver = atof(_msg.substr(*_stt, *_end).c_str());
+			_ver = floor(_ver * 10) / 10;
 			if (_ver == 1.0 ||
 				_ver == 1.1 ||
 				_ver == 2.0)
@@ -315,7 +315,7 @@ class					RequestMessage : public HTTPMessage
         @todo   parseStartLine이랑 합치기
         */
 		int
-			parseRequestMessage(int _fdN, std::string& _msg)
+			parsingRequestMessage(int _fdN, std::string& _msg)
 		{
 			int			_num;
 
@@ -355,8 +355,8 @@ _ext					std::string, extension
 *
 - Member functions:
 resetMessage			Reset all variables (even parents' variables)
-setter(simple)		Setter for simple variables (_ver, _sta, _ext)
-setReasonPhrase		Give a reason phrase that fits the status code
+setter(simple)			Setter for simple variables (_ver, _sta, _ext)
+setReasonPhrase			Give a reason phrase that fits the status code
 setResponseHeader...	Set header field.
 *						PROBLEM: set content-length 0 if the file is binary
 ------------------------------------------------------------- *
@@ -384,7 +384,7 @@ class					ResponseMessage : public HTTPMessage
 		}
 
 		void
-			setHTTPVersion(double _dbl)
+			setHttpVersion(double _dbl)
 		{
 			_ver = _dbl;
 		}
@@ -401,27 +401,200 @@ class					ResponseMessage : public HTTPMessage
 			_ext = _str;
 		}
 
+		/**
+		TODO: parsing(config)로 바꾸기
+		*/
 		void
 			setReasonPhrase(void)
 		{
 			switch(_sta)
 			{
-				case 200:	_rea += "OK";		break;
+				case 200:	_rea += "OK";			break;
 				case 403:	_rea += "Forbidden";	break;
 				case 404:	_rea += "Not Found";	break;
 				default :	_rea += "Error";		break;
 			}
 		}
 
+		/**
+		Header field의 값을 설정
+		TODO: binary file의 경우 content-length가 0으로 설정되는 문제
+		*/
 		void
 			setResponseHeaderField(void)
 		{
-			_header_field.insert(std::pair<std::string, std::string>("Content-Type", _mim.getContent(this->_ext)));
-			setHeaderField(std::to_string(this->getMessageBody().length()));
+			_header_field.insert(std::make_pair<std::string, std::string>("Content-Type", _mime.getContent(this->_ext)));
+			this->setHeaderField("Content-Length", std::to_string(this->getMessageBody().length()));
 			_header_field.insert(std::pair<std::string, std::string>("Accept-Ranges", "bytes"));
 		}
 
+		/**
+		StartLine 설정
+		*/
+		void
+			setStartLine(int _status_code, double _http_version)
+		{
+			this->setHttpVersion(_http_version);
+			this->setStatusCode(_status_code);
+			this->setReasonPhrase();
+			_start_line += "HTTP/"
+						+ std::to_string(_http_version) + " "
+						+ std::to_string(_status_code) + " "
+						+ this->_rea;
+		}
 
+		/**
+		@return		Response Message 전체 합쳐서 반환
+					(Start-Line, Header-Field, Message-Body)
+		*/
+		std::string
+			makeResponseMessage(void)
+		{
+			std::map<std::string, std::string>::iterator
+				_itr;
+			std::string
+				_str;
+			
+			_str	= _start_line
+					+ "\r\n";
+			_itr	= _header_field.begin();
+			while (true)
+			{
+				_str += _itr->first + ": "
+					 +  _itr->second + "\r\n";
+				++_itr;
+				if (_itr == _header_field.end())
+					break ;
+			}
+			_str += "\r\n";
+			_str += this->getMessageBody();
+			return (_str);
+		}
+
+		/**
+		TODO:	static page 폴더 내 index.html 파일 파싱 시, 크기가 큰 파일들 파싱 안 됨
+				파일을 전체 받아오는 경우, 파일의 크기만큼 메모리가 할당된다.
+				오버플로우의 위험이 있음.
+				buffer를 만들고 그 크기만큼 쪼개서 읽고, 전송을 반복하는 방법으로 수정 가능
+				binary 파일이 string 타입에 대입 시 제대로 들어가는지 확인 필요
+		*/
+		void
+			setMessageBody(std::string _uri)
+		{
+			std::cout << "URI: " << _uri << std::endl;
+			if (_ext.compare("jpg") == 0 || _ext.compare("ico") == 0)
+			{
+				std::cout << "IMAGE" << std::endl;
+				int
+					_pos = _uri.find_last_of(".");
+				std::string
+					_tmp = _uri.substr(_pos - 5);
+				std::ifstream _ifs(_uri, std::ifstream::binary);
+				if (_ifs)
+				{
+					_ifs.seekg(0, _ifs.end);
+					int
+						_len = (int)_ifs.tellg();
+					_ifs.seekg(0, _ifs.beg);
+					char*
+						_buf = new char[_len + 1];
+					_ifs.read((char*)_buf, _len);
+					std::string _tmp(_buf);
+					_msg_body = _tmp;
+					_ifs.close();
+				}
+			}
+			else
+			{
+				std::ifstream
+					_fil(_uri);
+				std::string
+					_lin;
+				int 
+					_idx = 0;
+				while (std::getline(_fil, _lin))
+				{
+					_msg_body = _msg_body + _lin + "\n";
+					++_idx;
+					if (_idx == 5)
+						std::cout << "BODY: \n" << _msg_body << std::endl;
+				}
+			}
+		}
+
+		/**
+		uri가 dir인지, file인지 확인
+		*/
+		int
+			isDirOrFile(RequestMessage* _rqm, std::string* _uri)
+		{
+			int
+				_flg = 0;
+			DIR*
+				_dp;
+			struct dirent*
+				_dir;
+			
+			*_uri = _config.getContent("root") + "/403.html";
+			if ((_dp = opendir(_uri->c_str())) == NULL)
+			{
+				std::cout << "DIR Open Error" << std::endl;
+				*_uri = _config.getContent("root") + "/404.html";
+				this->setExtension("html");
+				return (403);
+			}
+			if (_rqm->getUriDir().compare("/") != 0)
+				*_uri = *_uri + "/";
+			*_uri = *_uri + _rqm->getUriFile();
+			while ((_dir = readdir(_dp)) != NULL)
+			{
+				if (_dir->d_ino == 0)
+					continue;
+				if (strcmp(_rqm->getUriFile().c_str(), _dir->d_name) == 0)
+				{
+					std::string
+						_extension;
+					int
+						_pos = _rqm->getUriFile().find_last_of(".");
+					_extension = _rqm->getUriFile().substr(_pos + 1);
+					this->setExtension(_extension);
+					_flg = 200;
+					break;
+				}
+			}
+
+			if (_flg != 200)
+			{
+				*_uri = _config.getContent("root") + "/404.html";
+				_flg = 404;
+				this->setExtension("html");
+			}
+			closedir(_dp);
+			return (_flg);
+		}
+
+		/**
+		*/
+		static std::string
+			setResponseMessage(RequestMessage* _rqm)
+		{
+			ResponseMessage
+				_rpm;
+			std::string
+				_uri;
+			int
+				_flg;
+
+			_flg = _rpm.isDirOrFile(_rqm, &_uri);
+			_rpm.setStartLine(_flg, _rqm->getHttpVersion());
+			_rpm.setMessageBody(_uri);
+			_rpm.setResponseHeaderField();
+			
+			std::string
+				_rst = _rpm.makeResponseMessage();
+
+			return (_rst);
+		}
 };
 
 #endif

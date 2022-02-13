@@ -26,6 +26,7 @@ _mim       			  	bool, check is this mimetype or not
 bool _is_mim            Set _mim as the bool
 
 - Member functions:
+setIsMIME()				Set _mim as the bool
 getContent:			    Find config value with key
 setUri:			    	Set _uri as arv, save default if the parameter is wrong
                         Only used in non-mime type
@@ -51,7 +52,15 @@ class
 
         @param is_mim   bool, is this mimetype or not
         */
-		ConfigController(bool _is_mim)
+		ConfigController(void)
+		{
+			_uri = DEFAULT_CONFIG;
+		}
+
+		/*
+		*/
+		void
+			setIsMIME(bool _is_mim)
 		{
 			_mim = _is_mim;
 			if (_is_mim == false)
