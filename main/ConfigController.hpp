@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 
-#define DEFAULT_URI "/Users/soobin/Desktop/webserv/main/config/default.config"
+#define DEFAULT_URI "./config/default.config"
 
 class ConfigController {
 	private:

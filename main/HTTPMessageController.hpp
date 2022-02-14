@@ -296,7 +296,7 @@ class ResponseMessage : public HTTPMessage {
 			this->setReasonPhrase();
 
 			start_line += "HTTP/";
-			start_line += std::to_string(http_version);
+			start_line += std::to_string(http_version).substr(0, 3);
 			start_line += " ";
 			start_line += std::to_string(status_code);
 			start_line += " ";
