@@ -65,6 +65,8 @@ class ServerProcess {
 								if (Kqueue->addRequestMessage(fd) == -1)
 								return (-1);
 								Kqueue->setWriteKqueue(fd);
+								std::string temp = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
+								Kqueue->saveResponseMessage(fd, temp);
 							}
 						}
 					}
@@ -72,15 +74,15 @@ class ServerProcess {
 					else if (Kqueue->getEventList(i)->filter == EVFILT_WRITE) {
 						int fd = Kqueue->getEventList(i)->ident;
 						std::cout << "[WRITE]\tmessage : [" << fd << "]" << std::endl;
-						Kqueue->getRequestMessage(fd)->printRequestMessage();
-						std::string msg = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
-						write(fd, msg.c_str(), msg.size());
-						Kqueue->removeRequestMessage(fd);
-						close(fd);
+						if (Kqueue->writeResponseMessage(fd, TEMP_BUFSIZ) != TEMP_BUFSIZ) {
+							std::cout << "SUCCESS" << std::endl;
+							Kqueue->removeRequestMessage(fd);
+							close(fd);
+						}
 					}
 				}
 			}
-		}
+		};
 };
 
 #endif
