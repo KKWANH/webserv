@@ -20,6 +20,8 @@ class KernelQueueController {
 		std::map<int, RequestMessage>					requestMessage;							// 통신 시 주고받는 Request message 데이터를 임시로 저장할 장소
 		int												polling_count;							// event 수
 		std::string										tempBuf[BUFSIZ];
+		std::map<int, std::string>						responseMessage;
+		std::map<int, int>								responseMessageSize;	
 
 	public:
 		struct timespec*								getTimeout()						{ return (timeout); }
@@ -86,6 +88,8 @@ class KernelQueueController {
 		void				removeRequestMessage(int fd) {
 			requestMessage[fd].resetMessage();
 			requestMessage.erase(fd);
+			responseMessage.erase(fd);
+			responseMessageSize.erase(fd);
 		}
 
 		// requestMessage 내 fd-RequestMessage 쌍 형태로 삽입
@@ -105,6 +109,22 @@ class KernelQueueController {
 			std::string	stringMessage(buf);
 			this->tempBuf[fd] += stringMessage;
 			return ;
+		}
+
+		void					saveResponseMessage(int fd, std::string& message) {
+			this->responseMessage.insert(std::make_pair(fd, message));
+			this->responseMessageSize.insert(std::make_pair(fd, message.size()));
+		}
+
+		int						writeResponseMessage(int fd, int buf_size) {
+			int write_size = ((int)responseMessage[fd].size() < buf_size) ? (int)responseMessage[fd].size() : buf_size;
+			//std::cout << responseMessage[fd].substr(0, buf_size) << std::endl;
+			int countWrite = write(fd, responseMessage[fd].c_str(), write_size);
+			if (write_size != buf_size)
+				return (countWrite);
+			responseMessage[fd] = responseMessage[fd].substr(buf_size);
+			responseMessageSize[fd] -= buf_size;
+			return (countWrite);
 		}
 };
 
