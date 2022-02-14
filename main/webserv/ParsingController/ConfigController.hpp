@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 
-#define DEFAULT_URI "./config/default.config"
+#define DEFAULT_URI "./setting/default.config"
 
 class ConfigController {
 	private:
@@ -37,8 +37,8 @@ class ConfigController {
 		int						setConfig(int argc, char **argv) {
 			setUri(argc, argv);
 			std::string		key, value, temp;
-			int						start, end;
-			std::ifstream fileRead(config_uri.c_str());
+			int				start, end;
+			std::ifstream	fileRead(config_uri.c_str());
 
 			// config 파일 비어있음.
 			if (fileRead.peek() == std::ifstream::traits_type::eof()) {
