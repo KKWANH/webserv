@@ -12,8 +12,8 @@
 #include <fstream>
 #include <dirent.h>
 #include <sys/stat.h>
-#include "./ServerProcess.hpp"
-#include "./MIMEController.hpp"
+#include "./../ServerProcessController/ServerProcess.hpp"
+#include "./../ParsingController/MIMEController.hpp"
 
 extern ConfigController config;
 extern MIMEController mime;

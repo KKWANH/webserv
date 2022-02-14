@@ -15,7 +15,7 @@ class MIMEController {
 	
 	public:
 		MIMEController() {
-			uri_MIME = "./config/mime.types";
+			uri_MIME = "./setting/mime.types";
 		}
 
 		// key에 해당하는 config value 값 반환

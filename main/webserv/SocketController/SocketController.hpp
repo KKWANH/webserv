@@ -10,25 +10,25 @@
 
 class SocketController {
 	private:
-		int									socket_server, socket_client;
-		struct sockaddr_in	address_server, address_client;
+		int								socket_server, socket_client;
+		struct sockaddr_in				address_server, address_client;
 		socklen_t						c_len;
-		int									bind_check, listen_check;
+		int								bind_check, listen_check;
 	
 	public:
-		int									getSocketServer()								{ return (this->socket_server); }
-		int									getSocketClient()								{ return (this->socket_client); }
-		struct sockaddr_in	getAddressServer()							{ return (this->address_server); }
-		struct sockaddr_in	getAddressClient()							{ return (this->address_client); }
-		struct sockaddr*		getConvertedAddressClient()			{ return ((struct sockaddr*)&this->address_client);}
-		socklen_t*					getSocketLength()	{
+		int								getSocketServer()					{ return (this->socket_server); }
+		int								getSocketClient()					{ return (this->socket_client); }
+		struct sockaddr_in				getAddressServer()					{ return (this->address_server); }
+		struct sockaddr_in				getAddressClient()					{ return (this->address_client); }
+		struct sockaddr*				getConvertedAddressClient()			{ return ((struct sockaddr*)&this->address_client);}
+		socklen_t*						getSocketLength()	{
 			c_len = (sizeof(address_client));
 			return (&c_len);
 		}
 
-		void								setSocketClient(int accept) 		{ this->socket_client = accept;	}
+		void							setSocketClient(int accept) 		{ this->socket_client = accept;	}
 
-		int									init() {
+		int								init() {
 			// Create Socket on Server
 			socket_server = socket(PF_INET, SOCK_STREAM, 0);
 

@@ -7,8 +7,8 @@
 #include <fcntl.h>
 #include <vector>
 #include <map>
-#include "./HTTPMessageController.hpp"
-#include "./ServerProcess.hpp"
+#include "./../HTTPMessageController/HTTPMessageController.hpp"
+#include "./../ServerProcessController/ServerProcess.hpp"
 
 class KernelQueueController {
 	private:

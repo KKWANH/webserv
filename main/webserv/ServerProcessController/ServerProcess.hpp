@@ -1,10 +1,10 @@
 #ifndef SERVERPROCESS_HPP
 # define SERVERPROCESS_HPP
 
-#include "./HTTPMessageController.hpp"
-#include "./SocketController.hpp"
-#include "./KernelQueueController.hpp"
-#include "./ConfigController.hpp"
+#include "./../HTTPMessageController/HTTPMessageController.hpp"
+#include "./../SocketController/SocketController.hpp"
+#include "./../KernelQueueController/KernelQueueController.hpp"
+#include "./../ParsingController/ConfigController.hpp"
 #include <dirent.h>
 #include <sys/stat.h>
 
