@@ -8,6 +8,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+# define TEMP_BUFSIZ 1024
+
 extern ConfigController config;
 
 class ServerProcess {
@@ -42,12 +44,28 @@ class ServerProcess {
 						// TODO: file 크기가 큰 경우 나눠서 통신하는 기능 구현
 						// client read
 						else {
+							
 							int fd = Kqueue->getEventList(i)->ident;
-							char buf[BUFSIZ];
-							recv(fd, buf, BUFSIZ, 0);
-							if (Kqueue->addRequestMessage(fd, buf) == -1)
+							char buf[TEMP_BUFSIZ];
+							int n;
+							n = read(fd, buf, TEMP_BUFSIZ - 1);
+							std::cout << "N : " << n << std::endl;
+							if (n == -1) {
+								std::cout << "RECV ERROR" << std::endl;
 								return (-1);
-							Kqueue->setWriteKqueue(fd);
+							}
+							else if (n == TEMP_BUFSIZ - 1) {
+								buf[n] = '\0';
+								Kqueue->sumMessage(fd, buf);
+							}
+							else {
+								buf[n] = '\0';
+								Kqueue->sumMessage(fd, buf);
+								std::cout << "GET ALL" << std::endl;
+								if (Kqueue->addRequestMessage(fd) == -1)
+								return (-1);
+								Kqueue->setWriteKqueue(fd);
+							}
 						}
 					}
 					// write
