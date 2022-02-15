@@ -13,4 +13,13 @@
 # define				ANSI_CYA	"\e[0;36m"
 # define				ERROR		-1
 
+int						is_empty(char _chr)
+{
+	if (_chr == ' ' || _chr == '\t')
+		return			(1);
+	return				(0);
+}
+
+
+
 #endif

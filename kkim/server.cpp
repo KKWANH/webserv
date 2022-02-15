@@ -1,9 +1,9 @@
-# include				"include/Utils.hpp"
-# include				"include/Config_Controller.hpp"
-# include				"include/Socket_Controller.hpp"
-# include				"include/Server_Process.hpp"
-# include				"include/HTTPMsg_Controller.hpp"
-# include				"include/KQueue_Controller.hpp"
+# include				"srcs/utils/Utils.hpp"
+# include				"srcs/parse/Config_Controller.hpp"
+# include				"srcs/socket/Socket_Controller.hpp"
+# include				"srcs/server_process/Server_Process.hpp"
+# include				"srcs/http_message/HTTPMsg_Controller.hpp"
+# include				"srcs/kqueue/KQueue_Controller.hpp"
 
 ConfigController		_config;
 extern ConfigController	_config;
@@ -21,7 +21,7 @@ int
 	if (_config.setContent(_arv[1]) == ERROR)
 		return			(ERROR);
 	// Set MIME types
-	if (_mime.setContent("./config/mime.types") == ERROR)
+	if (_mime.setContent("./settings/mime.types") == ERROR)
 		return			(ERROR);
 
 	// Init socket communication

@@ -111,7 +111,7 @@ Parse header field and save to _header_field(map).
 
 @return         last_index + 1
 @param  _msg    클라이언트 측에서 전송하는 데이터
-@param  pos     start_line을 parsing하고 난 이후의 위
+@param  _pos    start_line을 parsing하고 난 이후의 뒤
 */
 ```
 
