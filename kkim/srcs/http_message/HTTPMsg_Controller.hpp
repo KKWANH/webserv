@@ -220,7 +220,7 @@ class					RequestMessage : public HTTPMessage
 			if (*_end == ERROR)
 				return (ERROR);
 			
-			_rqu = _msg.substr(*_stt, *_end);
+			_rqu = _msg.substr(*_stt, *_end - *_stt);
 			if (_rqu.length() > 0 && _rqu.at(0) == '/')
 			{
 				int _pos_dir = _rqu.find_last_of("/");
@@ -232,9 +232,12 @@ class					RequestMessage : public HTTPMessage
 				}
 				else
 				{
-					_dir = _rqu;;
+					_dir = _rqu;
+					std::cout << "!!" << _dir << std::endl;
 					_fil = _config.getContent("index");
+					std::cout << "!!" << _dir << std::endl;
 				}
+				std::cout << "ㅠㅠ" << _dir << std::endl;
 				return (0);
 			}
 			return (ERROR);
@@ -536,7 +539,8 @@ class					ResponseMessage : public HTTPMessage
 			struct dirent*
 				_dir;
 			
-			*_uri = _config.getContent("root") + "/403.html";
+			*_uri = _config.getContent("root") + _rqm->getUriDir();
+			std::cout << "URI: " << _uri->c_str() << std::endl;
 			if ((_dp = opendir(_uri->c_str())) == NULL)
 			{
 				std::cout << "DIR Open Error" << std::endl;

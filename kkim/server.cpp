@@ -14,13 +14,19 @@ int
 	main(int _arc, char **_arv)
 {
 	_config.setIsMIME(false);
-	_mime.setIsMIME(true);
-	if (_arc != 2)
-		return (-1);
-	// Set config file
-	if (_config.setContent(_arv[1]) == ERROR)
-		return			(ERROR);
+	if (_arc == 1)
+	{
+		if (_config.setContent("./settings/wsv.config") == ERROR)
+			return			(ERROR);
+	}
+	else
+	{
+		if (_config.setContent(_arv[1]) == ERROR)
+			return			(ERROR);
+	}
+
 	// Set MIME types
+	_mime.setIsMIME(true);
 	if (_mime.setContent("./settings/mime.types") == ERROR)
 		return			(ERROR);
 

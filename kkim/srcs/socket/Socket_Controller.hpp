@@ -12,16 +12,17 @@
 # define				DEFAULT_PORT	9090
 
 /**
-* -------------------------------------------------------------
-* > SocketController
-*
-* (constructor) (bool):	Set private resources, and discriminate either the mime or the config
-*
-* - Member functions:
-* Setter:				SocketClient
-* Getter:				SocketClient, SocketServer, AddressClient, AddressServer, Cnv_AddressClient, SocketLength
-* init:					initilize socket communication
-* ------------------------------------------------------------- *
+-------------------------------------------------------------
+> SocketController
+
+(constructor) (bool):	Set private resources, and discriminate either the mime or the config
+
+- Member functions:
+Setter:					SocketClient
+Getter:					SocketClient, SocketServer, AddressClient, AddressServer, Cnv_AddressClient, SocketLength
+getRandomPort			return randomanized port number
+init:					initilize socket communication
+------------------------------------------------------------- *
 */
 
 class					SocketController
@@ -48,6 +49,15 @@ class					SocketController
 						getConvertedAddressClient(void)	{ return ((struct sockaddr*)&_address_client); };
 		socklen_t*		getSocketLength(void)			{ _len_c = (sizeof(_address_client)); return (&_len_c); };
 
+		int
+			getRandomPort(void)
+		{
+			srand((unsigned int)time(NULL));
+			int _rst = rand();
+			_rst = _rst % 100;
+			std::cout << "PORT : " << _rst << " + " << 9000 + _rst << std::endl;
+			return (9000 + _rst);
+		}
 
 		int
 			init(void)
@@ -65,7 +75,7 @@ class					SocketController
 			memset(&_address_server, 0, sizeof(_address_server));
 			_address_server.sin_addr.s_addr = htonl(INADDR_ANY);
 			_address_server.sin_family = AF_INET;
-			_address_server.sin_port = htons(DEFAULT_PORT);
+			_address_server.sin_port = htons(getRandomPort());
 
 			// Bind Server Socket to Server Address
 			_chk_bind = bind(_socket_server, (struct sockaddr*)&_address_server, sizeof(_address_server));

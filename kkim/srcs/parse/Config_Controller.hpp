@@ -9,8 +9,8 @@
 
 # include				"../utils/Utils.hpp"
 
-# define				DEFAULT_CONFIG		"/Users/kimkwanho/Documents/Programming/42Seoul/42cursus/05_webserv/webserv/kkim/settings/wsv.config"
-# define				DEFAULT_MIME_TYP	"/Users/kimkwanho/Documents/Programming/42Seoul/42cursus/05_webserv/webserv/kkim/settings/mime.types"
+# define				DEFAULT_CONFIG		"./settings/wsv.config"
+# define				DEFAULT_MIME_TYP	"./settings/mime.types"
 
 /**
 -------------------------------------------------------------
