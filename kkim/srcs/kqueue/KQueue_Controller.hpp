@@ -8,9 +8,9 @@
 # include				<vector>
 # include				<map>
 
-# include				"Utils.hpp"
-# include				"HTTPMsg_Controller.hpp"
-# include				"Server_Process.hpp"
+# include				"../utils/Utils.hpp"
+# include				"../http_message/HTTPMsg_Controller.hpp"
+# include				"../server_process/Server_Process.hpp"
 
 class					KQueueController
 {
@@ -20,8 +20,11 @@ class					KQueueController
 		struct kevent					_event_list[BUFSIZ];
 		struct kevent					_change_list[BUFSIZ];
 		int								_change_cnt;
-		std::map<int, RequestMessage>	_requestMessage;
+		std::map<int, RequestMessage>	_request_msg;
 		int								_polling_cnt;
+		std::string						_tmp_buf[BUFSIZ];
+		std::map<int, std::string>		_response_msg;
+		std::map<int, int>				_response_msg_siz;
 	
 	public:
 		struct timespec*				getTimeout()					{ return (_timeout); }
@@ -32,7 +35,7 @@ class					KQueueController
 		struct kevent*					getChangeList(int _num)			{ return (&_change_list[_num]); }
 		int								getChangeCount()				{ return (_change_cnt); }
 		int								getPollingCount()				{ return (_polling_cnt); }
-		RequestMessage*					getRequestMessage(int _fd) 		{ return (&(_requestMessage.find(_fd)->second)); }
+		RequestMessage*					getRequestMessage(int _fd) 		{ return (&(_request_msg.find(_fd)->second)); }
 
 		void							increaseChangeCount()			{ _change_cnt++; }
 		void							increaseChangeCount(int num)	{ _change_cnt += num; }
@@ -87,21 +90,60 @@ class					KQueueController
 		void
 			removeRequestMessage(int _fld)
 		{
-			_requestMessage[_fld].resetMessage();
-			_requestMessage.erase(_fld);
+			_request_msg[_fld].resetMessage();
+			_request_msg.erase(_fld);
+			_response_msg.erase(_fld);
+			_response_msg_siz.erase(_fld);
 		}
 
 		int
-			addRequestMessage(int _fld, char* _buf) {
-			std::string
-				_strmsg(_buf);
+			addRequestMessage(int _fld)
+		{
 			RequestMessage
-				_tmpmsg;
-			if (_tmpmsg.parsingRequestMessage(_fld, _strmsg) == -1)
-				return (-1);
-			_requestMessage.insert(std::make_pair(_fld, _tmpmsg));
+				_tmp_msg;
+			std::cout << "_-----------" << "[" << _fld << "]" << "-----------_" << std::endl;
+			std::cout << _tmp_buf[_fld] << std::endl;
+			std::cout << "_------------------------------_" << std::endl;
+			if (_tmp_msg.parsingRequestMessage(_fld, this->_tmp_buf[_fld]) == ERROR)
+				return (ERROR);
+			_request_msg.insert(std::make_pair(_fld, _tmp_msg));
+			this->_tmp_buf[_fld] = "";
 			return (0);
 		}
+
+		void
+			sumMessage(int _fld, char* _buf)
+		{
+			std::string
+				_str_msg(_buf);
+			this->_tmp_buf[_fld] += _str_msg;
+		}
+
+		void
+			saveResponseMessage(int _fld, std::string& _msg)
+		{
+			this->_response_msg.insert(		std::make_pair(_fld, _msg));
+			this->_response_msg_siz.insert(	std::make_pair(_fld, _msg.size()));
+		}
+
+		int
+			writeResponseMessage(int _fld, int _buf_siz)
+		{
+			int
+				_wrt_siz =
+					((int)_response_msg[_fld].size() < _buf_siz) ?
+						(int)_response_msg[_fld].size() :
+						_buf_siz;
+			int
+				_cnt_wrt =
+					write(_fld, _response_msg[_fld].c_str(), _wrt_siz);
+			if (_wrt_siz != _buf_siz)
+				return (_cnt_wrt);
+			_response_msg[_fld] = _response_msg[_fld].substr(_buf_siz);
+			_response_msg_siz[_fld] -= _buf_siz;
+			return (_cnt_wrt);
+		}
 };
+
 
 #endif

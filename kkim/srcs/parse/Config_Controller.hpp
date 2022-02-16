@@ -7,10 +7,10 @@
 # include				<iostream>
 # include				<fstream>
 
-# include				"Utils.hpp"
+# include				"../utils/Utils.hpp"
 
-# define				DEFAULT_CONFIG		"./config/wsv.config"
-# define				DEFAULT_MIME_TYP	"./config/mime.types"
+# define				DEFAULT_CONFIG		"./settings/wsv.config"
+# define				DEFAULT_MIME_TYP	"./settings/mime.types"
 
 /**
 -------------------------------------------------------------

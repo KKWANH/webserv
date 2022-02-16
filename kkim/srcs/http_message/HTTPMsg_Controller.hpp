@@ -14,9 +14,9 @@
 # include				<cmath>
 # include				<sys/stat.h>
 
-# include				"Utils.hpp"
-# include				"Server_Process.hpp"
-# include				"Config_Controller.hpp"
+# include				"../utils/Utils.hpp"
+# include				"../server_process/Server_Process.hpp"
+# include				"../parse/Config_Controller.hpp"
 
 extern ConfigController	_config;
 extern ConfigController	_mime;
@@ -119,7 +119,7 @@ _mth					string, Save method
 _rqu					string, Save request url
 _dir					string, Save directory
 _fil					string, Save file name
-_chk					string, Check is this HTTP
+_htp					string, Check is this HTTP
 _ver					double, HTTP version
 *
 - Member functions:
@@ -148,7 +148,7 @@ class					RequestMessage : public HTTPMessage
 		std::string		_rqu;
 		std::string		_dir;
 		std::string		_fil;
-		std::string		_chk;
+		std::string		_htp;
 		double			_ver;
 
 	public:
@@ -168,7 +168,7 @@ class					RequestMessage : public HTTPMessage
 			_rqu = "";
 			_dir = "";
 			_fil = "";
-			_chk = "";
+			_htp = "";
 			_ver = 0.0;
 			return ;
 		}
@@ -220,7 +220,7 @@ class					RequestMessage : public HTTPMessage
 			if (*_end == ERROR)
 				return (ERROR);
 			
-			_rqu = _msg.substr(*_stt, *_end);
+			_rqu = _msg.substr(*_stt, *_end - *_stt);
 			if (_rqu.length() > 0 && _rqu.at(0) == '/')
 			{
 				int _pos_dir = _rqu.find_last_of("/");
@@ -232,9 +232,12 @@ class					RequestMessage : public HTTPMessage
 				}
 				else
 				{
-					_dir = _rqu;;
+					_dir = _rqu;
+					std::cout << "!!" << _dir << std::endl;
 					_fil = _config.getContent("index");
+					std::cout << "!!" << _dir << std::endl;
 				}
+				std::cout << "ㅠㅠ" << _dir << std::endl;
 				return (0);
 			}
 			return (ERROR);
@@ -251,12 +254,12 @@ class					RequestMessage : public HTTPMessage
 			parseIsHTTP(int* _stt, int* _end, std::string& _msg)
 		{
 			*_stt = *_end + 1;
-			*_end = _msg.find(' ', *_stt);
+			*_end = _msg.find('/', *_stt);
 			if (*_end == ERROR)
 				return (ERROR);
 			
-			_chk = _msg.substr(*_stt, *_end);
-			if (_chk.compare("HTTP/") == 0)
+			_htp = _msg.substr(*_stt, *_end - *_stt + 1);
+			if (_htp.compare("HTTP/") == 0)
 				return (0);
 			return (ERROR);
 		}
@@ -296,13 +299,13 @@ class					RequestMessage : public HTTPMessage
 			parseStartLine(std::string& _msg)
 		{
 			int _stt, _end;
-
 			if (parseMethod(&_stt, &_end, _msg) == ERROR)
 				return (ERROR);
 			if (parseTarget(&_stt, &_end, _msg) == ERROR)
 				return (ERROR);
 			if (parseIsHTTP(&_stt, &_end, _msg) == ERROR)
 				return (ERROR);
+			std::cout << "debug" << std::endl;
 			if (parseHTTPVersion(&_stt, &_end, _msg) == ERROR)
 				return (ERROR);
 			return (_stt + 5);
@@ -315,7 +318,7 @@ class					RequestMessage : public HTTPMessage
         @todo   parseStartLine이랑 합치기
         */
 		int
-			parsingRequestMessage(int _fdN, std::string& _msg)
+			parsingRequestMessage(int _fld, std::string& _msg)
 		{
 			int			_num;
 
@@ -323,6 +326,7 @@ class					RequestMessage : public HTTPMessage
 			{
 				std::cout	<< ANSI_RED << "[ERR] "
 							<< ANSI_RES << "Parsing error" << std::endl;
+				close(_fld);
 				return (ERROR);
 			}
 			parseHeaderField(_msg, _num);
@@ -336,7 +340,7 @@ class					RequestMessage : public HTTPMessage
 			std::cout << "[METHOD] : " << this->_mth << std::endl;
 			std::cout << "[DIR]    : " << this->_dir << std::endl;
 			std::cout << "[FILE]   : " << this->_fil << std::endl;
-			std::cout << "[HTTP]   : " << this->_chk + std::to_string(this->_ver) << std::endl;
+			std::cout << "[HTTP]   : " << this->_htp + std::to_string(this->_ver) << std::endl;
 			return ;
 		}
 };
@@ -344,21 +348,21 @@ class					RequestMessage : public HTTPMessage
 /**
 -------------------------------------------------------------
 > ResponseMessage : Son of HTTPMessage
-*
+
 - why separate with RequestMessage: 'cause they have different start-line
-*
+
 - Protected Variables:
 _ver					double, HTTP version
 _sta					int, status code
 _rea					std::string, reason phrase
 _ext					std::string, extension
-*
+
 - Member functions:
 resetMessage			Reset all variables (even parents' variables)
 setter(simple)			Setter for simple variables (_ver, _sta, _ext)
 setReasonPhrase			Give a reason phrase that fits the status code
 setResponseHeader...	Set header field.
-*						PROBLEM: set content-length 0 if the file is binary
+						PROBLEM: set content-length 0 if the file is binary
 ------------------------------------------------------------- *
 */
 
@@ -437,10 +441,10 @@ class					ResponseMessage : public HTTPMessage
 			this->setHttpVersion(_http_version);
 			this->setStatusCode(_status_code);
 			this->setReasonPhrase();
-			_start_line += "HTTP/"
-						+ std::to_string(_http_version) + " "
-						+ std::to_string(_status_code) + " "
-						+ this->_rea;
+			_start_line += "HTTP/";
+			_start_line += std::to_string(_http_version).substr(0, 3) + " ";
+			_start_line += std::to_string(_status_code) + " ";
+			_start_line += this->_rea;
 		}
 
 		/**
@@ -482,30 +486,30 @@ class					ResponseMessage : public HTTPMessage
 			setMessageBody(std::string _uri)
 		{
 			std::cout << "URI: " << _uri << std::endl;
-			if (_ext.compare("jpg") == 0 || _ext.compare("ico") == 0)
-			{
-				std::cout << "IMAGE" << std::endl;
-				int
-					_pos = _uri.find_last_of(".");
-				std::string
-					_tmp = _uri.substr(_pos - 5);
-				std::ifstream _ifs(_uri, std::ifstream::binary);
-				if (_ifs)
-				{
-					_ifs.seekg(0, _ifs.end);
-					int
-						_len = (int)_ifs.tellg();
-					_ifs.seekg(0, _ifs.beg);
-					char*
-						_buf = new char[_len + 1];
-					_ifs.read((char*)_buf, _len);
-					std::string _tmp(_buf);
-					_msg_body = _tmp;
-					_ifs.close();
-				}
-			}
-			else
-			{
+			// if (_ext.compare("jpg") == 0 || _ext.compare("ico") == 0)
+			// {
+			// 	std::cout << "IMAGE" << std::endl;
+			// 	int
+			// 		_pos = _uri.find_last_of(".");
+			// 	std::string
+			// 		_tmp = _uri.substr(_pos - 5);
+			// 	std::ifstream _ifs(_uri, std::ifstream::binary);
+			// 	if (_ifs)
+			// 	{
+			// 		_ifs.seekg(0, _ifs.end);
+			// 		int
+			// 			_len = (int)_ifs.tellg();
+			// 		_ifs.seekg(0, _ifs.beg);
+			// 		char*
+			// 			_buf = new char[_len + 1];
+			// 		_ifs.read((char*)_buf, _len);
+			// 		std::string _tmp(_buf);
+			// 		_msg_body = _tmp;
+			// 		_ifs.close();
+			// 	}
+			// }
+			// else
+			// {
 				std::ifstream
 					_fil(_uri);
 				std::string
@@ -519,7 +523,7 @@ class					ResponseMessage : public HTTPMessage
 					if (_idx == 5)
 						std::cout << "BODY: \n" << _msg_body << std::endl;
 				}
-			}
+			// }
 		}
 
 		/**
@@ -535,7 +539,8 @@ class					ResponseMessage : public HTTPMessage
 			struct dirent*
 				_dir;
 			
-			*_uri = _config.getContent("root") + "/403.html";
+			*_uri = _config.getContent("root") + _rqm->getUriDir();
+			std::cout << "URI: " << _uri->c_str() << std::endl;
 			if ((_dp = opendir(_uri->c_str())) == NULL)
 			{
 				std::cout << "DIR Open Error" << std::endl;
