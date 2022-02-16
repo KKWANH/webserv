@@ -486,30 +486,30 @@ class					ResponseMessage : public HTTPMessage
 			setMessageBody(std::string _uri)
 		{
 			std::cout << "URI: " << _uri << std::endl;
-			if (_ext.compare("jpg") == 0 || _ext.compare("ico") == 0)
-			{
-				std::cout << "IMAGE" << std::endl;
-				int
-					_pos = _uri.find_last_of(".");
-				std::string
-					_tmp = _uri.substr(_pos - 5);
-				std::ifstream _ifs(_uri, std::ifstream::binary);
-				if (_ifs)
-				{
-					_ifs.seekg(0, _ifs.end);
-					int
-						_len = (int)_ifs.tellg();
-					_ifs.seekg(0, _ifs.beg);
-					char*
-						_buf = new char[_len + 1];
-					_ifs.read((char*)_buf, _len);
-					std::string _tmp(_buf);
-					_msg_body = _tmp;
-					_ifs.close();
-				}
-			}
-			else
-			{
+			// if (_ext.compare("jpg") == 0 || _ext.compare("ico") == 0)
+			// {
+			// 	std::cout << "IMAGE" << std::endl;
+			// 	int
+			// 		_pos = _uri.find_last_of(".");
+			// 	std::string
+			// 		_tmp = _uri.substr(_pos - 5);
+			// 	std::ifstream _ifs(_uri, std::ifstream::binary);
+			// 	if (_ifs)
+			// 	{
+			// 		_ifs.seekg(0, _ifs.end);
+			// 		int
+			// 			_len = (int)_ifs.tellg();
+			// 		_ifs.seekg(0, _ifs.beg);
+			// 		char*
+			// 			_buf = new char[_len + 1];
+			// 		_ifs.read((char*)_buf, _len);
+			// 		std::string _tmp(_buf);
+			// 		_msg_body = _tmp;
+			// 		_ifs.close();
+			// 	}
+			// }
+			// else
+			// {
 				std::ifstream
 					_fil(_uri);
 				std::string
@@ -523,7 +523,7 @@ class					ResponseMessage : public HTTPMessage
 					if (_idx == 5)
 						std::cout << "BODY: \n" << _msg_body << std::endl;
 				}
-			}
+			// }
 		}
 
 		/**

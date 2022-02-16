@@ -101,7 +101,7 @@ class					KQueueController
 		{
 			RequestMessage
 				_tmp_msg;
-			std::cout << "_-----------" << ANSI_BLU << "[" << _fld << "]" << ANSI_RES << "-----------_" << std::endl;
+			std::cout << "_-----------" << "[" << _fld << "]" << "-----------_" << std::endl;
 			std::cout << _tmp_buf[_fld] << std::endl;
 			std::cout << "_------------------------------_" << std::endl;
 			if (_tmp_msg.parsingRequestMessage(_fld, this->_tmp_buf[_fld]) == ERROR)

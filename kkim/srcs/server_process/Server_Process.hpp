@@ -8,7 +8,7 @@
 # include				<dirent.h>
 # include				<sys/stat.h>
 
-# define				TMP_BUF_SIZ 1024
+# define				TMP_BUF_SIZ 20480
 
 extern ConfigController	_config;
 
@@ -62,7 +62,7 @@ class
 							_num = read(_fd, _buf, TMP_BUF_SIZ - 1);
 							std::cout << ANSI_BLU << "[_num]" << ANSI_RES << " : " << _num << std::endl;
 
-							if (_num == -1)
+							if (_num == ERROR)
 							{
 								std::cout	<< ANSI_RED << "[ERR] "
 											<< ANSI_RES << "recv error" << std::endl;
