@@ -6,6 +6,7 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
+#include "../ErrorHandler/ErrorHandler.hpp"
 
 #define DEFAULT_URI "./setting/default.config"
 
@@ -29,6 +30,8 @@ class ConfigController {
 				else
 					std::cout << "This is not CONFIG file. default config file will be applied" << std::endl;
 			}
+			else if (argc > 2)
+				throw ErrorHandler("too many arguments");
 			return;
 		}
 
