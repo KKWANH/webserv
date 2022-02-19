@@ -12,8 +12,8 @@
 #include <fstream>
 #include <dirent.h>
 #include <sys/stat.h>
-#include "./ServerProcess.hpp"
-#include "./MIMEController.hpp"
+#include "./../ServerProcessController/ServerProcess.hpp"
+#include "./../ParsingController/MIMEController.hpp"
 
 extern ConfigController config;
 extern MIMEController mime;
@@ -26,13 +26,13 @@ extern MIMEController mime;
 
 class HTTPMessage {
 	protected:
-		std::string								start_line;
+		std::string														start_line;
 		std::map<std::string, std::string>		header_field;
-		std::string								message_body;
+		std::string														message_body;
 		char*									binary_body;
 
 	public:
-		std::string		getMessageBody()	{ return message_body; }
+		std::string		getMessageBody()	{return message_body; }
 		std::string		getStartLine()		{ return (start_line); }
 
 		// TODO: body-message가 있을 경우를 대비하여 CRLF 이후의 위치를 반환하도록 수정
@@ -91,7 +91,7 @@ class RequestMessage : public HTTPMessage {
 		std::string	uri_dir;
 		std::string	uri_file;
 		std::string	isHTTP;
-		double		http_version;
+		double			http_version;
 
 	public:
 
@@ -237,13 +237,12 @@ class RequestMessage : public HTTPMessage {
 // Request와 Response간 start-line이 달라서 각 클래스에서 따로 처리하기 위함.
 class ResponseMessage : public HTTPMessage {
 	protected:
-		double			http_version;
-		int				status_code;
+		double				http_version;
+		int						status_code;
 		std::string		reason_phrase;
 		std::string		extension;
 		bool			is_binary;
 		int				binary_size;
-		char*			msg;
 
 	public:
 
@@ -255,8 +254,6 @@ class ResponseMessage : public HTTPMessage {
 			http_version = 0;
 			status_code = 0;
 			reason_phrase = "";
-			is_binary = false;
-			binary_size = 0;
 			return ;
 		}
 
@@ -288,10 +285,7 @@ class ResponseMessage : public HTTPMessage {
 		void					setResponseHeaderField() {
 
 			header_field.insert(std::make_pair<std::string, std::string>("Content-Type", mime.getMIME(this->extension)));
-			if (is_binary == true)
-				this->setHeaderField("Content-Length", std::to_string(this->binary_size));
-			else
-				this->setHeaderField("Content-Length", std::to_string(this->getMessageBody().length()));
+			this->setHeaderField("Content-Length", std::to_string(this->getMessageBody().length()));
 			header_field.insert(std::make_pair<std::string, std::string>("Accept-Ranges", "bytes"));
 		}
 
@@ -302,7 +296,7 @@ class ResponseMessage : public HTTPMessage {
 			this->setReasonPhrase();
 
 			start_line += "HTTP/";
-			start_line += std::to_string(http_version);
+			start_line += std::to_string(http_version).substr(0, 3);
 			start_line += " ";
 			start_line += std::to_string(status_code);
 			start_line += " ";
@@ -328,6 +322,7 @@ class ResponseMessage : public HTTPMessage {
 					break;
 			}
 			rtn += "\r\n";
+			rtn += message_body;
 			return (rtn);
 		}
 
@@ -338,19 +333,51 @@ class ResponseMessage : public HTTPMessage {
 		//				binary 파일이 string 타입에 대입 시 제대로 들어가는지 확인 필요
 		void						setMessageBody(std::string uri) {
 			std::cout << "URI : " << uri << std::endl;
-			std::ifstream file(uri);
-			std::string		line;
+			// if (extension.compare("jpg") == 0 || extension.compare("ico") == 0) {
+			// 	is_binary = true;
+			// 	std::cout << "IMAGE" << std::endl;
+			// 	std::ofstream copy;
+			// 	std::string temp;
+			// 	int pos = uri.find_last_of(".");
+			// 	temp = uri.substr(pos - 5);
+			// 	copy.open("./copy_" + temp, std::ios::out | std::ios::binary);
+			// 	std::ifstream is(uri, std::ifstream::binary);
+			// 	if (is) {
+			// 		// seekg를 이용한 파일 크기 추출
+			// 		is.seekg(0, is.end);
+			// 		int length = (int)is.tellg();
+			// 		is.seekg(0, is.beg);
 
-			if (file.is_open()) {
-				file.seekg(0, std::ios::end);
-				int size = file.tellg();
-				line.resize(size);
-				file.seekg(0, std::ios::beg);
-				file.read(&line[0], size);
-				message_body = line;
-			}
-			while (std::getline(file, line)) {
-				message_body = message_body + line + "\n";
+			// 		// malloc으로 메모리 할당
+			// 		char* buffer = new char[length];
+
+			// 		// read data as a block:
+			// 		is.read((char*)buffer, length);
+			// 		this->binary_body = new char[length];
+			// 		binary_body = (char*)buffer;
+			// 		this->binary_size = length;
+			// 		//std::string temp(buffer);
+			// 		copy.write(binary_body, length);
+			// 		///////message_body = temp;
+			// 		is.close();
+			// 	}
+			// }
+			// else
+			{
+				std::ifstream file(uri);
+				std::string		line;
+
+				if (file.is_open()) {
+					file.seekg(0, std::ios::end);
+					int size = file.tellg();
+					line.resize(size);
+					file.seekg(0, std::ios::beg);
+					file.read(&line[0], size);
+					message_body = line;
+				}
+				while (std::getline(file, line)) {
+					message_body = message_body + line + "\n";
+				}
 			}
 			return ;
 		}
@@ -399,60 +426,20 @@ class ResponseMessage : public HTTPMessage {
 		}
 
 		// response message의 구성 요소들을 가공하여 string 형태로 반환
-		void		setResponseMessage(int fd, RequestMessage* requestMessage) {
-			std::string			uri;
-			int					flag;
+		static std::string	setResponseMessage(RequestMessage* requestMessage) {
+			ResponseMessage 	responseMessage;
+			std::string				uri;
+			int								flag;
 
-			flag = this->isDirOrFile(requestMessage, &uri);
+			flag = responseMessage.isDirOrFile(requestMessage, &uri);
 
-			this->setStartLine(flag, requestMessage->getHttpVersion());
+			responseMessage.setStartLine(flag, requestMessage->getHttpVersion());
 
-			this->setMessageBody(uri);
+			responseMessage.setMessageBody(uri);
 
-			this->setResponseHeaderField();
-			std::string rtn_string = this->makeResponseMessage();
-			std::cout << "SET RESPONSE" << std::endl;
-			if (this->is_binary) {
-				this->msg = new char[strlen(rtn_string.c_str()) + strlen(this->binary_body)];
-				this->msg = (char*)rtn_string.c_str();
-				strcat(this->msg, this->binary_body);
-				std::cout << "---------" << std::endl;
-				std::cout << this->msg << std::endl;
-				std::cout << "---------" << std::endl;
-				std::cout << this->binary_body << std::endl;
-				std::cout << "---------" << std::endl;
-			}
-			else {
-
-				rtn_string += this->message_body;
-				this->msg = new char[strlen(rtn_string.c_str())];
-				this->msg = (char*)rtn_string.c_str();
-				std::cout << "---------" << std::endl;
-				this->printHeaderField();
-				std::cout << this->message_body << std::endl;
-				std::cout << "---------" << std::endl;
-			}
-			std::cout << "finish RESPONSE" << std::endl;
-			write(fd, msg, strlen(msg));
-
-			// ResponseMessage 	responseMessage;
-			// std::string				uri;
-			// int						flag;
-
-			// flag = responseMessage.isDirOrFile(requestMessage, &uri);
-
-			// responseMessage.setStartLine(flag, requestMessage->getHttpVersion());
-
-			// responseMessage.setMessageBody(uri);
-
-			// responseMessage.setResponseHeaderField();
-			// std::string rtn = responseMessage.makeResponseMessage();
-			// write(fd, msg, strlen(msg));
-			return ;
-		}
-
-		char*			getMsg() {
-			return (this->msg);
+			responseMessage.setResponseHeaderField();
+			std::string rtn = responseMessage.makeResponseMessage();
+			return (rtn);
 		}
 };
 

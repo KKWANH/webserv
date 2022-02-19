@@ -6,8 +6,9 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
+#include "../ErrorHandler/ErrorHandler.hpp"
 
-#define DEFAULT_URI "/Users/soobin/Desktop/webserv/hybae/config/default.config"
+#define DEFAULT_URI "./setting/default.config"
 
 class ConfigController {
 	private:
@@ -29,6 +30,8 @@ class ConfigController {
 				else
 					std::cout << "This is not CONFIG file. default config file will be applied" << std::endl;
 			}
+			else if (argc > 2)
+				throw ErrorHandler("too many arguments");
 			return;
 		}
 
