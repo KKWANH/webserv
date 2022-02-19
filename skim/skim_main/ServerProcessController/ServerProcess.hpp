@@ -1,16 +1,16 @@
 #ifndef SERVERPROCESS_HPP
 # define SERVERPROCESS_HPP
 
-#include "./HTTPMessageController.hpp"
-#include "./SocketController.hpp"
-#include "./KernelQueueController.hpp"
-#include "./ConfigController.hpp"
+#include "./../HTTPMessageController/HTTPMessageController.hpp"
+#include "./../SocketController/SocketController.hpp"
+#include "./../KernelQueueController/KernelQueueController.hpp"
+#include "./../ParsingController/ConfigController.hpp"
 #include <dirent.h>
 #include <sys/stat.h>
 
-extern ConfigController config;
+# define TEMP_BUFSIZ 1024
 
-#define TEMP_BUFSIZ 128
+extern ConfigController config;
 
 class ServerProcess {
 	public:
@@ -44,7 +44,7 @@ class ServerProcess {
 						// TODO: file 크기가 큰 경우 나눠서 통신하는 기능 구현
 						// client read
 						else {
-
+							
 							int fd = Kqueue->getEventList(i)->ident;
 							char buf[TEMP_BUFSIZ];
 							int n;
@@ -65,6 +65,8 @@ class ServerProcess {
 								if (Kqueue->addRequestMessage(fd) == -1)
 								return (-1);
 								Kqueue->setWriteKqueue(fd);
+								std::string temp = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
+								Kqueue->saveResponseMessage(fd, temp);
 							}
 						}
 					}
@@ -72,18 +74,15 @@ class ServerProcess {
 					else if (Kqueue->getEventList(i)->filter == EVFILT_WRITE) {
 						int fd = Kqueue->getEventList(i)->ident;
 						std::cout << "[WRITE]\tmessage : [" << fd << "]" << std::endl;
-						Kqueue->getRequestMessage(fd)->printRequestMessage();
-
-						ResponseMessage responseMessage;
-						responseMessage.setResponseMessage(fd, Kqueue->getRequestMessage(fd));
-						//std::cout << responseMessage.getMsg() << std::endl;
-						// write(fd, responseMessage.getMsg(), strlen(responseMessage.getMsg()));
-						Kqueue->removeRequestMessage(fd);
-						close(fd);
+						if (Kqueue->writeResponseMessage(fd, TEMP_BUFSIZ) != TEMP_BUFSIZ) {
+							std::cout << "SUCCESS" << std::endl;
+							Kqueue->removeRequestMessage(fd);
+							close(fd);
+						}
 					}
 				}
 			}
-		}
+		};
 };
 
 #endif
