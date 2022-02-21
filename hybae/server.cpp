@@ -15,24 +15,24 @@ int main(int argc, char **argv) {
 	try{
 	// config file setting
 	if (config.setConfig(argc, argv) == -1)
-		throw ErrorHandler("config file setting error");
+		throw ErrorHandler(__FILE__, __func__, __LINE__, "config file setting error");
 
 	// mime types setting
 	if (mime.setMIME() == -1)
-		throw ErrorHandler("응 에러 나봐~~~ 리팩토링하면돼~~~");
+		throw ErrorHandler(__FILE__, __func__, __LINE__, "mime types setting error");
 
 	// socket communication init
 	if (Socket.init() == -1)
-		throw ErrorHandler("응 에러 나봐~~~ 리팩토링하면돼~~~.");
+		throw ErrorHandler(__FILE__, __func__, __LINE__, "socket communication init error");
 
 	// polling init
 	KernelQueueController Kqueue;
 	if (Kqueue.init(Socket.getSocketServer()) == -1)
-		throw ErrorHandler("응 에러 나봐~~~ 리팩토링하면돼~~~");
+		throw ErrorHandler(__FILE__, __func__, __LINE__, "polling init error");
 
 	// non-blocking socket communication 
 	if (ServerProcess::serverProcess(&Socket, &Kqueue) == -1)
-		throw ErrorHandler("응 에러 나봐~~~ 리팩토링하면돼~~~");
+		throw ErrorHandler(__FILE__, __func__, __LINE__, "non-blocking socket communication  error");
 	}
 	catch (const std::exception& err) {
 		std::cerr << err.what() << std::endl;

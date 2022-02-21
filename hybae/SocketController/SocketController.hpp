@@ -41,15 +41,13 @@ class SocketController {
 			// Bind Server Socket to Server Address
 			bind_check = bind(socket_server, (struct sockaddr*)&address_server, sizeof(address_server));
 			if (bind_check == -1) {
-				std::cout << "Fail Binding\n" << std::endl;
-				return (-1);
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "Fail Binding");
 			}
 
 			// Start to listen
 			listen_check = listen(socket_server, 10);
 			if (listen_check == -1) {
-				std::cout << "Fail Listen\n" << std::endl;
-				return (-1);
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "Fail Listen");
 			}
 			return (0);
 		}

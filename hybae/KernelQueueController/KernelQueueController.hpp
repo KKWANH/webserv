@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <map>
-#include "./../HTTPMessageController/HTTPMessageController.hpp"
+#include "./../HTTPMessageController/ResponseMessage.hpp"
 #include "./../ServerProcessController/ServerProcess.hpp"
 
 class KernelQueueController {
@@ -95,9 +95,9 @@ class KernelQueueController {
 		// requestMessage 내 fd-RequestMessage 쌍 형태로 삽입
 		int						addRequestMessage(int fd) {
 			RequestMessage tempMessage;
-			std::cout << "_----------[" << fd << "]MSG-------" << std::endl;
+			std::cout << "----------[" << fd << "]Request Message------------" << std::endl;
 			std::cout << tempBuf[fd] << std::endl;
-			std::cout << "_---------------------" << std::endl;
+			std::cout << "----------------------------------------" << std::endl;
 			if (tempMessage.parsingRequestMessage(fd, this->tempBuf[fd]) == -1)
 				return (-1);
 			requestMessage.insert(std::make_pair(fd, tempMessage));
@@ -118,7 +118,6 @@ class KernelQueueController {
 
 		int						writeResponseMessage(int fd, int buf_size) {
 			int write_size = ((int)responseMessage[fd].size() < buf_size) ? (int)responseMessage[fd].size() : buf_size;
-			//std::cout << responseMessage[fd].substr(0, buf_size) << std::endl;
 			int countWrite = write(fd, responseMessage[fd].c_str(), write_size);
 			if (write_size != buf_size)
 				return (countWrite);

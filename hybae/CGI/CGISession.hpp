@@ -1,6 +1,6 @@
 
 #ifndef CGISESSION_H
-#define CGISESSION_H
+# define CGISESSION_H
 
 #include <cstdlib>
 #include <cstring>

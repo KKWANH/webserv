@@ -31,7 +31,7 @@ class ConfigController {
 					std::cout << "This is not CONFIG file. default config file will be applied" << std::endl;
 			}
 			else if (argc > 2)
-				throw ErrorHandler("too many arguments");
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "too many arguments");
 			return;
 		}
 
@@ -45,8 +45,7 @@ class ConfigController {
 
 			// config 파일 비어있음.
 			if (fileRead.peek() == std::ifstream::traits_type::eof()) {
-				std::cout << "Config file is empty" << std::endl;
-				return (-1);
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "Config file is empty");
 			}
 
 			while (getline(fileRead, temp)) {
