@@ -6,7 +6,6 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
-
 #include "../ErrorHandler/ErrorHandler.hpp"
 
 #define DEFAULT_URI "./setting/default.config"
@@ -29,10 +28,10 @@ class ConfigController {
 				if (strcmp(&argv[1][strlen(argv[1]) - 7], ".config") == 0)
 					config_uri = std::string(argv[1]);
 				else
-					throw ErrorHandler("This is not CONFIG file. default config file will be applied");
+					throw Error_Handler(__FILE__, __func__, __LINE__, "This is not CONFIG file. default config file will be applied");
 			}
 			else if (argc > 2)
-				throw ErrorHandler("too many arguments");
+				throw Error_Handler(__FILE__, __func__, __LINE__, "응 에러 나봐~~~ 리팩토링하면돼~~~");
 			return;
 		}
 
@@ -46,9 +45,7 @@ class ConfigController {
 
 			// config 파일 비어있음.
 			if (fileRead.peek() == std::ifstream::traits_type::eof()) {
-				throw ErrorHandler("Config file is empty");
-				//std::cout << "Config file is empty" << std::endl;
-				//return (-1);
+				throw Error_Handler(__FILE__, __func__, __LINE__, "응 에러 나봐~~~ 리팩토링하면돼~~~");
 			}
 
 			while (getline(fileRead, temp)) {

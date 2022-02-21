@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: server <server@student.42.fr>              +#+  +:+       +#+         #
+#    By: sunghyunpark <sunghyunpark@student.42.f    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/07/11 22:31:50 by hybae             #+#    #+#              #
-#    Updated: 2022/02/15 19:44:09 by juhpark          ###   ########.fr        #
+#    Updated: 2022/02/21 17:31:05 by juhpark          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ COMPILER = clang++
 FLAG = -Wall -Werror -Wextra -std=c++98 -g -fsanitize=address
 LIBRARYHEADER = -I./
 
-SRC = server.cpp ErrorHandler/ErrorHandler.cpp
+SRC = server.cpp
 OBJ = $(SRC:.cpp=.o)
 
 %.o: %.cpp
@@ -24,7 +24,6 @@ OBJ = $(SRC:.cpp=.o)
 
 $(NAME): $(OBJ)
 	$(COMPILER) $(FLAG) $(LIBRARYHEADER) $(OBJ) -o $(NAME)
-	rm -f $(OBJ)
 
 all: $(NAME)
 
