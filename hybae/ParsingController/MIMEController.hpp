@@ -35,8 +35,7 @@ class MIMEController {
 
 			// mime.types이 비어있음.
 			if (fileRead.peek() == std::ifstream::traits_type::eof()) {
-				std::cout << "MIME file is empty" << std::endl;
-				return (-1);
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "MIME file is empty");
 			}
 
 			while (getline(fileRead, temp)) {

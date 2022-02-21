@@ -1,7 +1,6 @@
 #ifndef SERVERPROCESS_HPP
 # define SERVERPROCESS_HPP
 
-#include "./../HTTPMessageController/HTTPMessageController.hpp"
 #include "./../SocketController/SocketController.hpp"
 #include "./../KernelQueueController/KernelQueueController.hpp"
 #include "./../ParsingController/ConfigController.hpp"
@@ -33,7 +32,6 @@ class ServerProcess {
 				// queue내 남아있는 이벤트만큼 반복
 				for (int i = 0; i < Kqueue->getPollingCount(); i++) {
 					if (Kqueue->getEventList(i)->filter == EVFILT_READ) {
-						std::cout << "[READ]\t";
 						// server read
 						if ((int)Kqueue->getEventList(i)->ident == Socket->getSocketServer()) {
 							Socket->setSocketClient(accept(Socket->getSocketServer(), Socket->getConvertedAddressClient(), Socket->getSocketLength()));
@@ -49,9 +47,8 @@ class ServerProcess {
 							char buf[TEMP_BUFSIZ];
 							int n;
 							n = read(fd, buf, TEMP_BUFSIZ - 1);
-							std::cout << "N : " << n << std::endl;
 							if (n == -1) {
-								std::cout << "RECV ERROR" << std::endl;
+								throw ErrorHandler(__FILE__, __func__, __LINE__, "RECV ERROR");
 								return (-1);
 							}
 							else if (n == TEMP_BUFSIZ - 1) {
@@ -59,11 +56,11 @@ class ServerProcess {
 								Kqueue->sumMessage(fd, buf);
 							}
 							else {
+								std::cout << "Client read : [" << fd << "]" << std::endl;
 								buf[n] = '\0';
 								Kqueue->sumMessage(fd, buf);
-								std::cout << "GET ALL" << std::endl;
 								if (Kqueue->addRequestMessage(fd) == -1)
-								return (-1);
+									return (-1);
 								Kqueue->setWriteKqueue(fd);
 								std::string temp = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
 								Kqueue->saveResponseMessage(fd, temp);
@@ -73,9 +70,7 @@ class ServerProcess {
 					// write
 					else if (Kqueue->getEventList(i)->filter == EVFILT_WRITE) {
 						int fd = Kqueue->getEventList(i)->ident;
-						std::cout << "[WRITE]\tmessage : [" << fd << "]" << std::endl;
 						if (Kqueue->writeResponseMessage(fd, TEMP_BUFSIZ) != TEMP_BUFSIZ) {
-							std::cout << "SUCCESS" << std::endl;
 							Kqueue->removeRequestMessage(fd);
 							close(fd);
 						}

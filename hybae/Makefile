@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: sunghyunpark <sunghyunpark@student.42.f    +#+  +:+       +#+         #
+#    By: hybae <hybae@student.42seoul.kr>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/07/11 22:31:50 by hybae             #+#    #+#              #
-#    Updated: 2022/02/16 14:21:35 by sunghyunpar      ###   ########.fr        #
+#    Updated: 2022/02/22 03:30:24 by hybae            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ COMPILER = clang++
 FLAG = -Wall -Werror -Wextra -std=c++98 -g -fsanitize=address
 LIBRARYHEADER = -I./
 
-SRC = server.cpp ErrorHandler/ErrorHandler.cpp
+SRC = server.cpp
 OBJ = $(SRC:.cpp=.o)
 
 %.o: %.cpp
