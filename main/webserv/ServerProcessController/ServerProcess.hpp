@@ -2,6 +2,8 @@
 # define SERVERPROCESS_HPP
 
 #include "./../HTTPMessageController/HTTPMessageController.hpp"
+#include "./../HTTPMessageController/RequestMessageController.hpp"
+#include "./../HTTPMessageController/ResponseMessageController.hpp"
 #include "./../SocketController/SocketController.hpp"
 #include "./../KernelQueueController/KernelQueueController.hpp"
 #include "./../ParsingController/ConfigController.hpp"
