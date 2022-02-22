@@ -151,25 +151,25 @@ class CGIProcess {
             //헤헤헤....헤헤...헤.....헤....dj..어렵다아 ㅎ헤헤...ㅎ.헿.ㅎㅎ
 
             if (pipe(this->_inputPair) == -1 || pipe(this->_outputPair) == -1) {
-                throw ErrorHandler("Pipe Making Error.");
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "Pipe Making Erro.r");
             }
             target = (inputFd != 0) ? inputFd : this->_inputPair[0];
             if ((_pid = fork()) < 0) {
-                throw ErrorHandler("Process Making Error.");
+                throw ErrorHandler(__FILE__, __func__, __LINE__, "Process Making Error.");
             }
             if (_pid == 0) {
                 if ((dup2(target, STDIN_FILENO) == -1) || (dup2(this->_outputPair[1], STDOUT_FILENO) == -1)) {
-                    throw ErrorHandler("duplicate File Descriptor Error.");
+                    throw ErrorHandler(__FILE__, __func__, __LINE__, "duplicate File Descriptor Error.");
                 }
                 if ((close(this->_inputPair[1]) == -1) || (close(this->_outputPair[0]) == -1)) {
-                    throw ErrorHandler("File Descriptor closing Error1.");
+                    throw ErrorHandler(__FILE__, __func__, __LINE__, "File Descriptor closing Error1.");
                 }
                 if (execve(this->_arg[0], _arg, _env) == -1) {
-                    throw ErrorHandler("execve File Descriptor Error.");
+                    throw ErrorHandler(__FILE__, __func__, __LINE__, "execve File Descriptor Error.");
                 }
             } else {
                 if ((close(this->_inputPair[0]) == -1) || (close(this->_outputPair[1]) == -1)) {
-                    throw ErrorHandler("File Descriptor closing Error2.");
+                    throw ErrorHandler(__FILE__, __func__, __LINE__, "File Descriptor closing Error2.");
                 }
             }
             if (inputFd == 0) {
