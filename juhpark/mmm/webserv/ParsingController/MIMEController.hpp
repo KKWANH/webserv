@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-
+#include "./../ErrorHandler/ErrorHandler.hpp"
 
 // TODO: 멤버 메소들들이 ConfigController와 중복되어 합쳐도 될 것 같음.
 class MIMEController {
@@ -35,7 +35,7 @@ class MIMEController {
 
 			// mime.types이 비어있음.
 			if (fileRead.peek() == std::ifstream::traits_type::eof()) {
-				throw Error_Handler(__FILE__, __func__, __LINE__, "MIME file is empty");
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "MIME file is empty");
 			}
 
 			while (getline(fileRead, temp)) {

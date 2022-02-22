@@ -2,13 +2,15 @@
 # define SERVERPROCESS_HPP
 
 #include "./../HTTPMessageController/HTTPMessageController.hpp"
+#include "./../HTTPMessageController/RequestMessageController.hpp"
+#include "./../HTTPMessageController/ResponseMessageController.hpp"
 #include "./../SocketController/SocketController.hpp"
 #include "./../KernelQueueController/KernelQueueController.hpp"
 #include "./../ParsingController/ConfigController.hpp"
 #include <dirent.h>
 #include <sys/stat.h>
 
-# define TEMP_BUFSIZ 4096
+# define TEMP_BUFSIZ 1024
 
 extern ConfigController config;
 
@@ -51,8 +53,7 @@ class ServerProcess {
 							n = read(fd, buf, TEMP_BUFSIZ - 1);
 							std::cout << "N : " << n << std::endl;
 							if (n == -1) {
-								std::cout << "RECV ERROR" << std::endl;
-								return (-1);
+								throw ErrorHandler(__FILE__, __func__, __LINE__, "RECV ERROR");
 							}
 							else if (n == TEMP_BUFSIZ - 1) {
 								buf[n] = '\0';
@@ -63,9 +64,9 @@ class ServerProcess {
 								Kqueue->sumMessage(fd, buf);
 								std::cout << "GET ALL" << std::endl;
 								if (Kqueue->addRequestMessage(fd) == -1)
-								return (-1);
+									throw ErrorHandler(__FILE__, __func__, __LINE__, "fcntl error");
 								Kqueue->setWriteKqueue(fd);
-								std::string temp = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
+								std::string temp = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd), Socket);
 								Kqueue->saveResponseMessage(fd, temp);
 							}
 						}

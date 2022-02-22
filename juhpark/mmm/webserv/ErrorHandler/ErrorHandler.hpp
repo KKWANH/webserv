@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ErrorHandler.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: juhpark <juhpark@student.42seoul.kr>       +#+  +:+       +#+        */
+/*   By: hyunja <hyunja@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 12:19:51 by juhpark           #+#    #+#             */
-/*   Updated: 2022/02/21 17:34:38 by juhpark          ###   ########.fr       */
+/*   Updated: 2022/02/22 18:28:29 by juhpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,9 @@
 # include <string>
 # include <sys/errno.h>
 
+//throw ErrorHandler(__FILE__, __func__, __LINE__, "Error Message");
+//요로케 던지면 됩니다
+//리펙토링으로 Error_Handler가 되려나..?
 /*
 class ErrorHandler : public std::exception
 {
@@ -34,7 +37,7 @@ public:
 	virtual const char *what() const throw();
 };
 */
-class Error_Handler : public std::exception
+class ErrorHandler : public std::exception
 {
 	private:
 		const char*	_fil;
@@ -44,15 +47,15 @@ class Error_Handler : public std::exception
 		int			_tmp;
 
 	public:
-		Error_Handler(void) {}
+		ErrorHandler(void) {}
 
-		Error_Handler(const char* _ch1, const char* _ch2, int _int, std::string _str)
+		ErrorHandler(const char* _ch1, const char* _ch2, int _int, std::string _str)
 			: _fil(_ch1), _fnc(_ch2), _lin(_int), _msg(_str), _tmp(-1) { }
 
-		Error_Handler(const char* _ch1, const char* _ch2, int _int, std::string _str, int _num)
+		ErrorHandler(const char* _ch1, const char* _ch2, int _int, std::string _str, int _num)
 			: _fil(_ch1), _fnc(_ch2), _lin(_int), _msg(_str), _tmp(_num) { }
 
-		virtual ~Error_Handler() throw() { }
+		virtual ~ErrorHandler() throw() { }
 		virtual const char *what() const throw()
 		{
 			static std::string _rst;
@@ -97,6 +100,5 @@ class Error_Handler : public std::exception
 			return (_rst.c_str());
 		}
 };
-
 
 #endif
