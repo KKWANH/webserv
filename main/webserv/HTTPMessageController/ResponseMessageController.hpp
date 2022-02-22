@@ -122,7 +122,7 @@ class ResponseMessage : public HTTPMessage {
 					std::cout << "buf -> " << message_body << std::endl;
 				}
                 if (n < 0)
-                    throw (ErrorHandler("ERROR : READ CGI ERROR"));
+                    throw (ErrorHandler(__FILE__, __func__, __LINE__, "ERROR : READ CGI ERROR"));
 				// cgi 에서 받은 메세지 리팩토링
 				std::cout << message_body << std::endl;
 			} 

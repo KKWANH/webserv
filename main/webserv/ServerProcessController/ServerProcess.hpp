@@ -53,8 +53,7 @@ class ServerProcess {
 							n = read(fd, buf, TEMP_BUFSIZ - 1);
 							std::cout << "N : " << n << std::endl;
 							if (n == -1) {
-								std::cout << "RECV ERROR" << std::endl;
-								return (-1);
+								throw ErrorHandler(__FILE__, __func__, __LINE__, "RECV ERROR");
 							}
 							else if (n == TEMP_BUFSIZ - 1) {
 								buf[n] = '\0';
@@ -65,7 +64,7 @@ class ServerProcess {
 								Kqueue->sumMessage(fd, buf);
 								std::cout << "GET ALL" << std::endl;
 								if (Kqueue->addRequestMessage(fd) == -1)
-								return (-1);
+									throw ErrorHandler(__FILE__, __func__, __LINE__, "fcntl error");
 								Kqueue->setWriteKqueue(fd);
 								std::string temp = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
 								Kqueue->saveResponseMessage(fd, temp);
