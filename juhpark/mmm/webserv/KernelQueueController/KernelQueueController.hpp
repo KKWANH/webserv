@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <map>
-#include "./../HTTPMessageController/HTTPMessageController.hpp"
+#include "./../HTTPMessageController/RequestMessageController.hpp"
 #include "./../ServerProcessController/ServerProcess.hpp"
 #include "./../ErrorHandler/ErrorHandler.hpp"
 
@@ -55,7 +55,7 @@ class KernelQueueController {
 
 			// set non-blocking
 			if (fcntl(s_socket, F_SETFL, O_NONBLOCK) == -1)
-				throw Error_Handler(__FILE__, __func__, __LINE__, "fcntl error");
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "fcntl error");
 			return (0);
 		}
 
@@ -100,7 +100,7 @@ class KernelQueueController {
 			std::cout << tempBuf[fd] << std::endl;
 			std::cout << "_---------------------" << std::endl;
 			if (tempMessage.parsingRequestMessage(fd, this->tempBuf[fd]) == -1)
-				throw Error_Handler(__FILE__, __func__, __LINE__, "암튼 망함");
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "parsing error");
 			requestMessage.insert(std::make_pair(fd, tempMessage));
 			this->tempBuf[fd] = "";
 			return (0);

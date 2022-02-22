@@ -5,6 +5,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string>
+#include <ctime>
+#include <cstdlib>
+#include <random>
 #include "./../ErrorHandler/ErrorHandler.hpp"
 
 #define PORT 9090
@@ -29,6 +32,15 @@ class SocketController {
 
 		void							setSocketClient(int accept) 		{ this->socket_client = accept;	}
 
+		int								getNanSu() {
+			srand((unsigned int)time(NULL));
+			int res = rand();
+			res = res % 100;
+			std::cout << "your port is : " << 9000 + res << std::endl;
+			return (9000 + res);
+		}
+		
+
 		int								init() {
 			// Create Socket on Server
 			socket_server = socket(PF_INET, SOCK_STREAM, 0);
@@ -37,18 +49,19 @@ class SocketController {
 			memset(&address_server, 0, sizeof(address_server));
 			address_server.sin_addr.s_addr = htonl(INADDR_ANY);
 			address_server.sin_family = AF_INET;
-			address_server.sin_port = htons(PORT);
+		//	address_server.sin_port = htons(PORT);
+			address_server.sin_port = htons(getNanSu());
 			
 			// Bind Server Socket to Server Address
 			bind_check = bind(socket_server, (struct sockaddr*)&address_server, sizeof(address_server));
 			if (bind_check == -1) {
-				throw Error_Handler(__FILE__, __func__, __LINE__, "응 에러 나봐~~~ 리팩토링하면돼~~~");
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "Fail Binding");
 			}
 
 			// Start to listen
 			listen_check = listen(socket_server, 10);
 			if (listen_check == -1) {
-				throw Error_Handler(__FILE__, __func__, __LINE__, "응 에러 나봐~~~ 리팩토링하면돼~~~");
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "Fail Listen");
 			}
 			return (0);
 		}
