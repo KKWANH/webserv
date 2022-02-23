@@ -8,6 +8,7 @@
 # include				<fstream>
 
 # include				"../utils/Utils.hpp"
+# include				"../error/Error_Handler.hpp"
 
 # define				DEFAULT_CONFIG		"./settings/wsv.config"
 # define				DEFAULT_MIME_TYP	"./settings/mime.types"
@@ -97,12 +98,13 @@ class
 		void
 			setUri(std::string _nam)
 		{
-			if (strcmp(&_nam.c_str()[strlen(_nam.c_str())-7], ".config") == 0)
-				_uri = _nam;
-			else
+			if (_nam.length() < 4 ||
+				strcmp(&_nam.c_str()[strlen(_nam.c_str())-7], ".config") != 0)
 				std::cout	<< ANSI_RED << "[ERR] "
 							<< ANSI_RES << "Wrong input. default file will be applied." << std::endl
 							<< ANSI_BLU << "[INF]" << ANSI_RES << DEFAULT_CONFIG << std::endl;
+			else
+				_uri = _nam;
 		}
 
         /**
@@ -115,29 +117,18 @@ class
 		int
 			setContent(std::string _nam)
 		{
-			if (_mim == false)
-				setUri(_nam);
-
 			std::string			_key, _val, _tmp;
 			std::ifstream		_fil(_uri.c_str());
 			int					_stt, _end;
 
-			// if file couldn't be opened
-			if (_fil.is_open() == false) {
-				std::cout		<< ANSI_RED << "[ERR] "
-								<< ANSI_RES << "File couldn't be opened. Check it!" << std::endl
-								<< ANSI_BLU << "[INF] " << ANSI_RES << _uri << std::endl;
-				return			(ERROR);
-			}
+			if (_fil.is_open() == false)
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "Couldn't open the file");
 
-			// if file is empty
 			if (_fil.peek() == std::ifstream::traits_type::eof())
-			{
-				std::cout		<< ANSI_RED << "[ERR] "
-								<< ANSI_RES << "File is empty. Check it!" << std::endl
-								<< ANSI_BLU << "[INF] " << ANSI_RES << _uri << std::endl;
-				return			(ERROR);
-			}
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "File is empty");
+
+			if (_mim == false)
+				setUri(_nam);
 
 			while (getline(_fil, _tmp))
 			{

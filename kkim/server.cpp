@@ -21,36 +21,26 @@ int
 
 	try
 	{
+		// Set config file
 		if (_arc == 1)
-		{
-			if (_config.setContent("./settings/wsv.config") == ERROR)
-				throw ErrorHandler(__FILE__, __func__, __LINE__, "config file setting error");
-		}
-		else if (_arc > 2)
-			throw ErrorHandler(__FILE__, __func__, __LINE__, "too many arguments");
+			_config.setContent("./settings/wsv.config");
 		else
-		{
-			if (_config.setContent(_arv[1]) == ERROR)
-				throw ErrorHandler(__FILE__, __func__, __LINE__, "config file setting error");
-		}
+			_config.setContent(_arv[1]);
 
 		// Set MIME types
 		_mime.setIsMIME(true);
-		if (_mime.setContent("./settings/mime.types") == ERROR)
-			throw ErrorHandler(__FILE__, __func__, __LINE__, "mime file setting error");
+		_mime.setContent("./settings/mime.types");
 
 		// Init socket communication
-		if (_socket.init() == ERROR)
-			throw ErrorHandler(__FILE__, __func__, __LINE__, "socket communication init error");
+		_socket.init();
 		
 		// Init polling
-		KQueueController	_kqueue;
-		if (_kqueue.init(_socket.getSocketServer()) == ERROR)
-			throw ErrorHandler(__FILE__, __func__, __LINE__, "polling init error");
+		KQueueController
+			_kqueue;
+		_kqueue.init(_socket.getSocketServer());
 
 		// Non-blocking socket communication
-		if (ServerProcess::serverProcess(&_socket, &_kqueue) == ERROR)
-			throw ErrorHandler(__FILE__, __func__, __LINE__, "non-blocking socket communication error");
+		ServerProcess::serverProcess(&_socket, &_kqueue);
 	}
 	catch (const std::exception& _err)
 	{
