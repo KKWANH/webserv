@@ -44,7 +44,7 @@ class KernelQueueController {
 		void											decreasePollingCount()				{ polling_count--; }
 		void											setPollingCount(int num)			{ polling_count = num; }
 
-		int			init(int s_socket) {
+		void		init(int s_socket) {
 			// init kqueue
 			kq = kqueue();
 			struct timespec tmout = {5, 0};
@@ -56,7 +56,7 @@ class KernelQueueController {
 			// set non-blocking
 			if (fcntl(s_socket, F_SETFL, O_NONBLOCK) == -1)
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "fcntl error");
-			return (0);
+			return ;
 		}
 
 		void		clearChangeList() {
@@ -94,16 +94,15 @@ class KernelQueueController {
 		}
 
 		// requestMessage 내 fd-RequestMessage 쌍 형태로 삽입
-		int						addRequestMessage(int fd) {
+		void					addRequestMessage(int fd) {
 			RequestMessage tempMessage;
-			std::cout << "_----------[" << fd << "]MSG-------" << std::endl;
+			std::cout << "----------[" << fd << "]Request Message------------" << std::endl;
 			std::cout << tempBuf[fd] << std::endl;
-			std::cout << "_---------------------" << std::endl;
-			if (tempMessage.parsingRequestMessage(fd, this->tempBuf[fd]) == -1)
-				throw ErrorHandler(__FILE__, __func__, __LINE__, "parsing error");
+			std::cout << "----------------------------------------" << std::endl;
+			tempMessage.parsingRequestMessage(fd, this->tempBuf[fd]);
 			requestMessage.insert(std::make_pair(fd, tempMessage));
 			this->tempBuf[fd] = "";
-			return (0);
+			return ;
 		}
 
 		void					sumMessage(int fd, char* buf) {

@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include "./../ServerProcessController/ServerProcess.hpp"
 #include "./../ParsingController/MIMEController.hpp"
+#include "./../ErrorHandler/ErrorHandler.hpp"
 
 extern ConfigController config;
 extern MIMEController mime;
