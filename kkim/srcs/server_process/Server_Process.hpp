@@ -1,14 +1,16 @@
 #ifndef					SERVER_PROCESS_HPP
 # define				SERVER_PROCESS_HPP
 
+# include				<dirent.h>
+# include				<sys/stat.h>
+
 # include				"../http_message/HTTPMsg_Controller.hpp"
 # include				"../socket/Socket_Controller.hpp"
 # include				"../kqueue/KQueue_Controller.hpp"
 # include				"../parse/Config_Controller.hpp"
-# include				<dirent.h>
-# include				<sys/stat.h>
+# include				"../error/Error_Handler.hpp"
 
-# define				TMP_BUF_SIZ 20480
+# define				TMP_BUF_SIZ 2048
 
 extern ConfigController	_config;
 
@@ -40,7 +42,6 @@ class
 					if (_kqu->getEventList(_idx)->filter == EVFILT_READ)
 					{
 						// server read
-						std::cout << "[READ]\t";
 						if ((int)_kqu->getEventList(_idx)->ident == _sck->getSocketServer())
 						{
 							_sck->setSocketClient(accept(_sck->getSocketServer(), _sck->getConvertedAddressClient(), _sck->getSocketLength()));
@@ -63,11 +64,7 @@ class
 							std::cout << ANSI_BLU << "[_num]" << ANSI_RES << " : " << _num << std::endl;
 
 							if (_num == ERROR)
-							{
-								std::cout	<< ANSI_RED << "[ERR] "
-											<< ANSI_RES << "recv error" << std::endl;
-								return (ERROR);
-							}
+								throw ErrorHandler(__FILE__, __func__, __LINE__, "RECV ERROR");
 							else if (_num == TMP_BUF_SIZ - 1)
 							{
 								_buf[_num] = '\0';
@@ -79,11 +76,9 @@ class
 								_kqu->sumMessage(_fd, _buf);
 
 								std::cout	<< ANSI_BLU << "[INF]"
-											<< ANSI_RES << "Get all" << std::endl;
-								if (_kqu->addRequestMessage(_fd) == ERROR)
-									return (ERROR);
+											<< ANSI_RES << "Client Read : [" << _fd << "]" << std::endl;
+								_kqu->addRequestMessage(_fd);
 								_kqu->setWriteKqueue(_fd);
-
 								std::string
 									_tmp = ResponseMessage::setResponseMessage(
 										_kqu->getRequestMessage(_fd));
@@ -96,12 +91,8 @@ class
 					{
 						int
 							_fd = _kqu->getEventList(_idx)->ident;
-						std::cout	<< ANSI_BLU << "[WRITE]\t"
-									<< ANSI_RES << "message : [" << _fd << "]" << std::endl;
 						if (_kqu->writeResponseMessage(_fd, TMP_BUF_SIZ) != TMP_BUF_SIZ)
 						{
-							std::cout	<< ANSI_GRE << "[SUC] "
-										<< ANSI_RES << "write success" << std::endl;
 							_kqu->removeRequestMessage(_fd);
 							close(_fd);
 						}

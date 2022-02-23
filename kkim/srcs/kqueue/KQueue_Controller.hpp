@@ -10,18 +10,21 @@
 
 # include				"../utils/Utils.hpp"
 # include				"../http_message/HTTPMsg_Controller.hpp"
+# include				"../http_message/RequestMsg_Controller.hpp"
+# include				"../http_message/ResponseMsg_Controller.hpp"
 # include				"../server_process/Server_Process.hpp"
+# include				"../error/Error_Handler.hpp"
 
 class					KQueueController
 {
 	private:
-		struct timespec*				_timeout;
-		int								_kq;
-		struct kevent					_event_list[BUFSIZ];
-		struct kevent					_change_list[BUFSIZ];
-		int								_change_cnt;
-		std::map<int, RequestMessage>	_request_msg;
-		int								_polling_cnt;
+		struct timespec*				_timeout;						// timeout 시간을 지정하기 위한 구조체
+		int								_kq;							// kqueue descriptor
+		struct kevent					_event_list[BUFSIZ];			// 작업을 돌려받는 list
+		struct kevent					_change_list[BUFSIZ];			// 작업을 추가하기 위한 list
+		int								_change_cnt;					// 추가할 작업 수
+		std::map<int, RequestMessage>	_request_msg;					// 통신 시 주고받는 Request message 데이터를 임시로 저장할 장소
+		int								_polling_cnt;					// event 수
 		std::string						_tmp_buf[BUFSIZ];
 		std::map<int, std::string>		_response_msg;
 		std::map<int, int>				_response_msg_siz;
@@ -57,7 +60,8 @@ class					KQueueController
 
 			// set non-blocking
 			if (fcntl(_sck, F_SETFL, O_NONBLOCK) == -1)
-				return (-1);
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "fcntl error");
+			
 			return (0);
 		}
 
@@ -68,6 +72,8 @@ class					KQueueController
 		}
 
 		/**
+		파라미터로 주어지는 fd에 대한 EV_SET
+		READ ADD | ENABLE and WRITE ADD | DISABLE
 		*/
 		void
 			setReadKqueue(int _fld)
@@ -78,6 +84,10 @@ class					KQueueController
 			this->increaseChangeCount();
 		}
 
+		/**
+		파라미터로 주어지는 fd에 대한 EV_SET
+		READ ADD | ENABLE and WRITE ADD | DISABLE
+		*/
 		void
 			setWriteKqueue(int _fld)
 		{
@@ -87,6 +97,9 @@ class					KQueueController
 			this->increaseChangeCount();
 		}
 
+		/**
+		requestMessage 내 fd-RequestMessage 쌍 제거
+		*/
 		void
 			removeRequestMessage(int _fld)
 		{
@@ -96,7 +109,10 @@ class					KQueueController
 			_response_msg_siz.erase(_fld);
 		}
 
-		int
+		/**
+		requestMessage 내 fd-RequestMessage 쌍 형태로 삽입
+		*/
+		void
 			addRequestMessage(int _fld)
 		{
 			RequestMessage
@@ -104,11 +120,10 @@ class					KQueueController
 			std::cout << "_-----------" << "[" << _fld << "]" << "-----------_" << std::endl;
 			std::cout << _tmp_buf[_fld] << std::endl;
 			std::cout << "_------------------------------_" << std::endl;
-			if (_tmp_msg.parsingRequestMessage(_fld, this->_tmp_buf[_fld]) == ERROR)
-				return (ERROR);
+			_tmp_msg.parsingRequestMessage(_fld, this->_tmp_buf[_fld]);
 			_request_msg.insert(std::make_pair(_fld, _tmp_msg));
 			this->_tmp_buf[_fld] = "";
-			return (0);
+			return ;
 		}
 
 		void

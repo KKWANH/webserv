@@ -6,8 +6,12 @@
 # include				<sys/socket.h>
 # include				<netinet/in.h>
 # include				<arpa/inet.h>
+# include				<ctime>
+# include				<cstdlib>
+# include				<random>
 
 # include				"../utils/Utils.hpp"
+# include				"../error/Error_Handler.hpp"
 
 # define				DEFAULT_PORT	9090
 
@@ -63,15 +67,9 @@ class					SocketController
 			init(void)
 		{
 			// Create Socket on Server
-			// - PF_INET is for Protocol, AF_INET is for Address.
-			// - Actually swapping PF_INET and AF_INET makes no difference..
-			// - SOCK_STREAM is for TCP, SOCK_DGRAM is for UDP.
 			_socket_server = socket(PF_INET, SOCK_STREAM, 0);
 
 			// Init Address Informaion
-			// - htonl : Host to Network Long
-			// - INADDR_ANY : Automatically use the IP of the available LAN card in this computer.
-			// - htons : Host to Network Short
 			memset(&_address_server, 0, sizeof(_address_server));
 			_address_server.sin_addr.s_addr = htonl(INADDR_ANY);
 			_address_server.sin_family = AF_INET;
@@ -80,20 +78,12 @@ class					SocketController
 			// Bind Server Socket to Server Address
 			_chk_bind = bind(_socket_server, (struct sockaddr*)&_address_server, sizeof(_address_server));
 			if (_chk_bind == ERROR)
-			{
-				std::cout	<< ANSI_RED << "[ERR] "
-							<< ANSI_RES << "Bind error" << std::endl;
-				return (ERROR);
-			}
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "Bind Error");
 
 			// Listen
 			_chk_listen = listen(_socket_server, 10);
 			if (_chk_listen == ERROR)
-			{
-				std::cout	<< ANSI_RED << "[ERR] "
-							<< ANSI_RES << "Listen error" << std::endl;
-				return (ERROR);
-			}
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "Listen Error");
 
 			return (0);
 		}

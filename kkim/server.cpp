@@ -4,6 +4,7 @@
 # include				"srcs/server_process/Server_Process.hpp"
 # include				"srcs/http_message/HTTPMsg_Controller.hpp"
 # include				"srcs/kqueue/KQueue_Controller.hpp"
+# include				"srcs/error/Error_Handler.hpp"
 
 ConfigController		_config;
 extern ConfigController	_config;
@@ -12,38 +13,52 @@ extern ConfigController	_mime;
 
 int
 	main(int _arc, char **_arv)
+
 {
 	_config.setIsMIME(false);
-	if (_arc == 1)
+
+	SocketController	_socket;
+
+	try
 	{
-		if (_config.setContent("./settings/wsv.config") == ERROR)
-			return			(ERROR);
+		if (_arc == 1)
+		{
+			if (_config.setContent("./settings/wsv.config") == ERROR)
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "config file setting error");
+		}
+		else if (_arc > 2)
+			throw ErrorHandler(__FILE__, __func__, __LINE__, "too many arguments");
+		else
+		{
+			if (_config.setContent(_arv[1]) == ERROR)
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "config file setting error");
+		}
+
+		// Set MIME types
+		_mime.setIsMIME(true);
+		if (_mime.setContent("./settings/mime.types") == ERROR)
+			throw ErrorHandler(__FILE__, __func__, __LINE__, "mime file setting error");
+
+		// Init socket communication
+		if (_socket.init() == ERROR)
+			throw ErrorHandler(__FILE__, __func__, __LINE__, "socket communication init error");
+		
+		// Init polling
+		KQueueController	_kqueue;
+		if (_kqueue.init(_socket.getSocketServer()) == ERROR)
+			throw ErrorHandler(__FILE__, __func__, __LINE__, "polling init error");
+
+		// Non-blocking socket communication
+		if (ServerProcess::serverProcess(&_socket, &_kqueue) == ERROR)
+			throw ErrorHandler(__FILE__, __func__, __LINE__, "non-blocking socket communication error");
 	}
-	else
+	catch (const std::exception& _err)
 	{
-		if (_config.setContent(_arv[1]) == ERROR)
-			return			(ERROR);
+		std::cerr << _err.what() << std::endl;
+		close(_socket.getSocketServer());
+		return (ERROR);
 	}
 
-	// Set MIME types
-	_mime.setIsMIME(true);
-	if (_mime.setContent("./settings/mime.types") == ERROR)
-		return			(ERROR);
-
-	// Init socket communication
-	SocketController	_sck;
-	if (_sck.init() == ERROR)
-		return			(ERROR);
-	
-	// Init polling
-	KQueueController	_kqu;
-	if (_kqu.init(_sck.getSocketServer()) == ERROR)
-		return			(ERROR);
-
-	// Non-blocking socket communication
-	if (ServerProcess::serverProcess(&_sck, &_kqu) == ERROR)
-		return			(ERROR);
-	
-	close(_sck.getSocketServer());
+	close(_socket.getSocketServer());
 	return				(0);
 }

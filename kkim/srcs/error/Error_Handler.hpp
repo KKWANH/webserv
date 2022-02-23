@@ -1,5 +1,5 @@
-#ifndef					ERRORHANDLER_HPP
-# define				ERRORHANDLER_HPP
+#ifndef					ERROR_HANDLER_HPP
+# define				ERROR_HANDLER_HPP
 
 # include				<string>
 # include				<exception>
@@ -26,53 +26,84 @@ what					return what is the message
 -------------------------------------------------------------
 */
 class
-	Error_Handler : public std::exception
+	ErrorHandler : public std::exception
 {
 	private:
+		const char*
+			_fil;
+		const char*
+			_fnc;
+		int
+			_lin;
 		std::string
 			_msg;
 		int
 			_tmp;
 
 	public:
-		Error_Handler(void)
+		ErrorHandler(void)
 		{}
 
-		Error_Handler(std::string _str)
-		:	_msg(""),
-			_tmp(-1) { }
+		ErrorHandler(const char* _ch1, const char* _ch2, int _num, std::string _str)
+		:	_fil(_ch1),
+			_fnc(_ch2),
+			_lin(_num),
+			_msg(_str),
+			_tmp(-1)
+		{ }
 
-		Error_Handler(std::string _str, int _num)
-		:	_msg(_str),
-			_tmp(_num) { };
+		ErrorHandler(const char* _ch1, const char* _ch2, int _nm1, std::string _str, int _nm2)
+		:	_fil(_ch1),
+			_fnc(_ch2),
+			_lin(_nm1),
+			_msg(_str),
+			_tmp(_nm2)
+		{ }
 
-		virtual ~Error_Handler()
-			throw() { }
-		virtual const char *
-			what() const throw()
+		virtual
+			~ErrorHandler() throw()
+		{ }
+
+		virtual const char*
+			what(void) const throw()
 		{
 			static std::string
 				_rst;
 
 			_rst.clear();
 			_rst += ANSI_RED;
-			_rst += "[ERR] ";
-			_rst += ANSI_RES;
+			_rst += "~--------------------------------------------------------------------\n";
+			_rst +=   "[ERROR] : ";
+			_rst += ANSI_YEL;
 			_rst += _msg;
+			_rst += ANSI_RED;
+			_rst += "\n[FILE]  : ";
+			_rst += ANSI_YEL;
+			_rst += _fil;
+			_rst += ANSI_RED;
+			_rst += "\n[FUNC]  : ";
+			_rst += ANSI_YEL;
+			_rst += _fnc;
+			_rst += ANSI_RED;
+			_rst += "\n[LINE]  : ";
+			_rst += ANSI_YEL;
+			_rst += std::to_string(_lin);
 
-			//yamkim님의 것에선 저걸 넣었는데 read,write만 아니면 되는건가
 			if (errno)
 			{
 				_rst += "\n";
 				_rst += ANSI_BLU;
-				_rst += "[INF] ";
+				_rst += "[INFO]  : ";
 				_rst += ANSI_RES;
-				_rst += (std::strerror(errno));
+				_rst += strerror(errno);
 			}
 
-			//요 if 문은 그냥 명목상으로 만든거
 			if (_tmp == 0)
-				_rst += "!";
+				;
+
+			_rst += ANSI_RED;
+			_rst += "\n~--------------------------------------------------------------------\n";
+			_rst += ANSI_RES;
 			return (_rst.c_str());
 		}
 };
