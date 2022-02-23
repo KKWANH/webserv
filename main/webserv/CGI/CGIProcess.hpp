@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include "../ErrorHandler/ErrorHandler.hpp"
-#include "../HTTPMessageController/HTTPMessageController.hpp"
+#include "../HTTPMessageController/RequestMessageController.hpp"
 
 class CGIProcess {
     private:
@@ -36,14 +36,14 @@ class CGIProcess {
             return envp;
         }
 
-         void    setCGIarg() {
+        void    setCGIarg() {
             this->_arg = new char*[4];
 
             this->_arg[0] = new char[22];
-            strcpy(_arg[0], "./../test/php-cgi");  // cgi file 경로. config 파일에서 파싱해서 사용
+            strcpy(_arg[0], "./cgiBinary/php-cgi");  // cgi file 경로. config 파일에서 파싱해서 사용
             
 			this->_arg[1] = new char[25];
-            strcpy(_arg[1], "./../test/sample.php");  // 실행할 파일 경로. request message의 uri에서 파싱해서 사용
+            strcpy(_arg[1], "./cgiBinary/sample.php");  // 실행할 파일 경로. request message의 uri에서 파싱해서 사용
             
             this->_arg[2] = new char[10];
             strcpy(_arg[2], "var=1234");
@@ -57,7 +57,7 @@ class CGIProcess {
             _arg[3] = NULL;
         }
     public:
-        void setEnvp(void)
+        void setEnvp(RequestMessage* requestMessage)
         {
             std::map<std::string, std::string> _envMap;
 
@@ -68,13 +68,11 @@ class CGIProcess {
             _envMap[std::string("PWD")] = std::string(std::getenv("PWD"));
 
             // parsing으로 가져온 아이들
-            // _envMap[std::string("REQUEST_METHOD")] = requestMessage->getMethod(); // GET
-            _envMap[std::string("REQUEST_METHOD")] = std::string("GET");
+            _envMap[std::string("REQUEST_METHOD")] = requestMessage->getMethod();
             // _envMap[std::string("PATH_INFO")] = requestMessage->getUriDir(); // /data/index.html
             _envMap[std::string("PATH_INFO")] = std::string("/index.html");
             _envMap[std::string("SERVER_PROTOCOL")] = std::string("HTTP/1.1");
-            // _envMap[std::string("REQUEST_SCHEME")] = requestMessage->getMethod(); // GET
-            _envMap[std::string("REQUEST_SCHEME")] = std::string("GET");
+            _envMap[std::string("REQUEST_SCHEME")] = requestMessage->getMethod();
             _envMap[std::string("GATEWAY_INTERFACE")] = std::string("CGI/1.1");
             _envMap[std::string("SERVER_SOFTWARE")] = std::string("webserv/1.0");
 
@@ -88,18 +86,16 @@ class CGIProcess {
             // _envMap[std::string("SERVER_ADDR")] = requestMessage->_hostIP; // client socket addr
             // _envMap[std::string("SERVER_PORT")] = requestMessage->_hostPort; // host port
 
-            // _envMap[std::string("QUERY_STRING")] = requestMessage->_URIQueryString; // id=123
-            _envMap[std::string("QUERY_STRING")] = "id=123";
+            _envMap[std::string("QUERY_STRING")] = requestMessage->getQueryString();
 
-            // _envMap[std::string("SCRIPT_NAME")] = requestMessage->_URIFilePath; // /data/index.html
-            _envMap[std::string("SCRIPT_NAME")] = "sample.php";
+            _envMap[std::string("SCRIPT_NAME")] = requestMessage->getUriFile();
 
             // _envMap[std::string("REQUEST_URI")] = requestMessage->_originURI;
-            _envMap[std::string("DOCUMENT_ROOT")] = "/Users/hyunja/all_42/00.Table_inworking/webserv/main/test/";
-            _envMap[std::string("REQUEST_URI")] = "/Users/hyunja/all_42/00.Table_inworking/webserv/main/test/sample.php";
-            _envMap[std::string("DOCUMENT_URI")] = "/Users/hyunja/all_42/00.Table_inworking/webserv/main/test/sample.php";
+            _envMap[std::string("DOCUMENT_ROOT")] = "/Users/server/Desktop/BHS/webserv/hybae/main/webserv/cgiBinary";
+            _envMap[std::string("REQUEST_URI")] = "/Users/server/Desktop/BHS/webserv/hybae/main/webserv/cgiBinary/sample.php";
+            _envMap[std::string("DOCUMENT_URI")] = "/Users/server/Desktop/BHS/webserv/hybae/main/webserv/cgiBinary/sample.php";
             // _envMap[std::string("SERVER_NAME")] = requestMessage->_serverName; // config 파일의 서버 이름
-            _envMap[std::string("SCRIPT_FILENAME")] = "/Users/hyunja/all_42/00.Table_inworking/webserv/main/test/sample.php";
+            _envMap[std::string("SCRIPT_FILENAME")] = "/Users/server/Desktop/BHS/webserv/hybae/main/webserv/cgiBinary/sample.php";
 
             // for (std::map<std::string, std::string>::iterator iter = requestMessage->_HTTPCGIENV.begin(); iter != requestMessage->_HTTPCGIENV.end(); iter++) {
             //     _envMap[iter->first] = iter->second;
@@ -148,7 +144,6 @@ class CGIProcess {
         void CGIprocess(int inputFd)
         {
             int target;
-            //헤헤헤....헤헤...헤.....헤....dj..어렵다아 ㅎ헤헤...ㅎ.헿.ㅎㅎ
 
             if (pipe(this->_inputPair) == -1 || pipe(this->_outputPair) == -1) {
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "Pipe Making Erro.r");

@@ -35,7 +35,6 @@ class ServerProcess {
 				// queue내 남아있는 이벤트만큼 반복
 				for (int i = 0; i < Kqueue->getPollingCount(); i++) {
 					if (Kqueue->getEventList(i)->filter == EVFILT_READ) {
-						std::cout << "[READ]\t";
 						// server read
 						if ((int)Kqueue->getEventList(i)->ident == Socket->getSocketServer()) {
 							Socket->setSocketClient(accept(Socket->getSocketServer(), Socket->getConvertedAddressClient(), Socket->getSocketLength()));
@@ -60,11 +59,10 @@ class ServerProcess {
 								Kqueue->sumMessage(fd, buf);
 							}
 							else {
+								std::cout << "Client read : [" << fd << "]" << std::endl;
 								buf[n] = '\0';
 								Kqueue->sumMessage(fd, buf);
-								std::cout << "GET ALL" << std::endl;
-								if (Kqueue->addRequestMessage(fd) == -1)
-									throw ErrorHandler(__FILE__, __func__, __LINE__, "fcntl error");
+								Kqueue->addRequestMessage(fd);
 								Kqueue->setWriteKqueue(fd);
 								std::string temp = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
 								Kqueue->saveResponseMessage(fd, temp);
@@ -74,9 +72,7 @@ class ServerProcess {
 					// write
 					else if (Kqueue->getEventList(i)->filter == EVFILT_WRITE) {
 						int fd = Kqueue->getEventList(i)->ident;
-						std::cout << "[WRITE]\tmessage : [" << fd << "]" << std::endl;
 						if (Kqueue->writeResponseMessage(fd, TEMP_BUFSIZ) != TEMP_BUFSIZ) {
-							std::cout << "SUCCESS" << std::endl;
 							Kqueue->removeRequestMessage(fd);
 							close(fd);
 						}

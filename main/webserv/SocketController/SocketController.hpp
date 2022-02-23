@@ -43,7 +43,7 @@ class SocketController {
 		*/
 		
 
-		int								init() {
+		void							init() {
 			// Create Socket on Server
 			socket_server = socket(PF_INET, SOCK_STREAM, 0);
 
@@ -65,7 +65,7 @@ class SocketController {
 			if (listen_check == -1) {
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "Fail Listen");
 			}
-			return (0);
+			return ;
 		}
 };
 
