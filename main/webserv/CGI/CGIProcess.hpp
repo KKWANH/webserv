@@ -9,7 +9,9 @@
 #include <unistd.h>
 #include <signal.h>
 #include "../ErrorHandler/ErrorHandler.hpp"
-#include "../HTTPMessageController/RequestMessageController.hpp"
+#include "../HTTPMessageController/HTTPMessageController.hpp"
+
+// class RequestMessage;
 
 class CGIProcess {
     private:
@@ -91,11 +93,11 @@ class CGIProcess {
             _envMap[std::string("SCRIPT_NAME")] = requestMessage->getUriFile();
 
             // _envMap[std::string("REQUEST_URI")] = requestMessage->_originURI;
-            _envMap[std::string("DOCUMENT_ROOT")] = "/Users/server/Desktop/BHS/webserv/hybae/main/webserv/cgiBinary";
-            _envMap[std::string("REQUEST_URI")] = "/Users/server/Desktop/BHS/webserv/hybae/main/webserv/cgiBinary/sample.php";
-            _envMap[std::string("DOCUMENT_URI")] = "/Users/server/Desktop/BHS/webserv/hybae/main/webserv/cgiBinary/sample.php";
+            _envMap[std::string("DOCUMENT_ROOT")] = "./cgiBinary";
+            _envMap[std::string("REQUEST_URI")] = "./cgiBinary/sample.php";
+            _envMap[std::string("DOCUMENT_URI")] = "./cgiBinary/sample.php";
             // _envMap[std::string("SERVER_NAME")] = requestMessage->_serverName; // config 파일의 서버 이름
-            _envMap[std::string("SCRIPT_FILENAME")] = "/Users/server/Desktop/BHS/webserv/hybae/main/webserv/cgiBinary/sample.php";
+            _envMap[std::string("SCRIPT_FILENAME")] = "./cgiBinary/sample.php";
 
             // for (std::map<std::string, std::string>::iterator iter = requestMessage->_HTTPCGIENV.begin(); iter != requestMessage->_HTTPCGIENV.end(); iter++) {
             //     _envMap[iter->first] = iter->second;
@@ -141,19 +143,16 @@ class CGIProcess {
             return (_outputPair[0]);
         }
 
-        void CGIprocess(int inputFd)
+        void CGIprocess(void)
         {
-            int target;
-
             if (pipe(this->_inputPair) == -1 || pipe(this->_outputPair) == -1) {
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "Pipe Making Erro.r");
             }
-            target = (inputFd != 0) ? inputFd : this->_inputPair[0];
             if ((_pid = fork()) < 0) {
                 throw ErrorHandler(__FILE__, __func__, __LINE__, "Process Making Error.");
             }
             if (_pid == 0) {
-                if ((dup2(target, STDIN_FILENO) == -1) || (dup2(this->_outputPair[1], STDOUT_FILENO) == -1)) {
+                if ((dup2(this->_inputPair[0], STDIN_FILENO) == -1) || (dup2(this->_outputPair[1], STDOUT_FILENO) == -1)) {
                     throw ErrorHandler(__FILE__, __func__, __LINE__, "duplicate File Descriptor Error.");
                 }
                 if ((close(this->_inputPair[1]) == -1) || (close(this->_outputPair[0]) == -1)) {
@@ -166,10 +165,6 @@ class CGIProcess {
                 if ((close(this->_inputPair[0]) == -1) || (close(this->_outputPair[1]) == -1)) {
                     throw ErrorHandler(__FILE__, __func__, __LINE__, "File Descriptor closing Error2.");
                 }
-            }
-            if (inputFd == 0) {
-                close(this->_inputPair[1]);
-                this->_inputPair[1] = 0;
             }
         }
 };

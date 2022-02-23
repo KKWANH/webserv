@@ -22,7 +22,7 @@ class KernelQueueController {
 		int												polling_count;							// event 수
 		std::string										tempBuf[BUFSIZ];
 		std::map<int, std::string>						responseMessage;
-		std::map<int, int>								responseMessageSize;	
+		std::map<int, int>								responseMessageSize;
 
 	public:
 		struct timespec*								getTimeout()						{ return (timeout); }
