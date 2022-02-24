@@ -8,7 +8,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <random>
-#include "./../ErrorHandler/ErrorHandler.hpp"
+#include "ErrorHandler.hpp"
 
 #define PORT 9090
 

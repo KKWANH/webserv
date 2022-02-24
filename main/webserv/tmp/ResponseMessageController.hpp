@@ -1,8 +1,8 @@
 #ifndef RESPONSEMESSAGECONTROLLER_HPP
 # define RESPONSEMESSAGECONTROLLER_HPP
 
-#include "./HTTPMessageController.hpp"
-#include "./RequestMessageController.hpp"
+#include "HTTPMessageController.hpp"
+#include "RequestMessageController.hpp"
 // #include "./../CGI/CGIProcess.hpp"
 
 // Response Message class

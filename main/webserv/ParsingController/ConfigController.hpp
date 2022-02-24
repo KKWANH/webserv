@@ -6,7 +6,7 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
-#include "../ErrorHandler/ErrorHandler.hpp"
+#include "ErrorHandler.hpp"
 
 #define DEFAULT_URI "./setting/default.config"
 

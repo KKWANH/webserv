@@ -12,10 +12,10 @@
 #include <fstream>
 #include <dirent.h>
 #include <sys/stat.h>
-#include "./../ServerProcessController/ServerProcess.hpp"
-#include "./../ParsingController/MIMEController.hpp"
-#include "./../ErrorHandler/ErrorHandler.hpp"
-#include "./../CGI/CGIProcess.hpp"
+#include "ServerProcess.hpp"
+#include "MIMEController.hpp"
+#include "ErrorHandler.hpp"
+#include "CGIProcess.hpp"
 
 extern ConfigController config;
 extern MIMEController mime;

@@ -1,9 +1,9 @@
-#include "./ParsingController/ConfigController.hpp"
-#include "./SocketController/SocketController.hpp"
-#include "./ServerProcessController/ServerProcess.hpp"
-#include "./KernelQueueController/KernelQueueController.hpp"
-#include "./ParsingController/MIMEController.hpp"
-#include "./ErrorHandler/ErrorHandler.hpp"
+#include "ConfigController.hpp"
+#include "SocketController.hpp"
+#include "ServerProcess.hpp"
+#include "KernelQueueController.hpp"
+#include "MIMEController.hpp"
+#include "ErrorHandler.hpp"
 
 ConfigController config;
 extern ConfigController config;

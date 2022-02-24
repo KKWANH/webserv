@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "./../ErrorHandler/ErrorHandler.hpp"
+#include "ErrorHandler.hpp"
 
 // TODO: 멤버 메소들들이 ConfigController와 중복되어 합쳐도 될 것 같음.
 class MIMEController {

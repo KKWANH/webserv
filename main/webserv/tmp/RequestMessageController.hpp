@@ -2,7 +2,7 @@
 # define REQUESTMESSAGECONTROLLER_HPP
 
 #include "HTTPMessageController.hpp"
-#include "../CGI/CGIProcess.hpp"
+#include "CGI/CGIProcess.hpp"
 
 class HTTPMessage;
 

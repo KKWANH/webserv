@@ -58,8 +58,6 @@ class CGIData {
             */
             argv[3] = NULL;
         }
-
-        
 };
 
 #endif
