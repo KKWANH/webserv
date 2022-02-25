@@ -1,7 +1,7 @@
 #ifndef					NGINX_PARSER_HPP
 # define				NGINX_PARSER_HPP
 
-# include				"Parser_Nginx.hpp"
+# include				"NginxParser.hpp"
 
 namespace				NginxConfig
 {
@@ -10,23 +10,21 @@ namespace				NginxConfig
 		std::string	
 			_root;
 		std::string
-			_auto_index;
+			_autoindex;
 		std::string
 			_client_max_body_size;
 		std::vector<std::string>
 			_error_page;
 		std::vector<std::string>
 			_index;
-	};
+	}					InheritData;
 
 	#ifndef				DEFAULT_ROOT
-	#define				DEFAULT_ROOT
-						std::string("/usr/share/nginx/html")
+	#define				DEFAULT_ROOT	std::string("/usr/share/nginx/html")
 	#endif
 
 	#ifndef				DEFAULT_CLIENT_MAX_BODY_SIZE
-	#define				DEFAULT_CLIENT_MAX_BODY_SIZE
-						std::string("/usr/share/nginx/html")
+	#define				DEFAULT_CLIENT_MAX_BODY_SIZE	std::string("/usr/share/nginx/html")
 	#endif
 
 	class				NginxBlock
@@ -38,28 +36,18 @@ namespace				NginxConfig
 				_dir_map;
 			
 			NginxBlock(void) {}
-			NginxBlock(std::string _str) { this->_raw_data = _str; }
-
-			void
-				checkValidNumberValue(NginxBlock& _block, std::string _dir)
+			NginxBlock(std::string _str)
 			{
-
+				this->_raw_data = _str;
 			}
 
 			void
-				checkValidErrorPage(const std::vector<std::string>& _err_page)
-			{
-
-			}
-
+				checkValidNumberValue(NginxBlock& _block, std::string _dir);
 			void
-				checkAutoIndexValue(NginxBlock& _block)
-			{
-
-			}
-
-
-	}
+				checkValidErrorPage(const std::vector<std::string>& _err_page);
+			void
+				checkAutoIndexValue(NginxBlock& _block);
+	};
 
 	class				NoneBlock		: public NginxBlock
 	{
@@ -70,7 +58,7 @@ namespace				NginxConfig
 				_user;
 			std::string
 				_worker_prc;
-	}
+	};
 
 	class				TypesBlock		: public NginxBlock
 	{
@@ -84,17 +72,10 @@ namespace				NginxConfig
 			void
 				setTypeMap( std::map<std::string, std::string>&	_type_map,
 							std::string&						_type,
-							std::string&						_value)
-			{
-
-			}
-
+							std::string&						_value);
 			void
-				setTypesBlock(void)
-			{
-
-			}
-	}
+				setTypesBlock(void);
+	};
 
 	class 				LocationBlock	: public NginxBlock
 	{
@@ -118,35 +99,17 @@ namespace				NginxConfig
         LocationBlock() {}
         LocationBlock(	std::string _arg_raw,
 						std::string _arg_loc,
-						InheritData	_arg_inh)
-		{
-
-		}
+						InheritData	_arg_inh);
 
         void
-			setDirectiveTypes(void)
-		{
-
-		}
-
+			setDirectiveTypes(void);
         void
-			checkLocationBlock(void)
-		{
-
-		}
-
+			checkLocationBlock(void);
         void
-			inheritDirectives(void)
-		{
-
-		}
-
+			inheritDirectives(void);
         void
-			setBlock(void)
-		{
-
-		}
-	}
+			setBlock(void);
+	};
 
 	class				ServerBlock		: public NginxBlock
 	{
@@ -161,34 +124,16 @@ namespace				NginxConfig
 				_location;
 
 			ServerBlock(void) {}
-			ServerBlock(std::string _str)
-			{
-
-			}
-
+			ServerBlock(std::string _str);
 			void
-				setDirectiveTypes(void)
-			{
-
-			}
-
+				setDirectiveTypes(void);
 			InheritData
-				getInheritData(void)
-			{
-
-			}
-
+				getInheritData(void);
 			void
-				setBlock(void)
-			{
-
-			}
+				setBlock(void);
 			void
-				checkServerBlock(void)
-			{
-
-			}
-	}
+				checkServerBlock(void);
+	};
 
 	class				HttpBlock		: public NginxBlock
 	{
@@ -201,29 +146,14 @@ namespace				NginxConfig
 				_types;
 		
 			HttpBlock() {}
-			HttpBlock(std::string _str)
-			{
-
-			}
-
+			HttpBlock(std::string _str);
 			void
-				setDirectiveTypes(void)
-			{
-				
-			}
-
+				setDirectiveTypes(void);;
 			void
-				setBlock(void)
-			{
-
-			}
-
+				setBlock(void);;
 			void
-				checkHttpBlock(void)
-			{
-				
-			}
-	}
+				checkHttpBlock(void);
+	};
 
 	class				GlobalConfig	: public NginxParser
 	{
@@ -233,17 +163,10 @@ namespace				NginxConfig
 			class HttpBlock
 				_http;
 			
-			GlobalConfig(const std::string& _str)
-			{
-
-			}
-
+			GlobalConfig(const std::string& _str);
 			void
-				checkGlobalConfigBlock(void)
-			{
-
-			}
-	}
+				checkGlobalConfigBlock(void);
+	};
 };
 
 #endif
