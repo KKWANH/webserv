@@ -8,7 +8,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <random>
-#include "./../ErrorHandler/ErrorHandler.hpp"
+#include "ErrorHandler.hpp"
 
 #define PORT 9090
 
@@ -32,6 +32,7 @@ class SocketController {
 
 		void							setSocketClient(int accept) 		{ this->socket_client = accept;	}
 
+		/*
 		int								getNanSu() {
 			srand((unsigned int)time(NULL));
 			int res = rand();
@@ -39,9 +40,10 @@ class SocketController {
 			std::cout << "your port is : " << 9000 + res << std::endl;
 			return (9000 + res);
 		}
+		*/
 		
 
-		int								init() {
+		void							init() {
 			// Create Socket on Server
 			socket_server = socket(PF_INET, SOCK_STREAM, 0);
 
@@ -49,8 +51,8 @@ class SocketController {
 			memset(&address_server, 0, sizeof(address_server));
 			address_server.sin_addr.s_addr = htonl(INADDR_ANY);
 			address_server.sin_family = AF_INET;
-		//	address_server.sin_port = htons(PORT);
-			address_server.sin_port = htons(getNanSu());
+			address_server.sin_port = htons(PORT);
+		//	address_server.sin_port = htons(getNanSu());
 			
 			// Bind Server Socket to Server Address
 			bind_check = bind(socket_server, (struct sockaddr*)&address_server, sizeof(address_server));
@@ -63,7 +65,7 @@ class SocketController {
 			if (listen_check == -1) {
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "Fail Listen");
 			}
-			return (0);
+			return ;
 		}
 };
 

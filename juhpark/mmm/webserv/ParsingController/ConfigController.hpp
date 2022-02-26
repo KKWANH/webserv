@@ -6,7 +6,7 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
-#include "../ErrorHandler/ErrorHandler.hpp"
+#include "ErrorHandler.hpp"
 
 #define DEFAULT_URI "./setting/default.config"
 
@@ -37,7 +37,7 @@ class ConfigController {
 
 		// config map에 키-값 쌍 형식으로 설정 값 저장
 		// config file이 비어있는 경우 에러 처리
-		int						setConfig(int argc, char **argv) {
+		void					setConfig(int argc, char **argv) {
 			setUri(argc, argv);
 			std::string		key, value, temp;
 			int				start, end;
@@ -59,7 +59,7 @@ class ConfigController {
 
 				config.insert(std::make_pair(key, value));
 			}
-			return (0);
+			return ;
 		}
 
 		// Test를 위한 config 설정 출력
