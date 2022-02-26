@@ -7,9 +7,9 @@
 #include <fcntl.h>
 #include <vector>
 #include <map>
-#include "./../HTTPMessageController/RequestMessageController.hpp"
-#include "./../ServerProcessController/ServerProcess.hpp"
-#include "./../ErrorHandler/ErrorHandler.hpp"
+#include "RequestMessageController.hpp"
+#include "ServerProcess.hpp"
+#include "ErrorHandler.hpp"
 
 class KernelQueueController {
 	private:
@@ -22,7 +22,7 @@ class KernelQueueController {
 		int												polling_count;							// event 수
 		std::string										tempBuf[BUFSIZ];
 		std::map<int, std::string>						responseMessage;
-		std::map<int, int>								responseMessageSize;	
+		std::map<int, int>								responseMessageSize;
 
 	public:
 		struct timespec*								getTimeout()						{ return (timeout); }
@@ -44,7 +44,7 @@ class KernelQueueController {
 		void											decreasePollingCount()				{ polling_count--; }
 		void											setPollingCount(int num)			{ polling_count = num; }
 
-		int			init(int s_socket) {
+		void		init(int s_socket) {
 			// init kqueue
 			kq = kqueue();
 			struct timespec tmout = {5, 0};
@@ -56,7 +56,7 @@ class KernelQueueController {
 			// set non-blocking
 			if (fcntl(s_socket, F_SETFL, O_NONBLOCK) == -1)
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "fcntl error");
-			return (0);
+			return ;
 		}
 
 		void		clearChangeList() {
@@ -67,20 +67,20 @@ class KernelQueueController {
 
 		// 파라미터로 주어지는 fd에 대한 EV_SET
 		// READ ADD | ENABLE and WRITE ADD | DISABLE
-		void				setReadKqueue(int fd) {
-			EV_SET(this->getChangeList() + this->getChangeCount(), fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		void				setReadKqueue(int fd, void *udata) {
+			EV_SET(this->getChangeList() + this->getChangeCount(), fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, udata);
 			this->increaseChangeCount();
-			EV_SET(this->getChangeList() + this->getChangeCount(), fd, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0, NULL);
+			EV_SET(this->getChangeList() + this->getChangeCount(), fd, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0, udata);
 			this->increaseChangeCount();
 			return ;
 		}
 
 		// 파라미터로 주어지는 fd에 대한 EV_SET
 		// READ DISABLE and WRITE ENABLE
-		void				setWriteKqueue(int fd) {
-			EV_SET(this->getChangeList() + this->getChangeCount(), fd, EVFILT_READ, EV_ADD | EV_DISABLE, 0, 0, NULL);
+		void				setWriteKqueue(int fd, void *udata) {
+			EV_SET(this->getChangeList() + this->getChangeCount(), fd, EVFILT_READ, EV_ADD | EV_DISABLE, 0, 0, udata);
 			this->increaseChangeCount();
-			EV_SET(this->getChangeList() + this->getChangeCount(), fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			EV_SET(this->getChangeList() + this->getChangeCount(), fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, udata);
 			this->increaseChangeCount();
 			return ;
 		}
@@ -94,16 +94,16 @@ class KernelQueueController {
 		}
 
 		// requestMessage 내 fd-RequestMessage 쌍 형태로 삽입
-		int						addRequestMessage(int fd) {
+		// 여기의 리턴값이 CGI가 있는지 없는지 알려줌
+		bool				addRequestMessage(int fd) {
 			RequestMessage tempMessage;
-			std::cout << "_----------[" << fd << "]MSG-------" << std::endl;
+			std::cout << "----------[" << fd << "]Request Message------------" << std::endl;
 			std::cout << tempBuf[fd] << std::endl;
-			std::cout << "_---------------------" << std::endl;
-			if (tempMessage.parsingRequestMessage(fd, this->tempBuf[fd]) == -1)
-				throw ErrorHandler(__FILE__, __func__, __LINE__, "parsing error");
+			std::cout << "----------------------------------------" << std::endl;
+			tempMessage.parsingRequestMessage(fd, this->tempBuf[fd]);
 			requestMessage.insert(std::make_pair(fd, tempMessage));
 			this->tempBuf[fd] = "";
-			return (0);
+			return tempMessage.getIsCGI();
 		}
 
 		void					sumMessage(int fd, char* buf) {
@@ -121,6 +121,8 @@ class KernelQueueController {
 			int write_size = ((int)responseMessage[fd].size() < buf_size) ? (int)responseMessage[fd].size() : buf_size;
 			//std::cout << responseMessage[fd].substr(0, buf_size) << std::endl;
 			int countWrite = write(fd, responseMessage[fd].c_str(), write_size);
+			if (countWrite < 0)
+				std::cout << "EEEEEEEEEEEREREEEEEE" << std::endl;
 			if (write_size != buf_size)
 				return (countWrite);
 			responseMessage[fd] = responseMessage[fd].substr(buf_size);

@@ -1,14 +1,13 @@
 #ifndef RESPONSEMESSAGECONTROLLER_HPP
 # define RESPONSEMESSAGECONTROLLER_HPP
 
-#include "./HTTPMessageController.hpp"
-#include "./RequestMessageController.hpp"
-#include "./../SocketController/SocketController.hpp"
-#include "./../CGI/CGIProcess.hpp"
+#include "HTTPMessageController.hpp"
+#include "RequestMessageController.hpp"
+// #include "./../CGI/CGIProcess.hpp"
 
 // Response Message class
 // Request와 Response간 start-line이 달라서 각 클래스에서 따로 처리하기 위함.
-class ResponseMessage : public HTTPMessage {
+class ResponseMessage : public HTTPMessageController {
 	protected:
 		double			http_version;
 		int				status_code;
@@ -79,7 +78,7 @@ class ResponseMessage : public HTTPMessage {
 		}
 
 		// start line, header field, message body를 합쳐 response message 반환
-		std::string		makeResponseMessage() {
+		std::string		makeResponseMessage(bool isCGI) {
 			std::map<std::string, std::string>::iterator iter;
 			std::string rtn;
 
@@ -95,8 +94,12 @@ class ResponseMessage : public HTTPMessage {
 				if (iter == header_field.end())
 					break;
 			}
-			rtn += "\r\n";
-			rtn += message_body;
+			if (isCGI == false) {
+				rtn += "\r\n";
+				rtn += message_body;
+			}
+			else
+				rtn += message_body;
 			return (rtn);
 		}
 
@@ -105,26 +108,26 @@ class ResponseMessage : public HTTPMessage {
 		//				오버플로우의 위험이 있음.
 		//				buffer를 만들고 그 크기만큼 쪼개서 읽고, 전송을 반복하는 방법으로 수정 가능
 		//				binary 파일이 string 타입에 대입 시 제대로 들어가는지 확인 필요
-		void						setMessageBody(std::string uri, SocketController *Socket) {
+		void						setMessageBody(RequestMessage* requestMessage, std::string uri) {
 			std::cout << "URI : " << uri << std::endl;
 
             //요청 메시지에서 cgi(php)가 발견되었다면
             //read로 데이터를 읽어서 저장한다
-			isCGI = true;
-			if (isCGI) {
-				CGIProcess	cgi;
-				cgi.setEnvp(Socket);
-				cgi.CGIprocess(0);
-				std::cout << "cgi.getOutputPair() -> " << cgi.getOutputPair() << std::endl;
-				char	buffer[1024];
-				int n;
-				while ((n = read(cgi.getOutputPair(), buffer, 1024)) > 0) {
-					message_body += std::string(buffer);
-					std::cout << "buf -> " << message_body << std::endl;
-				}
-                if (n < 0)
-                    throw (ErrorHandler(__FILE__, __func__, __LINE__, "ERROR : READ CGI ERROR"));
-				// cgi 에서 받은 메세지 리팩토링
+			if (requestMessage->getIsCGI()) {
+				// CGIProcess	cgi;
+				// cgi.setEnvp(requestMessage);
+				// cgi.CGIprocess();
+				// std::cout << "cgi.getOutputPair() -> " << cgi.getOutputPair() << std::endl;
+				// char	buffer[1024];
+				// int n;
+				// while ((n = read(cgi.getOutputPair(), buffer, 1024)) > 0) {
+				// 	buffer[n] = '\0';
+				// 	message_body += std::string(buffer);
+				// 	std::cout << "buf -> " << message_body << std::endl;
+				// }
+                // if (n < 0)
+                //     throw (ErrorHandler(__FILE__, __func__, __LINE__, "ERROR : READ CGI ERROR"));
+				// // cgi 에서 받은 메세지 리팩토링
 				std::cout << message_body << std::endl;
 			} 
             else {
@@ -152,12 +155,15 @@ class ResponseMessage : public HTTPMessage {
 		// 올바른 파일 : 200
 		// 올바르지 않은 파일 : 404
 		int			isDirOrFile(RequestMessage* requestMessage, std::string* uri) {
-			int						flag = 0;
-			DIR						*dp;
+			int					flag = 0;
+			DIR					*dp;
 			struct				dirent *dir;
 
+	//		if (requestMessage->getIsCGI() == false)
 			*uri = config.getConfig("root") + requestMessage->getUriDir();
-
+	//		else
+	//			*uri = "." + requestMessage->getUriDir();
+			std::cout << "URI : " << *uri << std::endl;
 			if ((dp = opendir(uri->c_str())) == NULL) {
 				std::cout << "DIR Open Error" << std::endl;
 				*uri = config.getConfig("root") + "/403.html";
@@ -189,7 +195,7 @@ class ResponseMessage : public HTTPMessage {
 		}
 
 		// response message의 구성 요소들을 가공하여 string 형태로 반환
-		static std::string	setResponseMessage(RequestMessage* requestMessage, SocketController *Socket) {
+		static std::string	setResponseMessage(RequestMessage* requestMessage) {
 			ResponseMessage 	responseMessage;
 			std::string			uri;
 			int					flag;
@@ -198,10 +204,10 @@ class ResponseMessage : public HTTPMessage {
 
 			responseMessage.setStartLine(flag, requestMessage->getHttpVersion());
 
-			responseMessage.setMessageBody(uri, Socket);
+			responseMessage.setMessageBody(requestMessage, uri);
 
 			responseMessage.setResponseHeaderField();
-			std::string rtn = responseMessage.makeResponseMessage();
+			std::string rtn = responseMessage.makeResponseMessage(requestMessage->getIsCGI());
 			return (rtn);
 		}
 };

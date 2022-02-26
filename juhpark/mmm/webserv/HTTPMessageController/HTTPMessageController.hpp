@@ -12,8 +12,11 @@
 #include <fstream>
 #include <dirent.h>
 #include <sys/stat.h>
-#include "./../ServerProcessController/ServerProcess.hpp"
-#include "./../ParsingController/MIMEController.hpp"
+// #include "ServerProcess.hpp"
+#include "MIMEController.hpp"
+#include "ErrorHandler.hpp"
+#include "ConfigController.hpp"
+// #include "./../CGI/CGIProcess.hpp"
 
 extern ConfigController config;
 extern MIMEController mime;
@@ -24,7 +27,7 @@ extern MIMEController mime;
 // header_field : Request/Response 동일
 // message_body : Request/Response 동일
 
-class HTTPMessage {
+class HTTPMessageController {
 	protected:
 		std::string								start_line;
 		std::map<std::string, std::string>		header_field;
@@ -35,18 +38,19 @@ class HTTPMessage {
 	public:
 		std::string		getMessageBody()	{return message_body; }
 		std::string		getStartLine()		{ return (start_line); }
+		std::string		getHeaderField(std::string key) { return (header_field[key]); }
 
 		// TODO: body-message가 있을 경우를 대비하여 CRLF 이후의 위치를 반환하도록 수정
 		// header_field를 파싱하여 map에 저장하는 함수
 		// message : 클라이언트 측에서 전송하는 데이터
 		// pos : start_line을 parsing하고 난 이후의 위치
-		void					parseHeaderField(std::string &message, int pos) {
+		int						parseHeaderField(std::string &message, int pos) {
 			int start = pos, last;
 			std::string key, value;
 
 			// header_field가 없는 경우
 			if ((int)message.length() == start)
-				return ;
+				return (start + 2);
 
 			while (true) {
 				last = message.find(':', start);
@@ -62,7 +66,7 @@ class HTTPMessage {
 				if (message.at(start) == '\r' && message.at(start + 1) == '\n')
 					break;
 			}
-			return;
+			return (start + 2);
 		}
 
 		// 파라미터로 들어오는 key-value 쌍을 header_field에 삽입하는 메소드
