@@ -1,27 +1,39 @@
 #ifndef HTTPDATA_HPP
 # define HTTPDATA_HPP
 
+#include <map>
+#include <string>
 class HTTPData {
     private:
     	//std::string								start_line;
         //얘도 쪼갤까??
-        typedef struct s_start_line {
-            std::string             Method;
-            std::string             CGI_uri;
-            std::string             HTTP_ver;
-        } start_line;
-        //이렇게 말야
+        typedef struct s_Start_line {
+            std::string				Method;
+            std::string				Target;
+			bool					isHTTP;
+            std::string				HTTP_ver;
+        } Start_line;
+
+	public:
+        // Request Message - Start Line
+        Start_line								start_line;
+		std::string								uri_dir;
+		std::string								uri_file;
+		std::string								query_string;
+		bool        							isCGI;
+
+
+		// Request Message - Header Field, Body
 		std::map<std::string, std::string>		header_field;
 		std::string								message_body;
-		char*									binary_body;
-		bool        							isCGI;
-        start_line								start_line;
+
+		char*									binary_body; // ??? 이건 머지이...
         //그외 기타 친구들
         //config라던가
 
     public:
         std::string		getMessageBody()	{return message_body; }
-		start_line		getStartLine()		{ return (start_line); }
+		Start_line		getStartLine()		{ return (start_line); }
 		//std::string		getHeaderField(std::string key) { return (header_field[key]); }
 
         void Parse_StartLine()
