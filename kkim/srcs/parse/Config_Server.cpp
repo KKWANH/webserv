@@ -104,3 +104,25 @@ void
 		}
 	}
 }
+
+void
+	NginxConfig::ServerBlock::checkServerBlock(
+		void)
+{
+	if (_location.empty)
+		throw ErrorHandler(__FILE__, __func__, __LINE__, 
+			"No location block in server block");
+	if (_dir_map["listen"].empty())
+		throw ErrorHandler(__FILE__, __func__, __LINE__,
+			"No port number for listening");
+	if (_dir_map["root"].empty())
+		_dir_map["root"] = DEFAULT_ROOT;
+	if (_dir_map["client_max_body_size"].empty())
+		_dir_map["client_max_body_size"] = DEFAULT_CLIENT_MAX_BODY_SIZE;
+	
+	checkValidNumberValue(*this, "listen");
+	checkValidNumberValue(*this, "client_max_body_size");
+	checkValidNumberValue(*this, "keepalive_timeout");
+	checkValidErrorPage(  _error_page);
+	checkAutoindexValue(  *this);
+}

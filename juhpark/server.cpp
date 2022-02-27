@@ -196,7 +196,7 @@ int main(int argc, char **argv)
 					//요건 입력이 나올게 없다면 끊어준다 이런것임
 					//근데 처음엔 이거 없이 쓰다가 낭패를 보았다 
 				}
-				else if (client_list.find(getEvent[i].ident) != client_list.end())
+				else if (client_list.find(getEvent[i].ident) != client_list.end()) //저게 뭐냐면 아직 클라에게 이벤트가 남아있을때란뜻
 				{
 					change_events(setEvent, getEvent[i].ident, EVFILT_READ, EV_ADD | EV_DISABLE);
 					change_events(setEvent, getEvent[i].ident, EVFILT_WRITE, EV_ADD | EV_ENABLE);
@@ -213,7 +213,6 @@ int main(int argc, char **argv)
 			else if (getEvent[i].filter == EVFILT_WRITE)
 			{
 				if (client_list.find(getEvent[i].ident) != client_list.end() && read_len)
-		//		if (read_len)
 				{
 					std::cout << "buffer "<< getEvent[i].ident <<  " : " << buffer << std::endl;
 					if (write(getEvent[i].ident, httpTestHeaderString.data(), httpTestHeaderString.length()) == -1)
@@ -227,35 +226,20 @@ int main(int argc, char **argv)
 					change_events(setEvent, getEvent[i].ident, EVFILT_READ, EV_ADD | EV_ENABLE);
 					client_list[getEvent[i].ident].clear();
 				}
-				//->근데 아래로 옮기고 난 뒤엔 해보지는 않았어
 			}
 			
 		}
 	}
 
-	//220202 ->되긴 되는데, 에코통신은 이제 놓아줄 때가 된듯
-	//그리고 계속 수신대기라서 그런지 계속 히오스가 돌게되네
-
-	
-	/*
-	//accept로 클라의 소켓을 받아온다
-	address_size = sizeof(addr_client);
-	s_client = accept(s_server, (struct sockaddr*)&addr_client, &address_size);
-	if (s_client == -1)
-	{
-		std::cout << "ACCEPT ERROR : " << std::strerror(errno) << std::endl;
-		return (1);
-	}
-
 	//이 아래는 에코통신이긴한데, HTTP통신에선 저걸 써먹기가 애매할 듯
 	//쓴다해도 중간에 지우고 붙이고 하면 정신나갈듯 ㅎㅎㅎㅎㅎ
+	/*
 	int len = 0;
 	while ((len = recv(s_client, buffer, 1024, 0)) != 0)
 	{
 		send(s_client, buffer, len, 0);
 	}
 	*/
-//	close(s_client);
 	close(s_server);
 
 	return (0);
