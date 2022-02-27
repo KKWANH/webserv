@@ -5,6 +5,9 @@
 # include				"srcs/http_message/HTTPMsg_Controller.hpp"
 # include				"srcs/kqueue/KQueue_Controller.hpp"
 # include				"srcs/error/Error_Handler.hpp"
+# include				"srcs/parse/ConfigBlocks.hpp"
+
+# define				CONF_PATH				"./conf/nginx.conf"
 
 ConfigController		_config;
 extern ConfigController	_config;
@@ -15,6 +18,14 @@ int
 	main(int _arc, char **_arv)
 
 {
+	const char* _conf_path = static_cast<const char *>(CONF_PATH);
+	NginxConfig::GlobalConfig
+		nginx_config(_conf_path);
+	std::cout << "HERE!!!!!\n" <<
+		nginx_config._http._dir_map["charset"] << "\n" <<
+		std::endl;
+	// Ngi
+
 	_config.setIsMIME(false);
 
 	SocketController	_socket;

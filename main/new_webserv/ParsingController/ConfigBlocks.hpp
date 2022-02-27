@@ -164,9 +164,14 @@ namespace				NginxConfig
 			class HttpBlock
 				_http;
 			
-			GlobalConfig(const std::string& _str);
+			GlobalConfig(
+					void);
 			void
-				checkGlobalConfigBlock(void);
+				startConfig(
+					const std::string& _str);
+			void
+				checkGlobalConfigBlock(
+					void);
 	};
 };
 

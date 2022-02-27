@@ -1,6 +1,13 @@
 # include				"ConfigBlocks.hpp"
 
 NginxConfig::GlobalConfig::GlobalConfig(
+		void)
+{
+	
+}
+
+void
+	NginxConfig::GlobalConfig::startConfig(
 		const std::string& _str)
 	:	NginxParser(_str)
 {
