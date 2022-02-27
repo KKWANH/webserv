@@ -6,7 +6,7 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
-#include "../ErrorHandler/ErrorHandler.hpp"
+#include "ErrorHandler.hpp"
 
 #define DEFAULT_URI "./setting/default.config"
 
@@ -31,13 +31,13 @@ class ConfigController {
 					std::cout << "This is not CONFIG file. default config file will be applied" << std::endl;
 			}
 			else if (argc > 2)
-				throw ErrorHandler("too many arguments");
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "too many arguments");
 			return;
 		}
 
 		// config map에 키-값 쌍 형식으로 설정 값 저장
 		// config file이 비어있는 경우 에러 처리
-		int						setConfig(int argc, char **argv) {
+		void					setConfig(int argc, char **argv) {
 			setUri(argc, argv);
 			std::string		key, value, temp;
 			int				start, end;
@@ -45,8 +45,7 @@ class ConfigController {
 
 			// config 파일 비어있음.
 			if (fileRead.peek() == std::ifstream::traits_type::eof()) {
-				std::cout << "Config file is empty" << std::endl;
-				return (-1);
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "Config file is empty");
 			}
 
 			while (getline(fileRead, temp)) {
@@ -60,7 +59,7 @@ class ConfigController {
 
 				config.insert(std::make_pair(key, value));
 			}
-			return (0);
+			return ;
 		}
 
 		// Test를 위한 config 설정 출력

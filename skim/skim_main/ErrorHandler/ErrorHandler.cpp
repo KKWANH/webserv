@@ -3,22 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   ErrorHandler.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sunghyunpark <sunghyunpark@student.42.f    +#+  +:+       +#+        */
+/*   By: hyunja <hyunja@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 12:34:20 by juhpark           #+#    #+#             */
-/*   Updated: 2022/02/16 14:35:47 by sunghyunpar      ###   ########.fr       */
+/*   Updated: 2022/02/19 16:16:53 by hyunja           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ErrorHandler.hpp"
 
-//에러로 받을만한게 에러 메세지랑 errno랑 뭐가 더 있을려나
+ErrorHandler::ErrorHandler() : msg(""), tmp(-1), e_file(""), e_func("") { }
 
-ErrorHandler::ErrorHandler() : msg(""), tmp(-1) { }
+ErrorHandler::ErrorHandler(std::string wha) : msg(wha), tmp(-1), e_file(""), e_func("") { }
 
-ErrorHandler::ErrorHandler(std::string wha) : msg(wha), tmp(-1) { }
-
-ErrorHandler::ErrorHandler(std::string wha, int asd) : msg(wha), tmp(asd) { }
+ErrorHandler::ErrorHandler(std::string wha, int asd) : msg(wha), tmp(asd), e_file(""), e_func("") { }
 
 ErrorHandler::~ErrorHandler() throw() { }
 
@@ -35,6 +33,15 @@ const char* ErrorHandler::what() const throw()
 	reason += "\033[38;5;196m";
 	reason += "ERROR! : ";
 	reason += msg;
+	/*
+	if (e_file && e_func)
+	{
+		reason += "file : "
+		reason += e_file;
+		reason += "\nfunc : "
+		reason += e_func;
+	}
+	*/
 	if (errno) //yamkim님의 것에선 저걸 넣었는데 read,write만 아니면 되는건가
 	{
 		reason += "\n";

@@ -1,22 +1,10 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: skim <skim@student.42seoul.kr>             +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2021/07/11 22:31:50 by hybae             #+#    #+#              #
-#    Updated: 2022/02/19 10:31:15 by skim             ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 NAME = server
 
 COMPILER = clang++
 FLAG = -Wall -Werror -Wextra -std=c++98 -g -fsanitize=address
-LIBRARYHEADER = -I./
+LIBRARYHEADER = -I./CGI -I./HTTPMessageController -I./ErrorHandler -I./KernelQueueController -I./ParsingController -I./ServerProcessController -I./SocketController
 
-SRC = server.cpp ErrorHandler/ErrorHandler.cpp
+SRC = server.cpp ./CGI/CGIProcess.cpp ./HTTPMessageController/RequestMessageController.cpp
 OBJ = $(SRC:.cpp=.o)
 
 %.o: %.cpp

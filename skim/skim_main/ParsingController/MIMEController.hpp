@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-
+#include "ErrorHandler.hpp"
 
 // TODO: 멤버 메소들들이 ConfigController와 중복되어 합쳐도 될 것 같음.
 class MIMEController {
@@ -28,15 +28,14 @@ class MIMEController {
 
 		// MIME map에 키-값 쌍 형식으로 설정 값 저장
 		// mime.types이 비어있는 경우 에러 처리
-		int			setMIME() {
+		void		setMIME() {
 			std::string key, value, temp;
 			int start, end;
 			std::ifstream fileRead(uri_MIME.c_str());
 
 			// mime.types이 비어있음.
 			if (fileRead.peek() == std::ifstream::traits_type::eof()) {
-				std::cout << "MIME file is empty" << std::endl;
-				return (-1);
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "MIME file is empty");
 			}
 
 			while (getline(fileRead, temp)) {
@@ -50,7 +49,7 @@ class MIMEController {
 
 				MIME.insert(std::make_pair(key, value));
 			}
-			return (0);
+			return ;
 		}
 		
 		// Test를 위한 MIME 설정 출력
