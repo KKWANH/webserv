@@ -36,63 +36,72 @@ class ServerProcess {
 
 				// queue내 남아있는 이벤트만큼 반복
 				for (int i = 0; i < Kqueue->getPollingCount(); i++) {
-					if (Kqueue->getEventList(i)->udata != ISCGI) {
-						if (Kqueue->getEventList(i)->filter == EVFILT_READ) {
-							// server read
-							//요 ident가 fd number,점마를 찾으면 점마에 대한 동작함
-							if ((int)Kqueue->getEventList(i)->ident == Socket->getSocketServer()) {
-								Socket->run();
-								fcntl(Socket->getSocketClient(), F_SETFL, O_NONBLOCK);
-								Kqueue->setReadKqueue(Socket->getSocketClient());
-								std::cout << "Server connect : [" << Socket->getSocketClient() << "]" << std::endl;
+					try {
+						if (Kqueue->getEventList(i)->udata != ISCGI) {
+							if (Kqueue->getEventList(i)->filter == EVFILT_READ) {
+								// server read
+								//요 ident가 fd number,점마를 찾으면 점마에 대한 동작함
+								if ((int)Kqueue->getEventList(i)->ident == Socket->getSocketServer()) {
+									Socket->run();
+									fcntl(Socket->getSocketClient(), F_SETFL, O_NONBLOCK);
+									Kqueue->setReadKqueue(Socket->getSocketClient());
+									std::cout << "Server connect : [" << Socket->getSocketClient() << "]" << std::endl;
+								}
+								// TODO: file 크기가 큰 경우 나눠서 통신하는 기능 구현
+								// client read
+								else {
+									// Socket, CGI
+									int fd = Kqueue->getEventList(i)->ident;
+									char buf[TEMP_BUFSIZ];
+									int n;
+									n = read(fd, buf, TEMP_BUFSIZ - 1);
+									std::cout << "N : " << n << std::endl;
+									if (n == -1) {
+										throw ErrorHandler(__FILE__, __func__, __LINE__, "RECV ERROR");
+									}
+									else if (n == TEMP_BUFSIZ - 1) {
+										buf[n] = '\0';
+										Kqueue->sumMessage(fd, buf);
+									}
+									else {
+										std::cout << "Client read : [" << fd << "]" << std::endl;
+										buf[n] = '\0';
+										Kqueue->sumMessage(fd, buf);
+										if (Kqueue->addRequestMessage(fd)) // cgi 라면
+											Kqueue->setWriteKqueue(fd, static_cast<void *>(ISCGI));
+										else
+											Kqueue->setWriteKqueue(fd, NULL);
+										std::string temp = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
+										Kqueue->saveResponseMessage(fd, temp);
+									}
+								}
 							}
-							// TODO: file 크기가 큰 경우 나눠서 통신하는 기능 구현
-							// client read
-							else {
+
+							// write
+							else if (Kqueue->getEventList(i)->filter == EVFILT_WRITE) {
 								// Socket, CGI
 								int fd = Kqueue->getEventList(i)->ident;
-								char buf[TEMP_BUFSIZ];
-								int n;
-								n = read(fd, buf, TEMP_BUFSIZ - 1);
-								std::cout << "N : " << n << std::endl;
-								if (n == -1) {
-									throw ErrorHandler(__FILE__, __func__, __LINE__, "RECV ERROR");
-								}
-								else if (n == TEMP_BUFSIZ - 1) {
-									buf[n] = '\0';
-									Kqueue->sumMessage(fd, buf);
-								}
-								else {
-									std::cout << "Client read : [" << fd << "]" << std::endl;
-									buf[n] = '\0';
-									Kqueue->sumMessage(fd, buf);
-									if (Kqueue->addRequestMessage(fd)) // cgi 라면
-										Kqueue->setWriteKqueue(fd, static_cast<void *>(ISCGI));
-									else
-										Kqueue->setWriteKqueue(fd, NULL);
-									std::string temp = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
-									Kqueue->saveResponseMessage(fd, temp);
+								if (Kqueue->writeResponseMessage(fd, TEMP_BUFSIZ) != TEMP_BUFSIZ) {
+									Kqueue->removeRequestMessage(fd);
+									close(fd);
 								}
 							}
 						}
+						else if (Kqueue->getEventList(i)->udata == ISCGI) {
+							// cgi
+							if (Kqueue->getEventList(i)->filter == EVFILT_WRITE) {
+							}
 
-						// write
-						else if (Kqueue->getEventList(i)->filter == EVFILT_WRITE) {
-							// Socket, CGI
-							int fd = Kqueue->getEventList(i)->ident;
-							if (Kqueue->writeResponseMessage(fd, TEMP_BUFSIZ) != TEMP_BUFSIZ) {
-								Kqueue->removeRequestMessage(fd);
-								close(fd);
+							else if (Kqueue->getEventList(i)->filter == EVFILT_READ) {
 							}
 						}
-					}
-					else if (Kqueue->getEventList(i)->udata == ISCGI) {
-						// cgi
-						if (Kqueue->getEventList(i)->filter == EVFILT_WRITE) {
-						}
-
-						else if (Kqueue->getEventList(i)->filter == EVFILT_READ) {
-						}
+					}//try
+					catch (...){
+						//예외처리2
+						//if (get_lev == CRITICAL)
+						//	대충 critical일때
+						//else if (get_lev == NON_CRITICAL)
+						//	대충 critical 아닐때
 					}
 				}
 			}
