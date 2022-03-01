@@ -102,16 +102,27 @@ class ServerProcess {
 					//치명적인 경우엔 fd자체를 닫고 에러페이지를 
 					//근데 한 클라이언트에 여러 fd가 오게 되는 것도 고려해야 하나?
 					catch (const std::exception& err) {
-						std::cerr << err.what() << std::endl;
+						int fd = Kqueue->getEventList(i)->ident;
 						//일단은 에러가 났으니 해당 fd에 해당된 것들을 삭제한다
 						if (err.getLevel() == CRIT) {
-							//throw(__file__, __func__, __line__, getMsg, CRIT);
+							close(fd);
+							throw (__FILE__, __func__, __LINE__, err.getMsg(), CRIT);
 						}
-						//	대충 critical일때
+						//critical일때
 						else if (err.getLevel == NON_CRIT) {
+							if (Kqueue->getEventList(i)->filter == EVFILT_READ)
+								Kqueue->setWriteKqueue(fd, NULL);
+							/*
+							if (Kqueue->writeResponseMessage(fd, TEMP_BUFSIZ) != TEMP_BUFSIZ) {
+									Kqueue->removeRequestMessage(fd);
+							*/
+							//->대충 write하는 함수에 에러페이지를 변수로 넣게다는 내용
+							close(fd);
 							//아마 에러페이지 만들었다면 그것에 대하여 write하게 되겠지
 						}
-						//	대충 non-critical 아닐때
+						//대충 non-critical 아닐때
+						std::cerr << err.what() << std::endl;
+						//중간에 throw이중 출력때문에 what를 맨 마지막으로 빼냄
 					}
 				}
 			}
