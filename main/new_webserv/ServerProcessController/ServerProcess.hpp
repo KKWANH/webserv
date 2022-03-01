@@ -96,12 +96,22 @@ class ServerProcess {
 							}
 						}
 					}//try
-					catch (...){
-						//예외처리2
-						//if (get_lev == CRITICAL)
+					//루프 안에 try문을 하나씩 넣는다
+					//그리해서 특정 fd에 문제가 생기면 
+					//치명적이지 않을경우 해당 작업을 중단하고 에러 페이지를 뱉고
+					//치명적인 경우엔 fd자체를 닫고 에러페이지를 
+					//근데 한 클라이언트에 여러 fd가 오게 되는 것도 고려해야 하나?
+					catch (const std::exception& err) {
+						std::cerr << err.what() << std::endl;
+						//일단은 에러가 났으니 해당 fd에 해당된 것들을 삭제한다
+						if (err.getLevel() == CRIT) {
+							//throw(__file__, __func__, __line__, getMsg, CRIT);
+						}
 						//	대충 critical일때
-						//else if (get_lev == NON_CRITICAL)
-						//	대충 critical 아닐때
+						else if (err.getLevel == NON_CRIT) {
+							//아마 에러페이지 만들었다면 그것에 대하여 write하게 되겠지
+						}
+						//	대충 non-critical 아닐때
 					}
 				}
 			}

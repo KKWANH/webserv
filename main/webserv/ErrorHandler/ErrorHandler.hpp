@@ -6,7 +6,7 @@
 /*   By: hyunja <hyunja@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 12:19:51 by juhpark           #+#    #+#             */
-/*   Updated: 2022/02/22 18:28:29 by juhpark          ###   ########.fr       */
+/*   Updated: 2022/02/28 20:29:26 by juhpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,27 +16,14 @@
 # include <exception>
 # include <string>
 # include <sys/errno.h>
+# define DEF 0
+# define CRI 1
+# define NCRI 2
 
 //throw ErrorHandler(__FILE__, __func__, __LINE__, "Error Message");
 //요로케 던지면 됩니다
 //리펙토링으로 Error_Handler가 되려나..?
-/*
-class ErrorHandler : public std::exception
-{
-private:
-	const char *file;
-	const char *func;
-	int 		line;
-	std::string msg; //어디서 오류가 났나 등등 오류 메세지
-	int 		tmp; //이건 혹시 모를까 넣은 변수
-public:
-	ErrorHandler();
-	ErrorHandler(const char* fi, const char* fc, int lin, std::string wha);
-	ErrorHandler(const char* fi, const char* fc, int lin, std::string wha, int tmp);
-	virtual ~ErrorHandler() throw();
-	virtual const char *what() const throw();
-};
-*/
+
 class ErrorHandler : public std::exception
 {
 	private:
