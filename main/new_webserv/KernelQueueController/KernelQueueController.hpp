@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <map>
-#include "RequestMessageController.hpp"
+#include "RequestMessage.hpp"
 #include "ServerProcess.hpp"
 #include "ErrorHandler.hpp"
 

@@ -6,7 +6,7 @@
 /*   By: skim <skim@student.42seoul.kr>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 12:19:51 by juhpark           #+#    #+#             */
-/*   Updated: 2022/03/01 16:13:53 by juhpark          ###   ########.fr       */
+/*   Updated: 2022/03/02 13:09:59 by juhpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,11 +63,11 @@ class ErrorHandler : public std::exception
 			_rst += "~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~\n";
 			_rst += "[ERR] ";
 			if (_lev == DEFAULT)
-				_rst += " - DEFAULT : "
+				_rst += " - DEFAULT : ";
 			if (_lev == CRIT)
-				_rst += " - CRITICAL : "
+				_rst += " - CRITICAL : ";
 			if (_lev == NON_CRIT)
-				_rst += " - NON_CRITICAL : "
+				_rst += " - NON_CRITICAL : ";
 			//_rst += ANSI_RES;
 			_rst += "\033[38;5;220m";
 			_rst += _msg;
@@ -95,8 +95,8 @@ class ErrorHandler : public std::exception
 			}
 
 			//요 if 문은 그냥 명목상으로 만든거
-			if (_tmp == 0)
-				_rst += "!";
+//			if (_tmp == 0)
+//				_rst += "!";
 			_rst += "\033[38;5;196m";
 			_rst += "\n~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~";
 			_rst += "\033[0m";
