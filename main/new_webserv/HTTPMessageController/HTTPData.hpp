@@ -4,19 +4,9 @@
 #include <map>
 #include <string>
 class HTTPData {
-    private:
-    	//std::string								start_line;
-        //얘도 쪼갤까??
-        typedef struct s_Start_line {
-            std::string				Method;
-            std::string				Target;
-			bool					isHTTP;
-            std::string				HTTP_ver;
-        } Start_line;
-
 	public:
         // Request Message - Start Line
-        Start_line								start_line;
+		std::string								Method;
 		std::string								uri_dir;
 		std::string								uri_file;
 		std::string								query_string;
@@ -28,18 +18,6 @@ class HTTPData {
 		std::string								message_body;
 
 		char*									binary_body; // ??? 이건 머지이...
-        //그외 기타 친구들
-        //config라던가
-
-    public:
-        std::string		getMessageBody()	{return message_body; }
-		Start_line		getStartLine()		{ return (start_line); }
-		//std::string		getHeaderField(std::string key) { return (header_field[key]); }
-
-        void Parse_StartLine()
-        {
-
-        }
 
 };
 

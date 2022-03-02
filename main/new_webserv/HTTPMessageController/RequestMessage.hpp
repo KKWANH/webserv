@@ -1,18 +1,24 @@
-#ifndef REQUESTmsg_HPP
-# define REQUESTmsg_HPP
+#ifndef REQUESTMESSAGE_HPP
+# define REQUESTMESSAGE_HPP
 
 #include <iostream>
+#include <unistd.h>
 #include <string>
 #include "HTTPData.hpp"
 #include "ErrorHandler.hpp"
+#include "CGIProcess.hpp"
+#include "ConfigController.hpp"
 
-class Requestmsg {
+extern ConfigController config;
+
+class RequestMessage {
 	private:
 		HTTPData data;
+		CGIProcess cgi;
 	public:
-		Requestmsg(HTTPData &_data) : data(_data) {}
+		RequestMessage(HTTPData &_data, CGIProcess &_cgi) : data(_data), cgi(_cgi) {}
 
-		void	parsingRequestmsg(int fd, std::string &msg) {
+		void	parsingRequestMessage(int fd, std::string &msg) {
 
 			// request msg - start_line
 			int pos = this->parseStartLine(msg);
@@ -35,10 +41,11 @@ class Requestmsg {
 			this->parseBody(msg, pos);
 			printBody();
 
-			if (this->isCGI) {
-				if (header_field.find("Content-Length") != header_field.end() && header_field["Content-Length"] != "0") {
-					std::cout << "CGI DATA : " << (msg.c_str() + n) << std::endl;
-					write(cgi.getInputPair(), msg.c_str() + n, msg.length() - n);
+			if (this->data.isCGI) {
+				// message body가 있다면
+				if (this->data.header_field.find("Content-Length") != this->data.header_field.end() && this->data.header_field["Content-Length"] != "0") {
+					std::cout << "CGI DATA : " << msg.c_str() << std::endl;
+					write(cgi.getInputPair(), msg.c_str(), msg.length());
 				}
 				char buf[1024];
 				read(cgi.getOutputPair(), buf, 1024);
@@ -62,47 +69,48 @@ class Requestmsg {
 			end = msg.find(' ');
 			if (end == -1)
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "There is no HTTP Method in Request msg");
-				data.start_line.Method = msg.substr(start, end);
-				if (data.start_line.Method.compare("GET") == 0 ||
-					data.start_line.Method.compare("POST") == 0 ||
-					data.start_line.Method.compare("PUT") == 0 ||
-					data.start_line.Method.compare("PATCH") == 0 ||
-					data.start_line.Method.compare("DELETE") == 0 ||
-					data.start_line.Method.compare("HEAD") == 0 ||
-					data.start_line.Method.compare("CONNECT") == 0 ||
-					data.start_line.Method.compare("OPTIONS") == 0 ||
-					data.start_line.Method.compare("TRACE") == 0)
+				data.Method = msg.substr(start, end);
+				if (data.Method.compare("GET") == 0 ||
+					data.Method.compare("POST") == 0 ||
+					data.Method.compare("PUT") == 0 ||
+					data.Method.compare("PATCH") == 0 ||
+					data.Method.compare("DELETE") == 0 ||
+					data.Method.compare("HEAD") == 0 ||
+					data.Method.compare("CONNECT") == 0 ||
+					data.Method.compare("OPTIONS") == 0 ||
+					data.Method.compare("TRACE") == 0)
 				return ;
 			throw ErrorHandler(__FILE__, __func__, __LINE__, "HTTP Method parsing error in request msg");
 		}
 
 		void	parseTarget(int &start, int &end, std::string &msg) {
+			std::string target;
 			start = end + 1;
 			end = msg.find(' ', start);
 			if (end == -1)
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "There is no URI in Request msg");
-			data.start_line.Target = msg.substr(start, end - start);
-			if (data.start_line.Target.length() > 0 && data.start_line.Target[0] == '/') {
-				int dir_pos = data.start_line.Target.find_last_of("/");
-				int file_pos = data.start_line.Target.find_last_of(".");
-				size_t	query_pos = data.start_line.Target.find_last_of("?");
+			target = msg.substr(start, end - start);
+			if (target.length() > 0 && target[0] == '/') {
+				int dir_pos = target.find_last_of("/");
+				int file_pos = target.find_last_of(".");
+				size_t	query_pos = target.find_last_of("?");
 
 				// /css/style.css 일 경우 check 해보아야함
 				if (dir_pos < file_pos) {
-					data->uri_dir = data.start_line.Target.substr(0, dir_pos);
+					data.uri_dir = target.substr(0, dir_pos);
 					if (msg.substr(file_pos, 3).compare("php") == 0) {
 						data.isCGI = true;
-						data.uri_file = data.start_line.Target.substr(dir_pos + 1, query_pos - dir_pos - 1);
-						data.query_string = data.start_line.Target.substr(query_pos + 1);
+						data.uri_file = target.substr(dir_pos + 1, query_pos - dir_pos - 1);
+						data.query_string = target.substr(query_pos + 1);
 					}
 					else {
 						data.isCGI = false;
-						data.uri_file = data.start_line.Target.substr(dir_pos + 1);
+						data.uri_file = target.substr(dir_pos + 1);
 					}
 				}
 				else {
 					data.isCGI = false;
-					data.uri_dir = data.start_line.Target;
+					data.uri_dir = target;
 					data.uri_file = config.getConfig("index");
 				}
 				return ;
@@ -113,33 +121,32 @@ class Requestmsg {
 		void	parseIsHTTP(int &start, int &end, std::string &msg) {
 			start = end + 1;
 			end = msg.find('/', start);
+			std::string isHTTP;
 			if (end == -1)
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "There is no HTTP protocol information in Request msg");
-			data.start_line.isHTTP = msg.substr(start, end - start + 1);
+			isHTTP = msg.substr(start, end - start + 1);
 
-			if (data.start_line.isHTTP.compare("HTTP/") == 0)
+			if (isHTTP.compare("HTTP/") == 0)
 				return ;
 			throw ErrorHandler(__FILE__, __func__, __LINE__, "Request msg is not HTTP");
 		}
 
 		void	parseHTTPVersion(int &start, int &end, std::string &msg) {
 			start = end + 1;
+			std::string HTTP_ver;
 			end = msg.find("\r\n", start);
 			if (end == -1)
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "There is no HTTP protocol version in Request msg");
-			data.start_line.HTTP_ver = msg.substr(start);
+			HTTP_ver = msg.substr(start);
 
-			if (http_version != "1.1")
+			if (HTTP_ver != "1.1")
 				return ;
 			throw ErrorHandler(__FILE__, __func__, __LINE__, "Request msg is not HTTP");
 		}
 
 		void	printStartLine(void) {
 			std::cout << "[REQUEST MSG - START LINE]" << std::endl;
-			std::cout << "Method : " << data.start_line.Method << std::endl;
-			std::cout << "Target : " << data.start_line.Target << std::endl;
-			std::cout << "isHTTP : " << data.start_line.isHTTP << std::endl;
-			std::cout <<  "HTTP_ver : " << data.start_line.HTTP_ver << std::endl;
+			std::cout << "Method : " << data.Method << std::endl;
 
 			std::cout << "uri_dir : " << data.uri_dir << std::endl;
 			std::cout << "uri_file : " << data.uri_file << std::endl;
@@ -188,14 +195,14 @@ class Requestmsg {
 			std::string key, value;
 
 			// body가 없는 경우
-			if (header_field.find("Content-Length") == header_field.end() && header_field["Content-Length"] == "0")
+			if (data.header_field.find("Content-Length") == data.header_field.end() && data.header_field["Content-Length"] == "0")
 				return ;
 
 			// body가 있는 경우
 			last = msg.find("\r\n", start);
 			data.message_body = msg.substr(start, last - start);
 			if (data.isCGI)
-				write(cgi.getInputPair(), data.message_body, data.message_body.length());
+				write(cgi.getInputPair(), data.message_body.c_str(), data.message_body.length());
 		}
 
 		void	printBody(void) {
