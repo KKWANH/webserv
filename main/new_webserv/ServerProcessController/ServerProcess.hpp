@@ -9,6 +9,7 @@
 #include "ResponseMessageController.hpp"
 #include <dirent.h>
 #include <sys/stat.h>
+#include "TimeController.hpp"
 
 # define TEMP_BUFSIZ 1024
 # define ISCGI 1
@@ -19,6 +20,7 @@ extern ConfigController config;
 class ServerProcess {
 	public:
 		static int				serverProcess(SocketController* Socket, KernelQueueController* Kqueue) {
+			Timer timer;
 			while (true) {
 				// queue에 event 적용
 				Kqueue->setPollingCount(
@@ -46,6 +48,7 @@ class ServerProcess {
 									fcntl(Socket->getSocketClient(), F_SETFL, O_NONBLOCK);
 									Kqueue->setReadKqueue(Socket->getSocketClient());
 									std::cout << "Server connect : [" << Socket->getSocketClient() << "]" << std::endl;
+									timer.init_timer(Kqueue->getEventList(i)->ident);
 								}
 								// TODO: file 크기가 큰 경우 나눠서 통신하는 기능 구현
 								// client read
@@ -54,6 +57,8 @@ class ServerProcess {
 									int fd = Kqueue->getEventList(i)->ident;
 									char buf[TEMP_BUFSIZ];
 									int n;
+									if (timer.find_time(fd) == false)
+										timer.init_timer(fd);
 									n = read(fd, buf, TEMP_BUFSIZ - 1);
 									std::cout << "N : " << n << std::endl;
 									if (n == -1) {
@@ -71,19 +76,26 @@ class ServerProcess {
 											Kqueue->setWriteKqueue(fd, static_cast<void *>(ISCGI));
 										else
 											Kqueue->setWriteKqueue(fd, NULL);
+								//		std::cout << "time : "<< time.get_time(fd);
+								//		time.init_timer(fd);
 										std::string temp = ResponseMessage::setResponseMessage(Kqueue->getRequestMessage(fd));
 										Kqueue->saveResponseMessage(fd, temp);
+										std::cout << "time : "<< time.get_time(fd);
+										time.del_time(fd);
 									}
 								}
 							}
 
 							// write
 							else if (Kqueue->getEventList(i)->filter == EVFILT_WRITE) {
+								time.init_timer(fd);
 								// Socket, CGI
 								int fd = Kqueue->getEventList(i)->ident;
 								if (Kqueue->writeResponseMessage(fd, TEMP_BUFSIZ) != TEMP_BUFSIZ) {
 									Kqueue->removeRequestMessage(fd);
 									close(fd);
+						//		std::cout << "time : "<< time.get_time(fd);
+						//		time.del_time(fd);
 								}
 							}
 						}
@@ -103,6 +115,7 @@ class ServerProcess {
 					//근데 한 클라이언트에 여러 fd가 오게 되는 것도 고려해야 하나?
 					catch (const std::exception& err) {
 						int fd = Kqueue->getEventList(i)->ident;
+						timer.del_time(fd);
 						//일단은 에러가 났으니 해당 fd에 해당된 것들을 삭제한다
 						if (err.getLevel() == CRIT) {
 							close(fd);
