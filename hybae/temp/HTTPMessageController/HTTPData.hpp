@@ -3,22 +3,29 @@
 
 #include <map>
 #include <string>
+
 class HTTPData {
 	public:
-        // Request Message - Start Line
-		std::string								Method;
+		// Nginx Server Block num
+		int										server_block;
+        // Start Line
+		std::string								method;
 		std::string								uri_dir;
 		std::string								uri_file;
 		std::string								query_string;
+		std::string								file_extension;
+		double									http_version;
 		bool        							isCGI;
 
-
-		// Request Message - Header Field, Body
+		// Header Field
 		std::map<std::string, std::string>		header_field;
+
+		// Message Body
 		std::string								message_body;
 
-		char*									binary_body; // ??? 이건 머지이...
-
+		HTTPData(int server_block) {
+			this->server_block = server_block;
+		}
 };
 
 #endif
