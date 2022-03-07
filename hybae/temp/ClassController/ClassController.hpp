@@ -4,6 +4,7 @@
 class ClassController {
 public:
 	virtual int run() = 0;
+	virtual ~ClassController() {};
 };
 
 #endif

@@ -1,9 +1,17 @@
 #ifndef HTTPCONNECTION_HPP
 # define HTTPCONNECTION_HPP
 
+#include "ClassController.hpp"
+#include "HTTPData.hpp"
+#include "RequestMessage.hpp"
+#include "ResponseMessage.hpp"
+
+extern NginxConfig::GlobalConfig _config;
+
 class HTTPConnection : public ClassController {
 	public:
 		typedef enum	e_Seq {
+			READ,
 			REQUEST,
 			RESPONSE,
 			CLOSE,
@@ -11,27 +19,43 @@ class HTTPConnection : public ClassController {
 		}				Seq;
 
 	private:
-		Seq seq;
-		int socket_fd;
+		Seq					seq;
+		int					socket_fd;
+		HTTPData*			http_data;
+		RequestMessage*		request_message;
+		ResponseMessage*	response_message;
+		int					readLength;
 		//int cgi_fd; // not used
 		
 	public:
-		HTTPConnection(int fd) : seq(REQUEST), socket_fd(fd) {}
+		HTTPConnection(int fd, int block) {
+			seq = READ;
+			socket_fd = fd;
+			http_data = new HTTPData(block);
+			request_message = new RequestMessage(http_data);
+			response_message = new ResponseMessage(http_data);
+		}
 		virtual ~HTTPConnection() {
 			close(socket_fd);
-		}
-
-		int gen() {
-			return 0;
+			delete request_message;
+			delete response_message;
+			delete http_data;
 		}
 
 		int run() {
-			if (seq == REQUEST) {
+			if (seq == READ) {
 				char buffer[1024];
-				int readLength = read(socket_fd, buffer, 1024);
-				std::cout << "data : " << std::string(buffer, readLength) << std::endl;
-				// Request 시퀀스가 완료되면 다음 시퀀스로 넘어가게 해야 합니다...
-				seq = RESPONSE;
+				readLength = read(socket_fd, buffer, 1024);
+				if (readLength > 0)
+					request_message->setMessage(buffer);
+				seq = REQUEST;
+			} else if (seq == REQUEST) {
+				if (request_message->parsingRequestMessage())
+				{
+					seq = RESPONSE;
+				}
+				if (readLength < 1024)
+					seq = READ;
 			} else if (seq == RESPONSE) {
 				std::string httpTestHeaderString;
 				httpTestHeaderString += "HTTP/1.1 200 OK\r\n";

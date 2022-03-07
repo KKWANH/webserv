@@ -5,6 +5,7 @@
 #include "KernelQueueController.hpp"
 #include "SocketController.hpp"
 #include "ConfigBlocks.hpp"
+#include "ConfigController.hpp"
 #include <cstring>
 #include <iostream>
 
@@ -41,8 +42,10 @@ class ServerProcess {
 							SocketController* socketController = reinterpret_cast<SocketController*>(udata);
 							int conn_socket = socketController->run();
 							std::cout << "conn_socket : " << conn_socket << std::endl;
-
-							HTTPConnection* httpconnecion = new HTTPConnection(conn_socket);
+							int server_block = socketController->getServerBlockNum();
+							if (server_block < 0)
+								throw ErrorHandler(__FILE__, __func__, __LINE__, "We can't find that block");
+							HTTPConnection* httpconnecion = new HTTPConnection(conn_socket, server_block);
 							kq.addEvent(conn_socket, EVFILT_READ, httpconnecion);
 						}
 						// HTTPConnection 처리
@@ -50,6 +53,7 @@ class ServerProcess {
 							HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
 							int result = hc->run();
 							std::cout << "result : " << result << std::endl;
+						
 							if (kq.isCloseByEventIndex(i)) {
 								//int fd = kq.getFdByEventIndex(i);
 								delete hc;

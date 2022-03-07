@@ -8,7 +8,7 @@ LIBRARYHEADER	=	-I./HTTPMessageController \
 					-I./ParsingController \
 					-I./ServerProcess \
 					-I./SocketController \
-					-I./ClassController
+					-I./ClassController \
 
 SRC 			=	server.cpp\
 					./ParsingController/Parser.cpp \
@@ -18,7 +18,10 @@ SRC 			=	server.cpp\
 					./ParsingController/ConfigLocation.cpp \
 					./ParsingController/ConfigNginx.cpp \
 					./ParsingController/ConfigServer.cpp \
-					./ParsingController/ConfigType.cpp
+					./ParsingController/ConfigType.cpp \
+					./KernelQueueController/KernelQueueController.cpp \
+					./SocketController/SocketController.cpp \
+					./HTTPMessageController/ResponseMessage.cpp
 
 OBJ				=	$(SRC:.cpp=.o)
 
