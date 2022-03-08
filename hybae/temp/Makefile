@@ -21,6 +21,7 @@ SRC 			=	server.cpp\
 					./ParsingController/ConfigType.cpp \
 					./KernelQueueController/KernelQueueController.cpp \
 					./SocketController/SocketController.cpp \
+					./HTTPMessageController/RequestMessage.cpp \
 					./HTTPMessageController/ResponseMessage.cpp
 
 OBJ				=	$(SRC:.cpp=.o)

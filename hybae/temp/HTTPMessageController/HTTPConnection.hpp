@@ -48,14 +48,8 @@ class HTTPConnection : public ClassController {
 				readLength = read(socket_fd, buffer, 1024);
 				if (readLength > 0)
 					request_message->setMessage(buffer);
-				seq = REQUEST;
-			} else if (seq == REQUEST) {
-				if (request_message->parsingRequestMessage())
-				{
+				if (request_message->parsingRequestMessage() == RequestMessage::FINISH_PARSE)
 					seq = RESPONSE;
-				}
-				if (readLength < 1024)
-					seq = READ;
 			} else if (seq == RESPONSE) {
 				std::string httpTestHeaderString;
 				httpTestHeaderString += "HTTP/1.1 200 OK\r\n";
