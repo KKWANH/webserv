@@ -26,6 +26,8 @@ int		RequestMessage::parsingRequestMessage() {
 			resetMessage();
 			this->seq = HEADER_FIELD;
 		}
+		if (this->data->isCGI == true)
+			std::cout << "CGIII" << std::endl;
 	}
 	if (this->seq == HEADER_FIELD) {
 		if (int(this->message.find("\r\n\r\n", 0)) != -1) {
@@ -90,8 +92,17 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 		target = target.substr(0, target.length() - data->query_string.length() - 1);
 		
 	}
+//	for (int i = 0; i < int(_config._http._server[this->data->server_block]._location.size()); i++)
+//	{
+//		std::cout << "what is this ? : " <<  _config._http._server[this->data->server_block]._location[i]._location << std::endl;
+//	}
+	for (int i = 0; i < int(_config._http._server[this->data->server_block]._location.size()); i++)
+	{
+		std::cout << "cgi_pass : " << _config._http._server[this->data->server_block]._location[i]._dir_map["cgi_pass"] << std::endl;
+	}
 	int	extension_pos = target.find_last_of(".");
 	this->data->isCGI = false;
+	this->data->CGI_root = "";
 	if (extension_pos != -1) {
 		data->file_extension = target.substr(extension_pos + 1);
 		int	file_pos = target.find_last_of("/");
@@ -102,6 +113,12 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 			temp = temp.substr(1, temp.length() - 2);
 			if (this->data->file_extension.compare(temp) == 0) {
 				this->data->isCGI = true;
+				this->data->CGI_root = _config._http._server[this->data->server_block]._locatiom[i]._dir_map["cgi_pass"];
+				this->data->CGI_what = temp;
+				//그럼 cgi를 찾았다면
+				//어느 cgi인지(php냐 아님 python이냐)
+				//그것도 여기서 찾아야 할것이고
+				//그것에 대한 경로 파일도 찾아내는게 맞을듯
 				break;
 			}
 		}

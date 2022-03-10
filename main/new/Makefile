@@ -9,6 +9,7 @@ LIBRARYHEADER	=	-I./HTTPMessageController \
 					-I./ServerProcess \
 					-I./SocketController \
 					-I./ClassController \
+					-I./TimeController \
 
 SRC 			=	server.cpp\
 					./ParsingController/Parser.cpp \

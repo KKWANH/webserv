@@ -14,8 +14,10 @@ class HTTPData {
 		std::string								uri_file;
 		std::string								query_string;
 		std::string								file_extension;
-		double									http_version;
+		std::string								CGI_root;
+		std::string								CGI_what;
 		bool        							isCGI;
+		double									http_version;
 
 		// Header Field
 		std::map<std::string, std::string>		header_field;
