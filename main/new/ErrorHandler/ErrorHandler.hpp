@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ErrorHandler.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: skim <skim@student.42seoul.kr>             +#+  +:+       +#+        */
+/*   By: kimkwanho <kimkwanho@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 12:19:51 by juhpark           #+#    #+#             */
-/*   Updated: 2022/03/02 13:09:59 by juhpark          ###   ########.fr       */
+/*   Updated: 2022/03/11 09:31:11 by kimkwanho        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ class ErrorHandler : public std::exception
 
 			_rst.clear();
 			//_rst += ANSI_RED;
-			_rst += "\033[38;5;196m";
+			_rst += "\n\033[38;5;196m";
 			_rst += "~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~\n";
 			_rst += "[ERR] ";
 			if (_lev == DEFAULT)

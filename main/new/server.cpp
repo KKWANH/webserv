@@ -22,6 +22,7 @@ int main(void) {
 	// const char*
 		// _conf_path = static_cast<const char *>(CONF_PATH);
 	std::cout << "portportport : " << _config._http._server[0]._dir_map["listen"] << std::endl;
+	std::cout << "root 1 : " << _config._http._server[1]._dir_map["root"] << std::endl;
 	try {
 		// // config file setting
 		// config.setConfig(argc, argv);
@@ -36,7 +37,7 @@ int main(void) {
 		mime.setMIME();
 
 		// non-blocking socket communication 
-		ServerProcess::serverProcess();
+		// ServerProcess::serverProcess();
 	}
 	catch (const std::exception& err) {
 		std::cerr << err.what() << std::endl;

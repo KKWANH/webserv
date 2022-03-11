@@ -113,7 +113,7 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 			temp = temp.substr(1, temp.length() - 2);
 			if (this->data->file_extension.compare(temp) == 0) {
 				this->data->isCGI = true;
-				this->data->CGI_root = _config._http._server[this->data->server_block]._locatiom[i]._dir_map["cgi_pass"];
+				this->data->CGI_root = _config._http._server[this->data->server_block]._location[i]._dir_map["cgi_pass"];
 				this->data->CGI_what = temp;
 				//그럼 cgi를 찾았다면
 				//어느 cgi인지(php냐 아님 python이냐)

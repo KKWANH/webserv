@@ -91,6 +91,8 @@ void
 				_tmp_val = Parser::sideSpaceTrim(Parser::getIdentifier(_tmp_line, _tmp_pos, ";", true));
 			if (_tmp_dir		== "index")
 				_index			=	Parser::getSplitBySpace(_tmp_val);
+			else if (_tmp_dir	== "root")
+				_dir_map["root"]=	_tmp_val;
 			else if (_tmp_dir	== "error_page")
 				_error_page		=	Parser::getSplitBySpace(_tmp_val);
 			else
@@ -119,11 +121,15 @@ void
 	if (_dir_map["root"].empty())
 		_dir_map["root"] = DEFAULT_ROOT;
 	if (_dir_map["client_max_body_size"].empty())
-		_dir_map["root"] = DEFAULT_CLIENT_MAX_BODY_SIZE;
+		_dir_map["client_max_body_size"] = DEFAULT_CLIENT_MAX_BODY_SIZE;
 	
+	// std::cout << "1" << std::endl;
 	checkValidNumberValue(*this, "listen");
+	// std::cout << "2" << std::endl;
 	checkValidNumberValue(*this, "client_max_body_size");
+	// std::cout << "3" << std::endl;
 	checkValidNumberValue(*this, "keepalive_timeout");
+	// std::cout << "4" << std::endl;
 	checkValidErrorPage(  _error_page);
 	checkAutoIndexValue(  *this);
 }
