@@ -17,6 +17,9 @@ public:
 	SocketController();
 	SocketController(int port);
 	virtual ~SocketController();
+	struct sockaddr_in getServerAddr();
+	struct sockaddr_in getClientAddr();
+
 	
 	int 	getServerBlockNum();
 

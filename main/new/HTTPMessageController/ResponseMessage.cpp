@@ -122,7 +122,7 @@ void		ResponseMessage::setResponseMessage() {
 	setMessageBody();
 	printHeaderField();
 	//printMessageBody();
-	this->data->printHTTPData();
+//	this->data->printHTTPData();
 	this->message += (this->start_line + "\r\n");
 	this->message += (this->header_field + "\r\n");
 	this->message += (this->message_body);

@@ -5,6 +5,7 @@
 #include "HTTPData.hpp"
 #include "RequestMessage.hpp"
 #include "ResponseMessage.hpp"
+#include "SocketController.hpp"
 
 extern NginxConfig::GlobalConfig _config;
 
@@ -29,10 +30,10 @@ class HTTPConnection : public ClassController {
 		//int cgi_fd; // not used
 		
 	public:
-		HTTPConnection(int fd, int block) {
+		HTTPConnection(int fd, int block, SocketController *Socket) {
 			seq = REQUEST;
 			socket_fd = fd;
-			http_data = new HTTPData(block);
+			http_data = new HTTPData(block, Socket);
 			request_message = new RequestMessage(http_data);
 			response_message = new ResponseMessage(http_data);
 		}

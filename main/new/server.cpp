@@ -37,7 +37,7 @@ int main(void) {
 		mime.setMIME();
 
 		// non-blocking socket communication 
-		// ServerProcess::serverProcess();
+		ServerProcess::serverProcess();
 	}
 	catch (const std::exception& err) {
 		std::cerr << err.what() << std::endl;

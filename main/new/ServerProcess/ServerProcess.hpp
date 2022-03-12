@@ -48,7 +48,7 @@ class ServerProcess {
 							int server_block = socketController->getServerBlockNum();
 							if (server_block < 0)
 								throw ErrorHandler(__FILE__, __func__, __LINE__, "We can't find that block");
-							HTTPConnection* httpconnecion = new HTTPConnection(conn_socket, server_block);
+							HTTPConnection* httpconnecion = new HTTPConnection(conn_socket, server_block, socketController);
 							kq.addEvent(conn_socket, EVFILT_READ, httpconnecion);
 							kq.addEvent(conn_socket, EVFILT_WRITE, httpconnecion);
 							kq.disableEvent(conn_socket, EVFILT_WRITE, httpconnecion);

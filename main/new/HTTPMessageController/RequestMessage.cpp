@@ -26,8 +26,11 @@ int		RequestMessage::parsingRequestMessage() {
 			resetMessage();
 			this->seq = HEADER_FIELD;
 		}
-		if (this->data->isCGI == true)
+		if (this->data->isCGI == true) {
 			std::cout << "CGIII" << std::endl;
+			//CGIProcess cgi(this->data);
+			//cgi.run();
+		}
 	}
 	if (this->seq == HEADER_FIELD) {
 		if (int(this->message.find("\r\n\r\n", 0)) != -1) {

@@ -20,6 +20,14 @@ SocketController::~SocketController() {
 	close(serverSocket);
 };
 
+struct sockaddr_in SocketController::getServerAddr() {
+	return (this->serverAddress);
+}
+
+struct sockaddr_in SocketController::getClientAddr() {
+	return (this->clientAddress);
+}
+
 int		SocketController::getServerBlockNum(){
 	int port = int(ntohs(serverAddress.sin_port));
 	for (int i = 0; i < (int)_config._http._server.size(); i++) {
