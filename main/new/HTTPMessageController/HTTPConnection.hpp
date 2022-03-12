@@ -11,8 +11,8 @@ extern NginxConfig::GlobalConfig _config;
 class HTTPConnection : public ClassController {
 	public:
 		typedef enum	e_Seq {
-			READ,
 			REQUEST,
+			REQUEST_TO_RESPONSE,
 			RESPONSE,
 			CLOSE,
 			END
@@ -25,11 +25,12 @@ class HTTPConnection : public ClassController {
 		RequestMessage*		request_message;
 		ResponseMessage*	response_message;
 		int					readLength;
+		int					writeLength;
 		//int cgi_fd; // not used
 		
 	public:
 		HTTPConnection(int fd, int block) {
-			seq = READ;
+			seq = REQUEST;
 			socket_fd = fd;
 			http_data = new HTTPData(block);
 			request_message = new RequestMessage(http_data);
@@ -43,28 +44,30 @@ class HTTPConnection : public ClassController {
 		}
 
 		int run() {
-			if (seq == READ) {
-				char buffer[1024];
-				readLength = read(socket_fd, buffer, 1024);
+			std::cout << __FILE__ << " : " << __func__ << " : " << seq << std::endl;
+			if (seq == REQUEST) {
+				char buffer[4096];
+				readLength = read(socket_fd, buffer, 4096);
 				if (readLength > 0)
 					request_message->setMessage(buffer);
 				if (request_message->parsingRequestMessage() == RequestMessage::FINISH_PARSE)
-					seq = RESPONSE;
-			} else if (seq == RESPONSE) {
-				std::string httpTestHeaderString;
-				httpTestHeaderString += "HTTP/1.1 200 OK\r\n";
-				httpTestHeaderString += "Content-Type: text/html\r\n";
-				httpTestHeaderString += "\r\n";
-				httpTestHeaderString += "<html>";
-				httpTestHeaderString += "<head><title>hi</title></head>";
-				httpTestHeaderString += "<body>";
-				httpTestHeaderString += "<b><center> HI! </center></b>";
-				httpTestHeaderString += "</body>";
-				httpTestHeaderString += "</html>";
-				write(socket_fd, httpTestHeaderString.data(), httpTestHeaderString.length());
-				// Response 시퀀스가 완료되면 다음 시퀀스로 넘어가게 해야 합니다...
-				seq = CLOSE;
-			} else if (seq == CLOSE) {
+					seq = REQUEST_TO_RESPONSE;
+			}
+			else if (seq == REQUEST_TO_RESPONSE) {
+				std::cout << "REQUEST_TO_RESPONSE" << std::endl;
+				response_message->setResponseMessage();
+				seq = RESPONSE;
+			}
+			else if (seq == RESPONSE) {
+				std::cout << "RESPONSE" << std::endl;
+				int	write_size = ((int)response_message->getMessage().size() < 4096 ? (int)response_message->getMessage().size() : 4096);
+				writeLength = write(socket_fd, response_message->getMessage().data(), write_size);
+				if (writeLength != 4096)
+					seq = CLOSE;
+				else
+					response_message->resetMessage(writeLength);
+			}
+			else if (seq == CLOSE) {
 				seq = END;
 			}
 			return seq; // 상호참조를 줄이기 위해 저는 클래스의 외부에서 커널큐 상태를 변경하는 것을 선호합니다.
