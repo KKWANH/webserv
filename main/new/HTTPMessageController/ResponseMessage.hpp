@@ -27,6 +27,13 @@ class ResponseMessage {
 		void		setHeaderField();
 		void		setMessageBody();
 		void		setResponseMessage();
+
+		void		printStartLine();
+		void		printHeaderField();
+		void		printMessageBody();
+		std::string	getMessage();
+
+		void		resetMessage(int buf_size);
 };
 
 #endif
