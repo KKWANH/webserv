@@ -25,6 +25,8 @@ class HTTPData {
 		// Message Body
 		std::string								message_body;
 
+		int										status_code;
+		
 		HTTPData(int server_block) {
 			this->server_block = server_block;
 		}

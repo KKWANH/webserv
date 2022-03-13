@@ -60,6 +60,8 @@ void	ResponseMessage::setStartLine() {
 	std::stringstream	temp;
 	std::string			str_status_code;
 
+	// FIXME
+	// 임시 status_code 값
 	this->data->status_code = 200;
 	temp << this->data->status_code;
 	temp >> str_status_code;
@@ -117,12 +119,11 @@ void	ResponseMessage::setMessageBody() {
 
 void		ResponseMessage::setResponseMessage() {
 	setStartLine();
-	printStartLine();
+	//printStartLine();
 	setHeaderField();
 	setMessageBody();
-	printHeaderField();
+	//printHeaderField();
 	//printMessageBody();
-	this->data->printHTTPData();
 	this->message += (this->start_line + "\r\n");
 	this->message += (this->header_field + "\r\n");
 	this->message += (this->message_body);
