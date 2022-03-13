@@ -1,6 +1,20 @@
 # webserv
 팀원: spark / skim / hybae / kkim / Juhpark
 
+# 0. How to use?
+## 0.1 Clone
+-- mac environment
+```
+git clone https://github.com/KKWANH/webserv.git webserv_github
+```
+
+## 0.2 Launch
+```
+$ make
+$ ./webserv
+```
+You can change your config file and mime setting file on server.cpp.
+
 # 1. Coding Convention
 ## 1.1. Basic Rules
 ```
