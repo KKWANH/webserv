@@ -26,8 +26,11 @@ int		RequestMessage::parsingRequestMessage() {
 			resetMessage();
 			this->seq = HEADER_FIELD;
 		}
-		if (this->data->isCGI == true)
+		if (this->data->isCGI == true) {
 			std::cout << "CGIII" << std::endl;
+		//	CGIProcess cgi(this->data);
+		//	cgi.run();
+		}
 	}
 	if (this->seq == HEADER_FIELD) {
 		if (int(this->message.find("\r\n\r\n", 0)) != -1) {
@@ -131,7 +134,47 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 	}
 	data->uri_dir = target;
 	this->parsing_pointer = end + 2;
+	// checkTarget();
 	resetMessage();
+}
+
+void	RequestMessage::checkTarget(void) {
+	std::map<std::string, std::string>::iterator rootFinder;
+	rootFinder = _config._http._server[this->data->server_block]._dir_map.find("root");
+
+	// default root 값 변경해야함
+	// root값이 없다는 것을 알려주여야 status 코드를 띄울 수 있음 (304)
+	if (rootFinder == _config._http._server[this->data->server_block]._dir_map.end()) {
+		std::cout << "여기서 default root 값을 넣어주여야 함!" << std::endl;
+	}
+
+	std::string root = _config._http._server[this->data->server_block]._dir_map["root"];
+	// index 자체가 없을 때
+	// root 경로에 index.html을 띄워준다.
+	// index.html이 없는 경우에는 403
+	if (_config._http._server[this->data->server_block]._index.empty()) {
+		std::string	filePath = root + data->uri_dir + "index.html";
+		if (access(filePath.c_str(), F_OK) == 0) {
+			data->uri_file = "index.html";
+			data->status_code = 304;
+			return ;
+		} else {
+			data->status_code = 403;
+			return ;
+		}
+	}
+
+	std::vector<std::string>::iterator it = _config._http._server[data->server_block]._index.begin();
+	for(; it != _config._http._server[data->server_block]._index.end(); it++) {
+		std::string	filePath = root + data->uri_dir + *it;
+		if (access(filePath.c_str(), F_OK) == 0) {
+			data->uri_file = *it;
+			data->status_code = 200;
+			return ;
+		}
+	}
+	if (it == _config._http._server[this->data->server_block]._index.end())
+		data->status_code = 403;
 }
 
 void	RequestMessage::parseHttpVersion (int &start, int &end, std::string &msg) {

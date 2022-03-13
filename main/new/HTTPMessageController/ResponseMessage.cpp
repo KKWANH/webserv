@@ -1,10 +1,12 @@
 #include "ResponseMessage.hpp"
-#include "MIMEController.hpp"
 #include <fstream>
 #include <sstream>
 #include "ConfigBlocks.hpp"
-extern MIMEController mime;
-extern NginxConfig::GlobalConfig _config;
+#include "ConfigMime.hpp"
+extern MimeConfig
+	_mime;
+extern NginxConfig::GlobalConfig
+	_config;
 
 ResponseMessage::ResponseMessage(HTTPData* _data) {
 	this->data = _data;
@@ -80,7 +82,7 @@ void	ResponseMessage::setHeaderField() {
 	else {
 		// TODO
 		// content-type을 지정해주기 위해서 request message의 uri중 파일 확장자가 필요
-		this->header_field += ("Content-Type: " + mime.getMIME(this->data->file_extension) + "\r\n");
+		this->header_field += ("Content-Type: " + _mime.getMIME(this->data->file_extension) + "\r\n");
 		//this->header_field += ("Content-Length: " + std::to_string(this->message_body.length()) + "\n");
 	}
 	this->header_field += "Accept-Ranges: bytes\r\n";

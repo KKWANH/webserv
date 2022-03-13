@@ -20,6 +20,9 @@ public:
 	
 	int 	getServerBlockNum();
 
+	struct sockaddr_in getServerAddr();
+	struct sockaddr_in getClientAddr();
+
 	void	generator(int port);
 	int		binding();
 	int		run();

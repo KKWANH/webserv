@@ -1,7 +1,8 @@
-NAME			=	server
+NAME			=	webserv
 
 COMP			=	clang++
 FLAG			=	-Wall -Werror -Wextra -std=c++98 -g -fsanitize=address
+
 HEADER			=	-I./HTTPMessageController \
 					-I./ErrorHandler \
 					-I./KernelQueueController \
@@ -10,6 +11,7 @@ HEADER			=	-I./HTTPMessageController \
 					-I./SocketController \
 					-I./ClassController \
 					-I./TimeController \
+					-I./CGI
 
 SRCS 			=	./server.cpp\
 					./ParsingController/Parser.cpp \
@@ -20,43 +22,47 @@ SRCS 			=	./server.cpp\
 					./ParsingController/ConfigNginx.cpp \
 					./ParsingController/ConfigServer.cpp \
 					./ParsingController/ConfigType.cpp \
+					./ParsingController/ConfigMime.cpp \
 					./KernelQueueController/KernelQueueController.cpp \
 					./SocketController/SocketController.cpp \
 					./HTTPMessageController/RequestMessage.cpp \
 					./HTTPMessageController/ResponseMessage.cpp
 
-OBJS				=	$(SRCS:.cpp=.o)
+OBJS			=	$(SRCS:.cpp=.o)
 
 %.o: %.cpp
 	@printf "\033[34m[WEBSERV]\033[0m Generating file : "
 	@$(COMP) $(FLAG) $(HEADER) -c -o $@ $<
-	@sleep 0.1 && printf "\033[33m." && sleep 0.1 && printf "\033[33m." && sleep 0.1 && printf "\033[33m. "
+	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
 	@printf "\033[32mOK\033[0m\n"
 
 $(NAME): $(OBJS)
 	@printf "\033[34m[WEBSERV]\033[0m Compiling file  : "
 	@$(COMP) $(FLAG) $(HEADER) $(OBJS) -o $(NAME)
-	@sleep 0.1 && printf "\033[33m." && sleep 0.1 && printf "\033[33m." && sleep 0.1 && printf "\033[33m. "
+	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
 	@printf "\033[32mOK\033[0m\n"
 	@make clean
-	@printf "\n"
-	@printf "\033[34m[WEBSERV]\033[0m Now \033[32mFT_CONTAINERS\033[0m is executable. Launch this with \033[33m./WEBSERV\033[0m"
+	@printf "\n\033[34m[WEBSERV]\033[0m Now \033[WEBSERV\033[0m is executable. Launch this with \033[33m./webserv\033[0m"
 
 all:
 	@make fclean
 	@$(NAME)
 
+make run:
+	@make
+	@./webserv
+
 clean:
 	@printf "\033[34m[WEBSERV]\033[0m Removing object : "
 	@rm -rf $(OBJS)
-	@sleep 0.1 && printf "\033[33m." && sleep 0.1 && printf "\033[33m." && sleep 0.1 && printf "\033[33m. "
+	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
 	@printf "\033[32mOK\033[0m\n"
 
 fclean:
 	@make clean
 	@printf "\033[34m[WEBSERV]\033[0m Removing result : "
 	@rm -rf $(NAME)
-	@sleep 0.1 && printf "\033[33m." && sleep 0.1 && printf "\033[33m." && sleep 0.1 && printf "\033[33m. "
+	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
 	@printf "\033[32mOK\033[0m\n"
 
 re: fclean all

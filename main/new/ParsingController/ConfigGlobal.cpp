@@ -50,14 +50,6 @@ NginxConfig::GlobalConfig::GlobalConfig(
 	checkGlobalConfigBlock();
 }
 
-// void
-// 	NginxConfig::GlobalConfig::startConfig(
-// 		const std::string& _str)
-// 	:	NginxParser(_str)
-// {
-	
-// }
-
 void
 	NginxConfig::GlobalConfig::checkGlobalConfigBlock(
 		void)
