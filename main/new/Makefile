@@ -65,4 +65,6 @@ fclean:
 	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
 	@printf "\033[32mOK\033[0m\n"
 
-re: fclean all
+re:
+	@make fclean
+	@make

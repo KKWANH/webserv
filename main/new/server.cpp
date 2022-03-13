@@ -17,16 +17,29 @@ extern NginxConfig::GlobalConfig
 	_config;
 
 MimeConfig
-	_mime(std::string(MIME_PATH));
+	_mime;
 extern MimeConfig
 	_mime;
 
 int
-	main(
-		void)
+	main(int _arc, char** _arv)
 	{
+		(void)_arc;
+		(void)_arv;
 		try
 		{
+			if (_arc == 2)
+			{
+				_mime.setUri(std::string(MIME_PATH));
+				
+			}
+			if (_arc == 3)
+			{
+				std::string
+					_arv2 = std::string(_arv[2]);
+				// if (_arv2.substr(_arv2.length() - 4, _arv2.length());
+			}
+			_mime.setMIME();
 			ServerProcess::serverProcess();
 		}
 		catch (const std::exception& err)
@@ -34,5 +47,6 @@ int
 			std::cerr << err.what() << std::endl;
 			return (-1);
 		}
+
 		return (0);
 }

@@ -17,8 +17,12 @@ class 					MimeConfig
 			_mime_map;
 	
 	public:
-		MimeConfig(
-				std::string _fil_name);
+		void
+			setUri(
+				std::string _uri_file);
+		void
+			setMIME(
+				void);
 		std::string
 			getMIME(
 				std::string _key);

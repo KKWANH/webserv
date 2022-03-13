@@ -60,11 +60,9 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	this->parseTarget(start, end, msg);
 	this->parseHttpVersion(start, end, msg);
 	this->parsing_pointer = start + 5;
-	// FIXME
-	// 파일이 비어있는 경우, 임의로 index 대입
+	
 	if (this->data->uri_file.compare("") == 0) {
-		this->data->uri_file = "index.html";
-		this->data->file_extension = "html";
+		checkTarget();
 	}
 }
 
@@ -134,10 +132,11 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 	}
 	data->uri_dir = target;
 	this->parsing_pointer = end + 2;
-	// checkTarget();
 	resetMessage();
 }
 
+// location 블럭 별로 uri_dir의 index를 가져와야함
+// 에러 페이지 띄워주기 설정
 void	RequestMessage::checkTarget(void) {
 	std::map<std::string, std::string>::iterator rootFinder;
 	rootFinder = _config._http._server[this->data->server_block]._dir_map.find("root");
@@ -156,6 +155,7 @@ void	RequestMessage::checkTarget(void) {
 		std::string	filePath = root + data->uri_dir + "index.html";
 		if (access(filePath.c_str(), F_OK) == 0) {
 			data->uri_file = "index.html";
+			data->file_extension = "html";
 			data->status_code = 304;
 			return ;
 		} else {
@@ -168,6 +168,7 @@ void	RequestMessage::checkTarget(void) {
 	for(; it != _config._http._server[data->server_block]._index.end(); it++) {
 		std::string	filePath = root + data->uri_dir + *it;
 		if (access(filePath.c_str(), F_OK) == 0) {
+			data->file_extension = (*it).substr((*it).find_last_of('.') + 1);
 			data->uri_file = *it;
 			data->status_code = 200;
 			return ;
