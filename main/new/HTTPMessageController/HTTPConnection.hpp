@@ -60,9 +60,9 @@ class HTTPConnection : public ClassController {
 			}
 			else if (seq == RESPONSE) {
 				std::cout << "RESPONSE" << std::endl;
-				int	write_size = ((int)response_message->getMessage().size() < 4096 ? (int)response_message->getMessage().size() : 4096);
+				int	write_size = ((int)response_message->getMessage().size() < 8192 ? (int)response_message->getMessage().size() : 8192);
 				writeLength = write(socket_fd, response_message->getMessage().data(), write_size);
-				if (writeLength != 4096)
+				if (writeLength != 8192)
 					seq = CLOSE;
 				else
 					response_message->resetMessage(writeLength);

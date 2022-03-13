@@ -57,6 +57,12 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	this->parseTarget(start, end, msg);
 	this->parseHttpVersion(start, end, msg);
 	this->parsing_pointer = start + 5;
+	// FIXME
+	// 파일이 비어있는 경우, 임의로 index 대입
+	if (this->data->uri_file.compare("") == 0) {
+		this->data->uri_file = "index.html";
+		this->data->file_extension = "html";
+	}
 }
 
 void	RequestMessage::parseMethod(int &start, int &end, std::string &msg) {
