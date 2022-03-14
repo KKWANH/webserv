@@ -24,16 +24,17 @@ extern MimeConfig
 int
 	main(int _arc, char** _arv)
 	{
-		(void)_arc;
+
+		std::cout << "arc : " << _arc << std::endl;
 		(void)_arv;
 		try
 		{
-			if (_arc == 2)
+			if (_arc == 1)
 			{
-				_mime.setUri(std::string(MIME_PATH));
+				_mime.setUri(std::string("./setting/mime.types"));
 				
 			}
-			if (_arc == 3)
+			if (_arc == 2)
 			{
 				std::string
 					_arv2 = std::string(_arv[2]);

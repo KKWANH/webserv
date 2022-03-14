@@ -42,13 +42,14 @@ $(NAME): $(OBJS)
 	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
 	@printf "\033[32mOK\033[0m\n"
 	@make clean
-	@printf "\n\033[34m[WEBSERV]\033[0m Now \033[WEBSERV\033[0m is executable. Launch this with \033[33m./webserv\033[0m"
+	@printf "\n\033[34m[WEBSERV]\033[0m Now \033[32mWEBSERV\033[0m is executable.\n"
+	@printf "\033[34m[WEBSERV]\033[0m Launch this with \033[33m./webserv [config] [mime setting]\033[0m\n"
 
 all:
 	@make fclean
 	@$(NAME)
 
-make run:
+run:
 	@make
 	@./webserv
 
