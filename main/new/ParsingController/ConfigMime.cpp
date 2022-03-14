@@ -1,16 +1,10 @@
 # include "ConfigMime.hpp"
 
 void
-	MimeConfig::setUri(
+	MimeConfig::startConfig(
 		std::string _fil_name)
-{
-	_uri = _fil_name;
-}
-
-void
-	MimeConfig::setMIME(
-		void)
 	{
+		this->_uri = _fil_name;
 		std::string
 			_dir,
 			_val,

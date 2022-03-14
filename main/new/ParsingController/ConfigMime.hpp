@@ -18,11 +18,8 @@ class 					MimeConfig
 	
 	public:
 		void
-			setUri(
+			startConfig(
 				std::string _uri_file);
-		void
-			setMIME(
-				void);
 		std::string
 			getMIME(
 				std::string _key);

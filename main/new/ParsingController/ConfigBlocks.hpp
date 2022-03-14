@@ -160,10 +160,10 @@ namespace				NginxConfig
 				_http;
 			
 			GlobalConfig(
+					void);
+			void
+				startConfig(
 					const std::string& _str);
-			// void
-			// 	startConfig(
-			// 		const std::string& _str);
 			void
 				checkGlobalConfigBlock(
 					void);
