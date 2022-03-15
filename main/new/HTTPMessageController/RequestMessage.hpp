@@ -6,8 +6,8 @@
 #include <cstring>
 #include "HTTPData.hpp"
 #include "ErrorHandler.hpp"
-#include "ConfigController.hpp"
 #include "ConfigBlocks.hpp"
+#include "CGIProcess.hpp"
 
 extern NginxConfig::GlobalConfig _config;
 
@@ -15,6 +15,7 @@ class RequestMessage {
 	public:
 		typedef enum	e_Seq {
 			START_LINE,
+			GET_CGI,
 			HEADER_FIELD,
 			MESSAGE_BODY,
 			FINISH_PARSE
@@ -22,6 +23,7 @@ class RequestMessage {
 
 	private:
 		HTTPData*	data;
+		CGIProcess*	cgi;
 		int			parsing_pointer;
 		std::string	message;
 		Seq			seq;
@@ -37,6 +39,7 @@ class RequestMessage {
 		void	parseStartLine(std::string &msg);
 		void	parseMethod(int &start, int &end, std::string &msg);
 		void	parseTarget(int &start, int &end, std::string &msg);
+		void	checkTarget(void);
 		void	parseHttpVersion (int &start, int &end, std::string &msg);
 		void	printStartLine(void);
 

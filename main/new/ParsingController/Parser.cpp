@@ -1,9 +1,10 @@
 # include				"Parser.hpp"
 
-Parser::Parser(
+void
+	Parser::setParserStr(
 		const std::string& _str)
-	: _file_name(_str)
 {
+	this->_file_name = _str;
 	std::ifstream
 		_read_file;
 	this->_raw_data = "";
@@ -26,9 +27,6 @@ Parser::Parser(
 	if (!isValidBlockSet(this->_raw_data))
 		throw ErrorHandler(__FILE__, __func__, __LINE__, "bracket pair is not matched");
 }
-
-Parser::~Parser(
-		void) {}
 
 const std::string&
 	Parser::getRawData(

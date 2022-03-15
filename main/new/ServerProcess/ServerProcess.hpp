@@ -5,12 +5,10 @@
 #include "KernelQueueController.hpp"
 #include "SocketController.hpp"
 #include "ConfigBlocks.hpp"
-#include "ConfigController.hpp"
 #include "TimeController.hpp"
 #include <cstring>
 #include <iostream>
 
-extern ConfigController config;
 extern NginxConfig::GlobalConfig _config;
 
 class ServerProcess {

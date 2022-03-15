@@ -13,17 +13,15 @@
 class					Parser
 {
 	protected:
-		Parser(void);
+		Parser(void) {}
 		std::string
 			_raw_data;
 		std::string
 			_file_name;
 	
 	public:
-		// 파일 name
-		Parser(					const std::string&		_str);
-		~Parser(void);
-		
+		void
+			setParserStr(		const std::string&		_str);
 		const std::string&
 			getRawData(void) const;
 		bool

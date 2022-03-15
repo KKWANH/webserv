@@ -1,9 +1,9 @@
 #include "SocketController.hpp"
+#include "ConfigBlocks.hpp"
 
 #include <stdlib.h>
 #include <iostream>
-#include "ConfigBlocks.hpp"
-#include "ConfigController.hpp"
+
 
 extern NginxConfig::GlobalConfig _config;
 
@@ -22,11 +22,12 @@ SocketController::~SocketController() {
 
 struct sockaddr_in SocketController::getServerAddr() {
 	return (this->serverAddress);
-}
+};
 
 struct sockaddr_in SocketController::getClientAddr() {
 	return (this->clientAddress);
-}
+};
+
 
 int		SocketController::getServerBlockNum(){
 	int port = int(ntohs(serverAddress.sin_port));
@@ -48,6 +49,10 @@ void	SocketController::generator(int port) {
 };
 
 int		SocketController::binding() {
+	// bind 에러 처리
+	int optval = 1;
+	setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+
 	int e1 = bind(serverSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress));
 	int e2 = listen(serverSocket, 42);
 	int e3 = fcntl(serverSocket, F_SETFL, O_NONBLOCK);

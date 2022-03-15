@@ -1,8 +1,15 @@
 # include				"NginxParser.hpp"
 
-NginxParser::NginxParser(		const std::string&	_str)
-:	Parser(_str)
+NginxParser::NginxParser(void)
+:	Parser()
 { }
+
+void
+	NginxParser::startNginxParser(
+		const std::string& _str)
+{
+	Parser::setParserStr(_str);
+}
 
 void
 	NginxParser::skipComment(	const std::string&	_str,

@@ -3,16 +3,16 @@
 
 #include <map>
 #include <string>
+#include <iostream>
 #include "SocketController.hpp"
 
 class HTTPData {
 	public:
 		// Nginx Server Block num
 		int										server_block;
-		//server port, client port
-		int 									server_port;
+		// server port & client IP
+		int										server_port;
 		std::string								client_ip;
-
         // Start Line
 		std::string								method;
 		std::string								uri_dir;
@@ -21,7 +21,7 @@ class HTTPData {
 		std::string								file_extension;
 		std::string								CGI_root;
 		std::string								CGI_what;
-		int										status_code;
+		std::string								CGI_read;
 		bool        							isCGI;
 		double									http_version;
 
@@ -31,13 +31,15 @@ class HTTPData {
 		// Message Body
 		std::string								message_body;
 
+		int										status_code;
+		
 		HTTPData(int server_block, SocketController *Socket) {
+			this->server_block = server_block;
 			struct sockaddr_in serv_addr = Socket->getServerAddr();
 			struct sockaddr_in cli_addr = Socket->getClientAddr();
-			client_ip = std::string(inet_ntoa(cli_addr.sin_addr));
 			server_port = (int)ntohs(serv_addr.sin_port);
-			this->server_block = server_block;
-			status_code = 0;
+			client_ip = std::string(inet_ntoa(cli_addr.sin_addr));
+			CGI_read = "";
 		}
 };
 

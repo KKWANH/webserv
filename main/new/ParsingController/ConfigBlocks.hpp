@@ -19,13 +19,8 @@ namespace				NginxConfig
 			_index;
 	}					InheritData;
 
-	// #ifndef				DEFAULT_ROOT
-	#define				DEFAULT_ROOT	std::string("/usr/share/nginx/html")
-	// #endif
-
-	// #ifndef				DEFAULT_CLIENT_MAX_BODY_SIZE
+	#define				DEFAULT_ROOT					std::string("/usr/share/nginx/html")
 	#define				DEFAULT_CLIENT_MAX_BODY_SIZE	std::string("100000000")
-	// #endif
 
 	class				NginxBlock
 	{
@@ -165,10 +160,10 @@ namespace				NginxConfig
 				_http;
 			
 			GlobalConfig(
+					void);
+			void
+				startConfig(
 					const std::string& _str);
-			// void
-			// 	startConfig(
-			// 		const std::string& _str);
 			void
 				checkGlobalConfigBlock(
 					void);

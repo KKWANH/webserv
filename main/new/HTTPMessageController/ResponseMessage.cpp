@@ -1,10 +1,12 @@
 #include "ResponseMessage.hpp"
-#include "MIMEController.hpp"
 #include <fstream>
 #include <sstream>
 #include "ConfigBlocks.hpp"
-extern MIMEController mime;
-extern NginxConfig::GlobalConfig _config;
+#include "ConfigMime.hpp"
+extern MimeConfig
+	_mime;
+extern NginxConfig::GlobalConfig
+	_config;
 
 ResponseMessage::ResponseMessage(HTTPData* _data) {
 	this->data = _data;
@@ -60,6 +62,8 @@ void	ResponseMessage::setStartLine() {
 	std::stringstream	temp;
 	std::string			str_status_code;
 
+	// FIXME
+	// 임시 status_code 값
 	this->data->status_code = 200;
 	temp << this->data->status_code;
 	temp >> str_status_code;
@@ -78,7 +82,7 @@ void	ResponseMessage::setHeaderField() {
 	else {
 		// TODO
 		// content-type을 지정해주기 위해서 request message의 uri중 파일 확장자가 필요
-		this->header_field += ("Content-Type: " + mime.getMIME(this->data->file_extension) + "\r\n");
+		this->header_field += ("Content-Type: " + _mime.getMIME(this->data->file_extension) + "\r\n");
 		//this->header_field += ("Content-Length: " + std::to_string(this->message_body.length()) + "\n");
 	}
 	this->header_field += "Accept-Ranges: bytes\r\n";
@@ -117,12 +121,11 @@ void	ResponseMessage::setMessageBody() {
 
 void		ResponseMessage::setResponseMessage() {
 	setStartLine();
-	printStartLine();
+	//printStartLine();
 	setHeaderField();
 	setMessageBody();
-	printHeaderField();
+	//printHeaderField();
 	//printMessageBody();
-//	this->data->printHTTPData();
 	this->message += (this->start_line + "\r\n");
 	this->message += (this->header_field + "\r\n");
 	this->message += (this->message_body);
