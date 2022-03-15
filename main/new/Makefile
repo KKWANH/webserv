@@ -11,7 +11,8 @@ HEADER			=	-I./HTTPMessageController \
 					-I./SocketController \
 					-I./ClassController \
 					-I./TimeController \
-					-I./CGI
+					-I./CGI \
+					-I./FileController
 
 SRCS 			=	./server.cpp\
 					./ParsingController/Parser.cpp \
@@ -26,7 +27,8 @@ SRCS 			=	./server.cpp\
 					./KernelQueueController/KernelQueueController.cpp \
 					./SocketController/SocketController.cpp \
 					./HTTPMessageController/RequestMessage.cpp \
-					./HTTPMessageController/ResponseMessage.cpp
+					./HTTPMessageController/ResponseMessage.cpp \
+					./FileController/FileController.cpp
 
 OBJS			=	$(SRCS:.cpp=.o)
 
