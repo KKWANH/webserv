@@ -49,12 +49,11 @@ int
 				check_argv_str(_conf_uri, _mime_uri, _arv[1]);
 			else if (_arc == 3)
 				check_argv_str(_conf_uri, _mime_uri, _arv[2]);
-			else
+			else if (_arc != 1)
 				throw ErrorHandler(__FILE__, __func__, __LINE__,
 					"Too many arguments. Please input one, two, or nothing.");
 			_config.startConfig(_conf_uri);
-			_mime.startConfig(_mime_uri);
-			ServerProcess::serverProcess();
+			_mime.startConfig(_mime_uri);ServerProcess::serverProcess();
 		}
 		catch (const std::exception& err)
 		{
