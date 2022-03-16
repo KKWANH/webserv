@@ -53,6 +53,7 @@ int
 				throw ErrorHandler(__FILE__, __func__, __LINE__,
 					"Too many arguments. Please input one, two, or nothing.");
 			_config.startConfig(_conf_uri);
+<<<<<<< HEAD
 			_mime.startConfig(_mime_uri);
 			std::cout << "keepalivetimeout1 : " << _config._http._dir_map["keepalive_timeout"] << std::endl;
 			std::cout << "keepalivetimeout2 : " << _config._http._server[0]._dir_map["keepalive_timeout"] << std::endl;
@@ -60,6 +61,11 @@ int
 			ServerProcess::serverProcess();
 		}
 		catch (const std::exception& err)
+=======
+			_mime.startConfig(_mime_uri);ServerProcess::serverProcess();
+		}
+		catch (const ErrorHandler& err)
+>>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 		{
 			std::cerr << err.what() << std::endl;
 			return (-1);

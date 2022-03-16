@@ -3,6 +3,12 @@ NAME			=	webserv
 COMP			=	clang++
 FLAG			=	-Wall -Werror -Wextra -std=c++98 -g -fsanitize=address
 
+<<<<<<< HEAD
+=======
+CONF			=	
+MIME			=	
+
+>>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 HEADER			=	-I./HTTPMessageController \
 					-I./ErrorHandler \
 					-I./KernelQueueController \
@@ -11,7 +17,12 @@ HEADER			=	-I./HTTPMessageController \
 					-I./SocketController \
 					-I./ClassController \
 					-I./TimeController \
+<<<<<<< HEAD
 					-I./CGI
+=======
+					-I./CGI \
+					-I./FileController
+>>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 
 SRCS 			=	./server.cpp\
 					./ParsingController/Parser.cpp \
@@ -26,7 +37,8 @@ SRCS 			=	./server.cpp\
 					./KernelQueueController/KernelQueueController.cpp \
 					./SocketController/SocketController.cpp \
 					./HTTPMessageController/RequestMessage.cpp \
-					./HTTPMessageController/ResponseMessage.cpp
+					./HTTPMessageController/ResponseMessage.cpp \
+					./FileController/FileController.cpp
 
 OBJS			=	$(SRCS:.cpp=.o)
 
@@ -44,6 +56,17 @@ $(NAME): $(OBJS)
 	@make clean
 	@printf "\n\033[34m[WEBSERV]\033[0m Now \033[32mWEBSERV\033[0m is executable.\n"
 	@printf "\033[34m[WEBSERV]\033[0m Launch this with \033[33m./webserv [config] [mime setting]\033[0m\n"
+<<<<<<< HEAD
+=======
+
+help:
+	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make]\033[0m :        make ./webserv, delete object files\n"
+	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make clean]\033[0m :  delete object files\n"
+	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make fclean]\033[0m : delete ./webserv and object files\n"
+	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make re]\033[0m :     execute \033[33m[make fclean]\033[0m and \033[33m[make]\033[0m\n"
+	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make run]\033[0m :    \033[33m[make]\033[0m and execute ./webserv.\n"
+	@printf "\033[34m[WEBSERV]\033[0m \033[33m          \033[0m      \033[3m\033[4m./webserv CONF=\"nginx.conf\" MIME=\"mime.types\"\033[0m\n"
+>>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 
 all:
 	@make fclean
@@ -51,7 +74,11 @@ all:
 
 run:
 	@make
+<<<<<<< HEAD
 	@./webserv
+=======
+	@./webserv $(CONF) $(MIME)
+>>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 
 clean:
 	@printf "\033[34m[WEBSERV]\033[0m Removing object : "

@@ -5,6 +5,10 @@
 #include <string>
 #include <iostream>
 #include "SocketController.hpp"
+<<<<<<< HEAD
+=======
+#include "ErrorHandler.hpp"
+>>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 
 class HTTPData {
 	public:
@@ -40,6 +44,11 @@ class HTTPData {
 			server_port = (int)ntohs(serv_addr.sin_port);
 			client_ip = std::string(inet_ntoa(cli_addr.sin_addr));
 			CGI_read = "";
+<<<<<<< HEAD
+=======
+			if (server_port == 8000)
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "OMG 8000", ErrorHandler::NON_CRIT);
+>>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 		}
 };
 

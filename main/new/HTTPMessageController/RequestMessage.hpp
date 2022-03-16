@@ -40,6 +40,10 @@ class RequestMessage {
 		void	parseMethod(int &start, int &end, std::string &msg);
 		void	parseTarget(int &start, int &end, std::string &msg);
 		void	checkTarget(void);
+<<<<<<< HEAD
+=======
+		std::vector<std::string>	checkURIDIR(void);
+>>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 		void	parseHttpVersion (int &start, int &end, std::string &msg);
 		void	printStartLine(void);
 
