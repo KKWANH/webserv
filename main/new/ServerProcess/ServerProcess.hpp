@@ -33,6 +33,36 @@ class ServerProcess {
 				int events = kq.accessEvents();
 				if (events) {
 					for (int i = 0; i < events; i++) {
+<<<<<<< HEAD
+						ClassController* udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
+
+						// 바인딩 처리
+						if (dynamic_cast<SocketController*>(udata) != NULL) {
+							SocketController* socketController = reinterpret_cast<SocketController*>(udata);
+							int conn_socket = socketController->run();
+							std::cout << "conn_socket : " << conn_socket << std::endl;
+							int server_block = socketController->getServerBlockNum();
+							if (server_block < 0)
+								throw ErrorHandler(__FILE__, __func__, __LINE__, "We can't find that block");
+							HTTPConnection* httpconnecion = new HTTPConnection(conn_socket, server_block, socketController);
+							kq.addEvent(conn_socket, EVFILT_READ, httpconnecion);
+							kq.addEvent(conn_socket, EVFILT_WRITE, httpconnecion);
+							kq.disableEvent(conn_socket, EVFILT_WRITE, httpconnecion);
+							timer.init_time(conn_socket);
+						}
+						// HTTPConnection 처리
+						else if (dynamic_cast<HTTPConnection*>(udata) != NULL) {
+							HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
+							//std::cout << "result : " << result << std::endl;
+							//std::cout << "time : " << timer.get_time(kq.getFdByEventIndex(i)) << std::endl;
+							int fd = kq.getFdByEventIndex(i);
+							std::cout << "FD : " << fd << std::endl;
+							if (kq.isCloseByEventIndex(i)) {
+								//int fd = kq.getFdByEventIndex(i);
+								std::cout << "CLOSE!!!!!!" << std::endl;
+								timer.del_time(kq.getFdByEventIndex(i));
+								delete hc;
+=======
 						try {
 							ClassController* udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
 							// 바인딩 처리
@@ -47,6 +77,7 @@ class ServerProcess {
 								kq.addEvent(conn_socket, EVFILT_WRITE, httpConnection);
 								kq.disableEvent(conn_socket, EVFILT_WRITE, httpConnection);
 								timer.init_time(conn_socket);
+>>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 							}
 							// HTTPConnection 처리
 							else if (dynamic_cast<HTTPConnection*>(udata) != NULL) {
