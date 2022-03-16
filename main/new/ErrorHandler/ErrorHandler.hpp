@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ErrorHandler.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kimkwanho <kimkwanho@student.42.fr>        +#+  +:+       +#+        */
+/*   By: hyunja <hyunja@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 12:19:51 by juhpark           #+#    #+#             */
-/*   Updated: 2022/03/11 09:31:11 by kimkwanho        ###   ########.fr       */
+/*   Updated: 2022/03/16 13:34:24 by hyunja           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 # define CRIT 1
 # define NON_CRIT 2
 
-//throw ErrorHandler(__FILE__, __func__, __LINE__, "Error Message");
+//throw ErrorHandler(__FILE__, __func__, __LINE__, "Error Message", ErrorHandler::에러의 치명도);
 //요로케 던지면 됩니다
 //리펙토링으로 Error_Handler가 되려나..?
 
@@ -31,6 +31,14 @@
 
 class ErrorHandler : public std::exception
 {
+	/*
+	public:
+		typedef enum ErrorLevel {
+			DEFAULT
+			CRIT
+			NON_CRIT
+		} e_Lev;
+		*/
 	private:
 		const char*	_fil;
 		const char*	_fnc;
