@@ -6,7 +6,7 @@
 /*   By: hyunja <hyunja@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 12:19:51 by juhpark           #+#    #+#             */
-/*   Updated: 2022/03/16 13:34:24 by hyunja           ###   ########.fr       */
+/*   Updated: 2022/03/16 14:44:16 by hyunja           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,6 @@
 # include <exception>
 # include <string>
 # include <sys/errno.h>
-
-# define DEFAULT 0
-# define CRIT 1
-# define NON_CRIT 2
 
 //throw ErrorHandler(__FILE__, __func__, __LINE__, "Error Message", ErrorHandler::에러의 치명도);
 //요로케 던지면 됩니다
@@ -31,52 +27,48 @@
 
 class ErrorHandler : public std::exception
 {
-	/*
 	public:
 		typedef enum ErrorLevel {
-			DEFAULT
-			CRIT
+			DEFAULT,
+			CRIT,
 			NON_CRIT
 		} e_Lev;
-		*/
 	private:
 		const char*	_fil;
 		const char*	_fnc;
 		int 		_lin;
 		std::string _msg;
-		int			_lev;
+		e_Lev		_lev;
 
 	public:
 		ErrorHandler(void) {}
 
 		ErrorHandler(const char* _ch1, const char* _ch2, int _int, std::string _str)
-			: _fil(_ch1), _fnc(_ch2), _lin(_int), _msg(_str), _lev(-1) { }
+			: _fil(_ch1), _fnc(_ch2), _lin(_int), _msg(_str), _lev(DEFAULT) { }
 
-		ErrorHandler(const char* _ch1, const char* _ch2, int _int, std::string _str, int _num)
-			: _fil(_ch1), _fnc(_ch2), _lin(_int), _msg(_str), _lev(_num) { }
+		ErrorHandler(const char* _ch1, const char* _ch2, int _int, std::string _str, ErrorHandler::e_Lev _level)
+			: _fil(_ch1), _fnc(_ch2), _lin(_int), _msg(_str), _lev(_level) { }
 
 		virtual ~ErrorHandler() throw() { }
 
-		int	getLevel() { return(this->_lev); }
+		e_Lev	getLevel() const { return(_lev); }
 		
-		std::string	getMsg() { return(this->_msg); }
+		std::string	getMsg() const { return(_msg); }
 
 		virtual const char *what() const throw()
 		{
 			static std::string _rst;
 
 			_rst.clear();
-			//_rst += ANSI_RED;
 			_rst += "\n\033[38;5;196m";
 			_rst += "~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~\n";
 			_rst += "[ERR] ";
 			if (_lev == DEFAULT)
-				_rst += " - DEFAULT : ";
+				_rst += " - DEFAULT OR NOT YET : ";
 			if (_lev == CRIT)
 				_rst += " - CRITICAL : ";
 			if (_lev == NON_CRIT)
 				_rst += " - NON_CRITICAL : ";
-			//_rst += ANSI_RES;
 			_rst += "\033[38;5;220m";
 			_rst += _msg;
 			_rst += "\033[38;5;196m";
@@ -101,10 +93,6 @@ class ErrorHandler : public std::exception
 				//_rst += ANSI_RES;
 				_rst += (std::strerror(errno));
 			}
-
-			//요 if 문은 그냥 명목상으로 만든거
-//			if (_tmp == 0)
-//				_rst += "!";
 			_rst += "\033[38;5;196m";
 			_rst += "\n~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~";
 			_rst += "\033[0m";

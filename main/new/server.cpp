@@ -55,7 +55,7 @@ int
 			_config.startConfig(_conf_uri);
 			_mime.startConfig(_mime_uri);ServerProcess::serverProcess();
 		}
-		catch (const std::exception& err)
+		catch (const ErrorHandler& err)
 		{
 			std::cerr << err.what() << std::endl;
 			return (-1);

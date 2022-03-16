@@ -33,70 +33,83 @@ class ServerProcess {
 				int events = kq.accessEvents();
 				if (events) {
 					for (int i = 0; i < events; i++) {
-						ClassController* udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
-						// 바인딩 처리
-						if (dynamic_cast<SocketController*>(udata) != NULL) {
-							SocketController* socketController = reinterpret_cast<SocketController*>(udata);
-							int conn_socket = socketController->run();
-							int server_block = socketController->getServerBlockNum();
-							if (server_block < 0)
-								throw ErrorHandler(__FILE__, __func__, __LINE__, "We can't find that block");
-							HTTPConnection* httpConnection = new HTTPConnection(conn_socket, server_block, socketController);
-							kq.addEvent(conn_socket, EVFILT_READ, httpConnection);
-							kq.addEvent(conn_socket, EVFILT_WRITE, httpConnection);
-							kq.disableEvent(conn_socket, EVFILT_WRITE, httpConnection);
-							timer.init_time(conn_socket);
-						}
-						// HTTPConnection 처리
-						else if (dynamic_cast<HTTPConnection*>(udata) != NULL) {
-							HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
-							int fd = kq.getFdByEventIndex(i);
-							if (kq.isCloseByEventIndex(i)) {
-								std::cout << "Client closed socket" << std::endl;
-								timer.del_time(kq.getFdByEventIndex(i));
-								delete hc;
+						try {
+							ClassController* udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
+							// 바인딩 처리
+							if (dynamic_cast<SocketController*>(udata) != NULL) {
+								SocketController* socketController = reinterpret_cast<SocketController*>(udata);
+								int conn_socket = socketController->run();
+								int server_block = socketController->getServerBlockNum();
+								if (server_block < 0)
+									throw ErrorHandler(__FILE__, __func__, __LINE__, "We can't find that block");
+								HTTPConnection* httpConnection = new HTTPConnection(conn_socket, server_block, socketController);
+								kq.addEvent(conn_socket, EVFILT_READ, httpConnection);
+								kq.addEvent(conn_socket, EVFILT_WRITE, httpConnection);
+								kq.disableEvent(conn_socket, EVFILT_WRITE, httpConnection);
+								timer.init_time(conn_socket);
 							}
-							else {
-								//std::cout << "---------[fd : " << fd << "]";
-								
-								
-								int result = hc->run();
-								if (result == HTTPConnection::REQUEST_TO_RESPONSE) {
-									// READ -> WRITE
-									std::cout << "kq(r) : " << fd << std::endl;
-									kq.disableEvent(fd, EVFILT_READ, udata);
-									kq.enableEvent(fd, EVFILT_WRITE, udata);
-									timer.clean_time(fd);
-								} else if (result == HTTPConnection::READY_TO_FILE) {
-									kq.addEvent(hc->getFileFd(), EVFILT_READ, udata);
-									kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
-								} else if (result == HTTPConnection::FILE_READ) {
-									/*
-									std::cout << " WRITE----------" << std::endl;
-									std::cout << "[FILE FD] : " << hc->getFileFd() << std::endl;
-									std::cout << "[socket FD] : " << hc->getSocketFd() << std::endl;
-									std::cout << "[DATA SIZE] : " << kq.getDataSize(i) << std::endl;
-									std::cout << "---------------------------" << std::endl;
-									*/
-									kq.enableEvent(hc->getFileFd(), EVFILT_READ, udata);
-									kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
-								} else if (result == HTTPConnection::FILE_WRITE) {
-									/*
-									std::cout << " READ----------" << std::endl;
-									std::cout << "[FILE FD] : " << hc->getFileFd() << std::endl;
-									std::cout << "[socket FD] : " << hc->getSocketFd() << std::endl;
-									std::cout << "[DATA SIZE] : " << kq.getDataSize(i) << std::endl;
-									std::cout << "---------------------------" << std::endl;
-									*/
-									kq.disableEvent(hc->getFileFd(), EVFILT_READ, udata);
-									kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
-								} else if (result == HTTPConnection::CLOSE) {
-									// 이벤트 제거
-									std::cout << "kq(w) : " << fd << std::endl;
+							// HTTPConnection 처리
+							else if (dynamic_cast<HTTPConnection*>(udata) != NULL) {
+								HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
+								int fd = kq.getFdByEventIndex(i);
+								if (kq.isCloseByEventIndex(i)) {
+									std::cout << "Client closed socket" << std::endl;
+									timer.del_time(kq.getFdByEventIndex(i));
 									delete hc;
-									timer.del_time(fd);
+								}
+								else {
+									//std::cout << "---------[fd : " << fd << "]";
+									
+									
+									int result = hc->run();
+									if (result == HTTPConnection::REQUEST_TO_RESPONSE) {
+										// READ -> WRITE
+										std::cout << "kq(r) : " << fd << std::endl;
+										kq.disableEvent(fd, EVFILT_READ, udata);
+										kq.enableEvent(fd, EVFILT_WRITE, udata);
+										timer.clean_time(fd);
+									} else if (result == HTTPConnection::READY_TO_FILE) {
+										kq.addEvent(hc->getFileFd(), EVFILT_READ, udata);
+										kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
+									} else if (result == HTTPConnection::FILE_READ) {
+										/*
+										std::cout << " WRITE----------" << std::endl;
+										std::cout << "[FILE FD] : " << hc->getFileFd() << std::endl;
+										std::cout << "[socket FD] : " << hc->getSocketFd() << std::endl;
+										std::cout << "[DATA SIZE] : " << kq.getDataSize(i) << std::endl;
+										std::cout << "---------------------------" << std::endl;
+										*/
+										kq.enableEvent(hc->getFileFd(), EVFILT_READ, udata);
+										kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
+									} else if (result == HTTPConnection::FILE_WRITE) {
+										/*
+										std::cout << " READ----------" << std::endl;
+										std::cout << "[FILE FD] : " << hc->getFileFd() << std::endl;
+										std::cout << "[socket FD] : " << hc->getSocketFd() << std::endl;
+										std::cout << "[DATA SIZE] : " << kq.getDataSize(i) << std::endl;
+										std::cout << "---------------------------" << std::endl;
+										*/
+										kq.disableEvent(hc->getFileFd(), EVFILT_READ, udata);
+										kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
+									} else if (result == HTTPConnection::CLOSE) {
+										// 이벤트 제거
+										std::cout << "kq(w) : " << fd << std::endl;
+										delete hc;
+										timer.del_time(fd);
+									}
 								}
 							}
+						}
+						//timer.check_time();
+						catch(const ErrorHandler& err) {
+							int fd = kq.getFdByEventIndex(1);
+							timer.del_time(fd);
+							close(fd);
+							//delete hc는 어디에
+							//근데 없어도 누수가 안남...
+							std::cerr << err.what() << std::endl;
+							if (err.getLevel() == ErrorHandler::CRIT)
+								exit(1);
 						}
 					}
 				} else {

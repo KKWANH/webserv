@@ -1,12 +1,10 @@
 #include "RequestMessage.hpp"
 
-RequestMessage::RequestMessage(HTTPData* _data) : data(_data), parsing_pointer(0), message(""), seq(START_LINE) { }
+RequestMessage::RequestMessage(HTTPData* _data) : data(_data), parsing_pointer(0), message(""), seq(START_LINE) { cgi = NULL; }
 
 void	RequestMessage::setMessage(char* buffer) {
 	std::string	temp(buffer);
 	this->message += temp;
-
-	
 	return ;
 }
 
@@ -29,10 +27,27 @@ int		RequestMessage::parsingRequestMessage() {
 			this->seq = HEADER_FIELD;
 		}
 		if (this->data->isCGI == true) {
-			std::cout << "CGIII" << std::endl;
-		//	CGIProcess cgi(this->data);
-		//	cgi.run();
+			std::cout << "\033[38;5;196mCGIII\033[0m" << std::endl;
+			//따로 뺄까 생각중
+			cgi = new CGIProcess(this->data);
+			cgi->run();
+			this->seq = GET_CGI;
 		}
+	}
+	if (this->seq == GET_CGI) {	
+		char buffer[1024];
+		int cgi_read_fd = cgi->getOutputPair();
+		int len = read(cgi_read_fd, buffer, 1023); //1024하면 오버플로우 일어남
+		if (len < 0)
+			throw ErrorHandler(__FILE__, __func__, __LINE__, "after CGI read error");
+		if (len > 0) {
+			std::cout << "len : " << len << std::endl;
+			buffer[len] = '\0';
+			data->CGI_read += std::string(buffer);
+			std::cout << "read : " << data->CGI_read << std::endl;
+		}
+		if (len == 0)
+			this->seq = HEADER_FIELD;
 	}
 	if (this->seq == HEADER_FIELD) {
 		if (int(this->message.find("\r\n\r\n", 0)) != -1) {
@@ -105,10 +120,10 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 //	{
 //		std::cout << "what is this ? : " <<  _config._http._server[this->data->server_block]._location[i]._location << std::endl;
 //	}
-	for (int i = 0; i < int(_config._http._server[this->data->server_block]._location.size()); i++)
-	{
-		std::cout << "cgi_pass : " << _config._http._server[this->data->server_block]._location[i]._dir_map["cgi_pass"] << std::endl;
-	}
+//	for (int i = 0; i < int(_config._http._server[this->data->server_block]._location.size()); i++)
+//	{
+//		std::cout << "cgi_pass : " << _config._http._server[this->data->server_block]._location[i]._dir_map["cgi_pass"] << std::endl;
+//	}
 	int	extension_pos = target.find_last_of(".");
 	this->data->isCGI = false;
 	this->data->CGI_root = "";
@@ -168,7 +183,7 @@ void	RequestMessage::checkTarget(void) {
 		std::string	filePath = root + data->uri_dir + "index.html";
 		if (access(filePath.c_str(), F_OK) == 0) {
 			data->uri_file = "index.html";
-			// data->file_extension = "html";
+			data->file_extension = "html";
 			data->status_code = 304;
 			return ;
 		} else {
@@ -181,11 +196,10 @@ void	RequestMessage::checkTarget(void) {
 	std::vector<std::string> index = checkURIDIR();
 	std::vector<std::string>::iterator it;
 
-
 	for(it = index.begin(); it != index.end(); it++) {
 		std::string	filePath = root + data->uri_dir + *it;
 		if (access(filePath.c_str(), F_OK) == 0) {
-			// data->file_extension = (*it).substr((*it).find_last_of('.') + 1);
+			data->file_extension = (*it).substr((*it).find_last_of('.') + 1);
 			data->uri_file = *it;
 			data->status_code = 200;
 			return ;
@@ -260,8 +274,10 @@ void	RequestMessage::parseMessageBody(std::string &msg) {
 	
 	end = msg.find("\r\n", start);
 	data->message_body = msg.substr(start, end - start);
-	//if (data->isCGI)
-		//write(cgi.getInputPair(), data->message_body.c_str(), data->message_body.length());
+	if (data->isCGI) {
+		data->message_body += data->CGI_read;
+		write(cgi->getInputPair(), data->message_body.c_str(), data->message_body.length());
+	}
 }
 
 void	RequestMessage::printBody(void) {

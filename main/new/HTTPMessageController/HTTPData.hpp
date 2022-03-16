@@ -3,7 +3,9 @@
 
 #include <map>
 #include <string>
+#include <iostream>
 #include "SocketController.hpp"
+#include "ErrorHandler.hpp"
 
 class HTTPData {
 	public:
@@ -20,6 +22,7 @@ class HTTPData {
 		std::string								file_extension;
 		std::string								CGI_root;
 		std::string								CGI_what;
+		std::string								CGI_read;
 		bool        							isCGI;
 		double									http_version;
 
@@ -37,6 +40,9 @@ class HTTPData {
 			struct sockaddr_in cli_addr = Socket->getClientAddr();
 			server_port = (int)ntohs(serv_addr.sin_port);
 			client_ip = std::string(inet_ntoa(cli_addr.sin_addr));
+			CGI_read = "";
+			if (server_port == 8000)
+				throw ErrorHandler(__FILE__, __func__, __LINE__, "OMG 8000", ErrorHandler::NON_CRIT);
 		}
 };
 
