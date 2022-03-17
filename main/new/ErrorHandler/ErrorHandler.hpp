@@ -6,7 +6,7 @@
 /*   By: hyunja <hyunja@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 12:19:51 by juhpark           #+#    #+#             */
-/*   Updated: 2022/03/16 14:44:16 by hyunja           ###   ########.fr       */
+/*   Updated: 2022/03/16 21:19:25 by juhpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,11 +64,11 @@ class ErrorHandler : public std::exception
 			_rst += "~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~\n";
 			_rst += "[ERR] ";
 			if (_lev == DEFAULT)
-				_rst += " - DEFAULT OR NOT YET : ";
+				_rst += "DEFAULT OR NOT YET : ";
 			if (_lev == CRIT)
-				_rst += " - CRITICAL : ";
+				_rst += "CRITICAL : ";
 			if (_lev == NON_CRIT)
-				_rst += " - NON_CRITICAL : ";
+				_rst += "NON_CRITICAL : ";
 			_rst += "\033[38;5;220m";
 			_rst += _msg;
 			_rst += "\033[38;5;196m";
