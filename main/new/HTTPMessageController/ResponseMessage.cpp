@@ -3,6 +3,8 @@
 #include <sstream>
 #include "ConfigBlocks.hpp"
 #include "ConfigMime.hpp"
+#include "FileController.hpp"
+
 extern MimeConfig
 	_mime;
 extern NginxConfig::GlobalConfig
@@ -40,7 +42,7 @@ std::string ResponseMessage::setStatusMessage(std::string status_code) {
 	rtn = "";
 	int start, end;
 	std::ifstream fileRead(this->statusMessagePath.c_str());
-	std::cout << "Start set status code message" << std::endl;
+	//std::cout << "Start set status code message" << std::endl;
 
 	if (fileRead.peek() == std::ifstream::traits_type::eof())
 		throw ErrorHandler(__FILE__, __func__, __LINE__, "status_code.txt is empty");
@@ -83,7 +85,10 @@ void	ResponseMessage::setHeaderField() {
 		// TODO
 		// content-type을 지정해주기 위해서 request message의 uri중 파일 확장자가 필요
 		this->header_field += ("Content-Type: " + _mime.getMIME(this->data->file_extension) + "\r\n");
-		//this->header_field += ("Content-Length: " + std::to_string(this->message_body.length()) + "\n");
+		std::string path = _config._http._server[this->data->server_block]._dir_map["root"] + this->data->uri_dir + this->data->uri_file;
+		std::stringstream ss;
+		ss << FileController::getFileSize(path);
+		this->header_field += ("Content-Length: " + ss.str() + "\r\n");
 	}
 	this->header_field += "Accept-Ranges: bytes\r\n";
 	return ;
@@ -99,7 +104,7 @@ void	ResponseMessage::setMessageBody() {
 		// uri 가 절대경로인지, 상대경로인지 확인할 필요 있음.
 		// 상대경로의 경우, 앞에 ./로 시작하게 수정할 것
 		std::string		path = _config._http._server[this->data->server_block]._dir_map["root"] + this->data->uri_dir + this->data->uri_file;
-		std::cout << "[PATH] : " + path << std::endl;
+		//std::cout << "[PATH] : " + path << std::endl;
 		std::ifstream	file(path);
 		std::string		line;
 
@@ -123,11 +128,11 @@ void		ResponseMessage::setResponseMessage() {
 	setStartLine();
 	//printStartLine();
 	setHeaderField();
-	setMessageBody();
+	//setMessageBody();
 	//printHeaderField();
 	//printMessageBody();
 	this->message += (this->start_line + "\r\n");
 	this->message += (this->header_field + "\r\n");
-	this->message += (this->message_body);
+	//this->message += (this->message_body);
 	return ;
 }

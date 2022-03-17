@@ -8,6 +8,7 @@
 #include "TimeController.hpp"
 #include <cstring>
 #include <iostream>
+#include <fcntl.h>
 
 extern NginxConfig::GlobalConfig _config;
 
@@ -39,7 +40,6 @@ class ServerProcess {
 							if (dynamic_cast<SocketController*>(udata) != NULL) {
 								SocketController* socketController = reinterpret_cast<SocketController*>(udata);
 								int conn_socket = socketController->run();
-								std::cout << "conn_socket :" << conn_socket << std::endl;
 								int server_block = socketController->getServerBlockNum();
 								if (server_block < 0)
 								{
@@ -47,6 +47,8 @@ class ServerProcess {
 									throw ErrorHandler(__FILE__, __func__, __LINE__, "We can't find that block", ErrorHandler::NON_CRIT);
 								}
 								HTTPConnection* httpConnection = new HTTPConnection(conn_socket, server_block, socketController);
+								if (fcntl(conn_socket, F_SETFL, O_NONBLOCK) == -1)
+									exit(-1);
 								kq.addEvent(conn_socket, EVFILT_READ, httpConnection);
 								kq.addEvent(conn_socket, EVFILT_WRITE, httpConnection);
 								kq.disableEvent(conn_socket, EVFILT_WRITE, httpConnection);
@@ -58,16 +60,15 @@ class ServerProcess {
 
 								int fd = kq.getFdByEventIndex(i);
 								if (kq.isCloseByEventIndex(i)) {
-									std::cout << "Client closed socket" << std::endl;
+									std::cout << "Client closed socket : " << fd << std::endl;
 									timer.del_time(kq.getFdByEventIndex(i));
 									delete hc;
 								}
 								else {
-									//std::cout << "---------[fd : " << fd << "]";
 									int result = hc->run();
 									if (result == HTTPConnection::REQUEST_TO_RESPONSE) {
 										// READ -> WRITE
-										std::cout << "kq(r) : " << fd << std::endl;
+										//std::cout << "kq(r) : " << fd << std::endl;
 										kq.disableEvent(fd, EVFILT_READ, udata);
 										kq.enableEvent(fd, EVFILT_WRITE, udata);
 										timer.clean_time(fd);
@@ -75,28 +76,14 @@ class ServerProcess {
 										kq.addEvent(hc->getFileFd(), EVFILT_READ, udata);
 										kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 									} else if (result == HTTPConnection::FILE_READ) {
-										/*
-										std::cout << " WRITE----------" << std::endl;
-										std::cout << "[FILE FD] : " << hc->getFileFd() << std::endl;
-										std::cout << "[socket FD] : " << hc->getSocketFd() << std::endl;
-										std::cout << "[DATA SIZE] : " << kq.getDataSize(i) << std::endl;
-										std::cout << "---------------------------" << std::endl;
-										*/
 										kq.enableEvent(hc->getFileFd(), EVFILT_READ, udata);
 										kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 									} else if (result == HTTPConnection::FILE_WRITE) {
-										/*
-										std::cout << " READ----------" << std::endl;
-										std::cout << "[FILE FD] : " << hc->getFileFd() << std::endl;
-										std::cout << "[socket FD] : " << hc->getSocketFd() << std::endl;
-										std::cout << "[DATA SIZE] : " << kq.getDataSize(i) << std::endl;
-										std::cout << "---------------------------" << std::endl;
-										*/
 										kq.disableEvent(hc->getFileFd(), EVFILT_READ, udata);
 										kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 									} else if (result == HTTPConnection::CLOSE) {
 										// 이벤트 제거
-										std::cout << "kq(w) : " << fd << std::endl;
+										//std::cout << "kq(w) : " << fd << std::endl;
 										delete hc;
 										timer.del_time(fd);
 									}

@@ -8,6 +8,7 @@
 #include "SocketController.hpp"
 #include "KernelQueueController.hpp"
 
+#include <fcntl.h>
 #include "FileController.hpp"
 
 #define BUF_SIZ 8192
@@ -51,7 +52,6 @@ class HTTPConnection : public ClassController {
 			delete response_message;
 			delete http_data;
 			close(socket_fd);
-			close(file_fd);
 		}
 
 		int	getFileFd() {
@@ -63,8 +63,6 @@ class HTTPConnection : public ClassController {
 		}
 		
 		int run() {	
-	//		if (this->http_data->server_port == 8000)
-	//			throw ErrorHandler(__FILE__, __func__, __LINE__, "OMG 8000", ErrorHandler::NON_CRIT);
 			if (seq == REQUEST) {
 				char buffer[BUF_SIZ];
 				readLength = read(socket_fd, buffer, BUF_SIZ);
@@ -83,6 +81,8 @@ class HTTPConnection : public ClassController {
 				if (writeLength != BUF_SIZ) {
 					std::string	path = _config._http._server[this->http_data->server_block]._dir_map["root"] + this->http_data->uri_dir + this->http_data->uri_file;
 					file_fd = open(path.c_str(), O_RDONLY);
+					if (fcntl(file_fd, F_SETFL, O_NONBLOCK) == -1) 
+						exit(-1);
 					seq = READY_TO_FILE;
 				}
 				else
@@ -92,26 +92,23 @@ class HTTPConnection : public ClassController {
 				seq = FILE_READ;
 			}
 			else if (seq == FILE_READ) {
-				readLength = read(file_fd, file_buffer, BUF_SIZ);
+				readLength = read(file_fd, file_buffer, 2048);
 				seq = FILE_WRITE;
 			}
 			else if (seq == FILE_WRITE) {
 				if (readLength == 0)
 					seq = CLOSE;
-				else if (readLength == -1) {
-					std::cout << "File Read Error" << std::endl;
+				else if (readLength == -1)
 					exit(-1);
-				}
 				else {
 					writeLength = write(socket_fd, file_buffer, readLength);
 					if (readLength != writeLength) {
-						std::cout << "READ SIZE : " << readLength << std::endl;
-						std::cout << "WRITE SIZE : " << writeLength << std::endl;
-						std::cout << "File readsize is different with File writesize" << std::endl;
 						exit(-1);
 					}
-					if (writeLength != BUF_SIZ)
+					if (writeLength != 2048) {
+						close(file_fd);
 						seq = CLOSE;
+					}
 					else
 						seq = FILE_READ;
 				}
