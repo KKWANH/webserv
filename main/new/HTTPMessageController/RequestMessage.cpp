@@ -152,8 +152,6 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 	resetMessage();
 }
 
-<<<<<<< HEAD
-=======
 std::vector<std::string>	RequestMessage::checkURIDIR(void) {
 	std::vector<NginxConfig::LocationBlock> location = _config._http._server[data->server_block]._location;
 	std::vector<NginxConfig::LocationBlock>::iterator it = location.begin();
@@ -165,7 +163,6 @@ std::vector<std::string>	RequestMessage::checkURIDIR(void) {
 	return (_config._http._server[data->server_block]._index);
 }
 
->>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 // location 블럭 별로 uri_dir의 index를 가져와야함
 // 에러 페이지 띄워주기 설정
 void	RequestMessage::checkTarget(void) {
@@ -180,11 +177,7 @@ void	RequestMessage::checkTarget(void) {
 
 	std::string root = _config._http._server[this->data->server_block]._dir_map["root"];
 	// index 자체가 없을 때
-<<<<<<< HEAD
-	// root 경로에 index.html을 띄워준다.
-=======
 	// root 경로에  default index.html을 띄워준다.
->>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 	// index.html이 없는 경우에는 403
 	if (_config._http._server[this->data->server_block]._index.empty()) {
 		std::string	filePath = root + data->uri_dir + "index.html";
@@ -199,16 +192,11 @@ void	RequestMessage::checkTarget(void) {
 		}
 	}
 
-<<<<<<< HEAD
-	std::vector<std::string>::iterator it = _config._http._server[data->server_block]._index.begin();
-	for(; it != _config._http._server[data->server_block]._index.end(); it++) {
-=======
 
 	std::vector<std::string> index = checkURIDIR();
 	std::vector<std::string>::iterator it;
 
 	for(it = index.begin(); it != index.end(); it++) {
->>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 		std::string	filePath = root + data->uri_dir + *it;
 		if (access(filePath.c_str(), F_OK) == 0) {
 			data->file_extension = (*it).substr((*it).find_last_of('.') + 1);
@@ -217,11 +205,7 @@ void	RequestMessage::checkTarget(void) {
 			return ;
 		}
 	}
-<<<<<<< HEAD
-	if (it == _config._http._server[this->data->server_block]._index.end())
-=======
 	if (it == index.end())
->>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 		data->status_code = 403;
 }
 
@@ -291,8 +275,8 @@ void	RequestMessage::parseMessageBody(std::string &msg) {
 	end = msg.find("\r\n", start);
 	data->message_body = msg.substr(start, end - start);
 	if (data->isCGI) {
-		data->message_body += data->CGI_read;
-		write(cgi->getInputPair(), data->message_body.c_str(), data->message_body.length());
+	//	data->message_body += data->CGI_read;
+	//	write(cgi->getInputPair(), data->message_body.c_str(), data->message_body.length());
 	}
 }
 

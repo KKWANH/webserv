@@ -6,14 +6,11 @@
 #include "RequestMessage.hpp"
 #include "ResponseMessage.hpp"
 #include "SocketController.hpp"
-<<<<<<< HEAD
-=======
 #include "KernelQueueController.hpp"
 
 #include "FileController.hpp"
 
 #define BUF_SIZ 8192
->>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 
 extern NginxConfig::GlobalConfig _config;
 
@@ -65,7 +62,9 @@ class HTTPConnection : public ClassController {
 			return (this->socket_fd);
 		}
 		
-		int run() {
+		int run() {	
+	//		if (this->http_data->server_port == 8000)
+	//			throw ErrorHandler(__FILE__, __func__, __LINE__, "OMG 8000", ErrorHandler::NON_CRIT);
 			if (seq == REQUEST) {
 				char buffer[BUF_SIZ];
 				readLength = read(socket_fd, buffer, BUF_SIZ);
@@ -79,13 +78,6 @@ class HTTPConnection : public ClassController {
 				seq = RESPONSE;
 			}
 			else if (seq == RESPONSE) {
-<<<<<<< HEAD
-				std::cout << "RESPONSE" << std::endl;
-				int	write_size = ((int)response_message->getMessage().size() < 8192 ? (int)response_message->getMessage().size() : 8192);
-				writeLength = write(socket_fd, response_message->getMessage().data(), write_size);
-				if (writeLength != 8192)
-					seq = CLOSE;
-=======
 				int	write_size = ((int)response_message->getMessage().size() < BUF_SIZ ? (int)response_message->getMessage().size() : BUF_SIZ);
 				writeLength = write(socket_fd, response_message->getMessage().data(), write_size);
 				if (writeLength != BUF_SIZ) {
@@ -93,7 +85,6 @@ class HTTPConnection : public ClassController {
 					file_fd = open(path.c_str(), O_RDONLY);
 					seq = READY_TO_FILE;
 				}
->>>>>>> 227b864a1400e0f9ac60c4cf173f2a9bad7bde13
 				else
 					response_message->resetMessage(writeLength);
 			}

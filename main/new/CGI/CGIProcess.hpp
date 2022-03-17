@@ -98,7 +98,6 @@ class CGIProcess {
         }
 
 		void setEnvp(HTTPData* data) {
-			//RequestMessage *reqMsg = static_cast<RequestMessage*>(requestMessage);
 			std::map<std::string, std::string> _envMap;
 			//cgi루트에서 파일명만 뺴고 싶다면
 			std::string root = data->CGI_root.substr(1, data->CGI_root.size());
