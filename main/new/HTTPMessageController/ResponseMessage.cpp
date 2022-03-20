@@ -15,7 +15,6 @@ ResponseMessage::ResponseMessage(HTTPData* _data) {
 	this->message = "";
 	this->start_line = "";
 	this->header_field = "";
-	this->message_body = "";
 	this->statusMessagePath = "./setting/status_code.txt";
 }
 
@@ -36,9 +35,6 @@ void		ResponseMessage::printStartLine(void) {
 }
 void		ResponseMessage::printHeaderField(void) {
 	std::cout << this->header_field << std::endl;
-}
-void		ResponseMessage::printMessageBody(void) {
-	std::cout << this->message_body << std::endl;
 }
 
 std::string	ResponseMessage::getMessage(void) {
@@ -86,7 +82,10 @@ void	ResponseMessage::setStartLine() {
 
 void	ResponseMessage::setHeaderField() {
 	if (this->data->isCGI == true) {
-		// CGI의 반환값으로 오는 header-field 추가
+		// FIXME
+		// CGI의 경우, Chunked data를 받아야 함.
+		//this->header_field += "Transfer-Encoding: chunked\r\n";
+		this->header_field += "Content-Length: 51\r\n";
 	}
 	else {
 		// TODO
@@ -98,36 +97,6 @@ void	ResponseMessage::setHeaderField() {
 		this->header_field += ("Content-Length: " + ss.str() + "\r\n");
 	}
 	this->header_field += "Accept-Ranges: bytes\r\n";
-	return ;
-}
-
-void	ResponseMessage::setMessageBody() {
-	if (this->data->isCGI == true) {
-		// TODO
-		// cgi pipe로부터 read하여 message_body에 저장
-	}
-	else {
-		// TODO
-		// uri 가 절대경로인지, 상대경로인지 확인할 필요 있음.
-		// 상대경로의 경우, 앞에 ./로 시작하게 수정할 것
-		std::string		path = _config._http._server[this->data->server_block]._dir_map["root"] + this->data->uri_dir + this->data->uri_file;
-		//std::cout << "[PATH] : " + path << std::endl;
-		std::ifstream	file(path);
-		std::string		line;
-
-		if (file.is_open()) {
-			file.seekg(0, std::ios::end);
-			int size = file.tellg();
-			line.resize(size);
-			file.seekg(0, std::ios::beg);
-			file.read(&line[0], size);
-			this->message_body = line;
-			while (std::getline(file, line)) {
-				this->message_body = this->message_body + line + "\n";
-			}
-		}
-	}
-	this->header_field += ("Content-Length: " + std::to_string(this->message_body.length()) + "\r\n");
 	return ;
 }
 
@@ -146,6 +115,8 @@ int			ResponseMessage::setResponseMessage(std::string _tmp_directory)
 	setStartLine();
 	setHeaderField();
 	this->message += (this->start_line + "\r\n");
-	this->message += (this->header_field + "\r\n");
+	this->message += this->header_field;
+	if (this->data->isCGI == false)
+		this->message += "\r\n";
 	return (0);
 }

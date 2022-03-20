@@ -15,7 +15,6 @@ class RequestMessage {
 	public:
 		typedef enum	e_Seq {
 			START_LINE,
-			GET_CGI,
 			HEADER_FIELD,
 			MESSAGE_BODY,
 			FINISH_PARSE

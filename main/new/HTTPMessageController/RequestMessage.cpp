@@ -55,28 +55,6 @@ int		RequestMessage::parsingRequestMessage() {
 			resetMessage();
 			this->seq = HEADER_FIELD;
 		}
-		if (this->data->isCGI == true) {
-			std::cout << "\033[38;5;196mCGIII\033[0m" << std::endl;
-			//따로 뺄까 생각중
-			cgi = new CGIProcess(this->data);
-			cgi->run();
-			this->seq = GET_CGI;
-		}
-	}
-	if (this->seq == GET_CGI) {
-		char buffer[1024];
-		int cgi_read_fd = cgi->getOutputPair();
-		int len = read(cgi_read_fd, buffer, 1023); //1024하면 오버플로우 일어남
-		if (len < 0)
-			throw ErrorHandler(__FILE__, __func__, __LINE__, "after CGI read error");
-		if (len > 0) {
-			std::cout << "len : " << len << std::endl;
-			buffer[len] = '\0';
-			data->CGI_read += std::string(buffer);
-			std::cout << "read : " << data->CGI_read << std::endl;
-		}
-		if (len == 0)
-			this->seq = HEADER_FIELD;
 	}
 	if (this->seq == HEADER_FIELD) {
 		if (int(this->message.find("\r\n\r\n", 0)) != -1) {

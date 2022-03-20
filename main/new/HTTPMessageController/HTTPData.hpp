@@ -4,8 +4,6 @@
 #include <map>
 #include <string>
 #include <iostream>
-#include "SocketController.hpp"
-#include "ErrorHandler.hpp"
 
 class HTTPData {
 	public:
@@ -22,7 +20,6 @@ class HTTPData {
 		std::string								file_extension;
 		std::string								CGI_root;
 		std::string								CGI_what;
-		std::string								CGI_read;
 		bool        							isCGI;
 		double									http_version;
 
@@ -34,15 +31,9 @@ class HTTPData {
 
 		int										status_code;
 
-		int	getSBlock(void) { return(this->server_block); }
+		int	getSBlock(void);
 		
-		HTTPData(int server_block, int server_port, std::string client_ip) {
-			this->server_block = server_block;
-			this->server_port = server_port;
-			this->client_ip = client_ip;
-			CGI_read = "";
-
-		}
+		HTTPData(int server_block, int server_port, std::string client_ip);
 };
 
 #endif

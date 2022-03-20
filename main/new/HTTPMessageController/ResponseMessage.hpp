@@ -14,7 +14,6 @@ class ResponseMessage {
 		std::string		message;
 		std::string		start_line;
 		std::string		header_field;
-		std::string		message_body;
 		std::string		statusMessagePath;
 	public:
 		/**
@@ -25,12 +24,10 @@ class ResponseMessage {
 		void		setStartLine();
 		std::string	setStatusMessage(std::string status_code);
 		void		setHeaderField();
-		void		setMessageBody();
 		int			setResponseMessage(std::string _tmp_directory);
 
 		void		printStartLine();
 		void		printHeaderField();
-		void		printMessageBody();
 		std::string	getMessage();
 
 		void		resetMessage(int buf_size);
