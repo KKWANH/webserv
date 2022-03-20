@@ -19,6 +19,15 @@ ResponseMessage::ResponseMessage(HTTPData* _data) {
 	this->statusMessagePath = "./setting/status_code.txt";
 }
 
+std::string	returnRedirectMessage() {
+	std::string
+		redirectMessage = "HTTP/1.1 302\nLocation: ";
+	redirectMessage += _config._http._server[1]._location[6]._rewrite[1];
+	redirectMessage += "\nContent-Type: text/html;charset=UTF-8\nContent-Length: 0";
+	std::cout << redirectMessage << std::endl;
+	return (redirectMessage);
+}
+
 void		ResponseMessage::resetMessage(int buf_size) {
 	this->message = this->message.substr(buf_size);
 }
@@ -87,7 +96,7 @@ void	ResponseMessage::setHeaderField() {
 		this->header_field += ("Content-Type: " + _mime.getMIME(this->data->file_extension) + "\r\n");
 		std::string path = _config._http._server[this->data->server_block]._dir_map["root"] + this->data->uri_dir + this->data->uri_file;
 		std::stringstream ss;
-		ss << FileController::getFileSize(path);
+		std::cout << FileController::getFileSize(path);
 		this->header_field += ("Content-Length: " + ss.str() + "\r\n");
 	}
 	this->header_field += "Accept-Ranges: bytes\r\n";
@@ -128,6 +137,9 @@ void		ResponseMessage::setResponseMessage() {
 	setStartLine();
 	//printStartLine();
 	setHeaderField();
+
+	returnRedirectMessage();
+	
 	//setMessageBody();
 	//printHeaderField();
 	//printMessageBody();

@@ -52,7 +52,7 @@ class ServerProcess {
 								kq.addEvent(conn_socket, EVFILT_READ, httpConnection);
 								kq.addEvent(conn_socket, EVFILT_WRITE, httpConnection);
 								kq.disableEvent(conn_socket, EVFILT_WRITE, httpConnection);
-								timer.init_time(conn_socket);
+								timer.init_time(udata);
 							}
 							// HTTPConnection 처리
 							else if (dynamic_cast<HTTPConnection*>(udata) != NULL) {
@@ -61,7 +61,7 @@ class ServerProcess {
 								int fd = kq.getFdByEventIndex(i);
 								if (kq.isCloseByEventIndex(i)) {
 									std::cout << "Client closed socket : " << fd << std::endl;
-									timer.del_time(kq.getFdByEventIndex(i));
+									timer.del_time(udata);
 									delete hc;
 								}
 								else {
@@ -71,7 +71,7 @@ class ServerProcess {
 										//std::cout << "kq(r) : " << fd << std::endl;
 										kq.disableEvent(fd, EVFILT_READ, udata);
 										kq.enableEvent(fd, EVFILT_WRITE, udata);
-										timer.clean_time(fd);
+										timer.clean_time(udata);
 									} else if (result == HTTPConnection::READY_TO_FILE) {
 										kq.addEvent(hc->getFileFd(), EVFILT_READ, udata);
 										kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
@@ -85,12 +85,14 @@ class ServerProcess {
 										// 이벤트 제거
 										//std::cout << "kq(w) : " << fd << std::endl;
 										delete hc;
-										timer.del_time(fd);
+										timer.del_time(udata);
 									}
 								}
 							}
+						timer.check_time();
 						}
 						//timer.check_time();
+						/*
 						catch (const ErrorHandler& err) {
 							int fd = kq.getFdByEventIndex(i);
 							timer.del_time(fd);
@@ -104,6 +106,26 @@ class ServerProcess {
 							if (err.getLevel() == ErrorHandler::CRIT)
 								exit(1);
 						}
+						*/
+						catch (const ErrorHandler& err) {
+							ClassController* udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
+							int fd = kq.getFdByEventIndex(i);
+							timer.del_time(udata);
+							//아마 요 사이에 에러 페이지를 만들고 보내는 코드가 추가되어야 할듯함(였던거)
+							if (fd > 5)
+							{
+								HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
+								close(hc->getSocketFd());
+								if (hc->getFileFd() > 0)
+									close (hc->getFileFd());
+								delete hc;
+							}
+							std::cerr << err.what() << std::endl;
+							if (err.getLevel() == ErrorHandler::CRIT)
+								exit(1);
+						}
+
+
 					}
 				} else {
 					std::cout << "waiting..." << std::endl;
