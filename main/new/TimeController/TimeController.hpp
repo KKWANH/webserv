@@ -54,9 +54,15 @@ public:
 /*
 	void check_time(void* id, int block)
 	{
+		int keepalive_timeout;
+
 		std::map<void*, clock_t>::iterator it;
-		it = timer_list.find(id)
-	//	std::cout << "Asd" << std::endl;
+		it = timer_list.find(id);
+		keepalive_timeout = itoa(_config._http._server[block]._dir_map["keepalive_timeout"])
+		if (keepalive_timeout < 0)
+	//	std::cout << "Asd" << std::endl;//	std::cout << "keepalivetimeout1 : " << _config._http._dir_map["keepalive_timeout"] << std::endl;
+	//	std::cout << "keepalivetimeout2 : " << _config._http._server[0]._dir_map["keepalive_timeout"] << std::endl;
+	//	std::cout << "keepalivetimeout2 : " << _config._http._server[1]._dir_map["keepalive_timeout"] << std::endl;
 	}
 	*/
 };

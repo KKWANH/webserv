@@ -50,7 +50,6 @@ std::string ResponseMessage::setStatusMessage(std::string status_code) {
 	rtn = "";
 	int start, end;
 	std::ifstream fileRead(this->statusMessagePath.c_str());
-	//std::cout << "Start set status code message" << std::endl;
 
 	if (fileRead.peek() == std::ifstream::traits_type::eof())
 		throw ErrorHandler(__FILE__, __func__, __LINE__, "status_code.txt is empty");

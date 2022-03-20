@@ -38,7 +38,6 @@ class HTTPConnection : public ClassController {
 		ResponseMessage*		response_message;
 		int						readLength;
 		int						writeLength;
-		int						is_redirect;
 		
 	public:
 		HTTPConnection(int fd, int block, SocketController *Socket) {
@@ -47,7 +46,6 @@ class HTTPConnection : public ClassController {
 			http_data = new HTTPData(block, Socket);
 			request_message = new RequestMessage(http_data);
 			response_message = new ResponseMessage(http_data);
-			is_redirect = 0;
 		}
 		virtual ~HTTPConnection() {
 			delete request_message;
@@ -65,7 +63,6 @@ class HTTPConnection : public ClassController {
 		}
 		
 		int run() {
-			// std::cout << "is_redirect in run() : " << is_redirect << std::endl;
 			if (seq == REQUEST) {
 				char buffer[BUF_SIZ];
 				readLength = read(socket_fd, buffer, BUF_SIZ);
@@ -75,20 +72,17 @@ class HTTPConnection : public ClassController {
 					seq = REQUEST_TO_RESPONSE;
 			}
 			else if (seq == REQUEST_TO_RESPONSE) {
-				is_redirect = response_message->setResponseMessage(request_message->getTmpDirectory());
-				// std::cout << "is_redirect in REQUEST_TO_RESPONSE : " << is_redirect << std::endl;
+				response_message->setResponseMessage(request_message->getTmpDirectory());
 				seq = RESPONSE;
 			}
 			else if (seq == RESPONSE) {
 				int	write_size = ((int)response_message->getMessage().size() < BUF_SIZ ? (int)response_message->getMessage().size() : BUF_SIZ);
 				writeLength = write(socket_fd, response_message->getMessage().data(), write_size);
-				// std::cout << "is_redirect in RESPONSE : " << is_redirect << std::endl;
-				if (writeLength != BUF_SIZ && is_redirect == 0) {
+				if (writeLength != BUF_SIZ) {
 					std::string	path =
 						_config._http._server[this->http_data->server_block]._dir_map["root"] +
 						this->http_data->uri_dir +
 						this->http_data->uri_file;
-					std::cout << "시키는 대로 할게요" << path << std::endl;
 					file_fd = open(path.c_str(), O_RDONLY);
 					if (fcntl(file_fd, F_SETFL, O_NONBLOCK) == -1)
 						throw ErrorHandler(__FILE__, __func__, __LINE__,
@@ -97,7 +91,6 @@ class HTTPConnection : public ClassController {
 				}
 				else
 					response_message->resetMessage(writeLength);
-				is_redirect = 0;
 			}
 			else if (seq == READY_TO_FILE) {
 				seq = FILE_READ;
