@@ -27,8 +27,11 @@ SRCS 			=	./server.cpp\
 					./ParsingController/ConfigServer.cpp \
 					./ParsingController/ConfigType.cpp \
 					./ParsingController/ConfigMime.cpp \
+					./ServerProcess/ServerProcess.cpp \
 					./KernelQueueController/KernelQueueController.cpp \
 					./SocketController/SocketController.cpp \
+					./HTTPMessageController/HTTPConnection.cpp \
+					./HTTPMessageController/HTTPData.cpp \
 					./HTTPMessageController/RequestMessage.cpp \
 					./HTTPMessageController/ResponseMessage.cpp \
 					./FileController/FileController.cpp
