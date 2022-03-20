@@ -12,6 +12,7 @@ private:
 	std::map<void*, clock_t> timer_list;
 
 public:
+
 	void init_time(void* id)
 	{
 		timer_list[id] = clock();
@@ -50,14 +51,14 @@ public:
 		else
 			return (false);
 	}
-
-	void check_time(void)
+/*
+	void check_time(void* id, int block)
 	{
-		for (std::map<void*, clock_t>::iterator it = timer_list.begin(); it != timer_list.end(); it++) {
-	//		std::cout << "Asd" << std::endl;
-		}
+		std::map<void*, clock_t>::iterator it;
+		it = timer_list.find(id)
 	//	std::cout << "Asd" << std::endl;
 	}
+	*/
 };
 
 

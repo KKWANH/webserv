@@ -132,7 +132,7 @@ void	ResponseMessage::setMessageBody() {
 	return ;
 }
 
-void		ResponseMessage::setResponseMessage(std::string _tmp_directory)
+int			ResponseMessage::setResponseMessage(std::string _tmp_directory)
 {
 	for (int _idx=0; _idx<(int)(_config._http._server[1]._location.size()); _idx++)
 	{
@@ -141,12 +141,12 @@ void		ResponseMessage::setResponseMessage(std::string _tmp_directory)
 			_config._http._server[1]._location[_idx]._rewrite[0] == _tmp_directory)
 		{
 			this->message += returnRedirectMessage();
-			return;
+			return (1);
 		}
 	}
 	setStartLine();
 	setHeaderField();
 	this->message += (this->start_line + "\r\n");
 	this->message += (this->header_field + "\r\n");
-	return ;
+	return (0);
 }

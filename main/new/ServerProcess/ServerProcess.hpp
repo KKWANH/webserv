@@ -84,14 +84,14 @@ class ServerProcess {
 									} else if (result == HTTPConnection::CLOSE) {
 										// 이벤트 제거
 										//std::cout << "kq(w) : " << fd << std::endl;
+										//if (check_time(udata, hc->getServerBlock()))
+										//저거일 경우에 지우는거지
 										delete hc;
 										timer.del_time(udata);
 									}
 								}
 							}
-						timer.check_time();
 						}
-						//timer.check_time();
 						/*
 						catch (const ErrorHandler& err) {
 							int fd = kq.getFdByEventIndex(i);

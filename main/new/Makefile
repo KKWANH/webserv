@@ -46,6 +46,7 @@ $(NAME): $(OBJS)
 	@$(COMP) $(FLAG) $(HEADER) $(OBJS) -o $(NAME)
 	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
 	@printf "\033[32mOK\033[0m\n"
+	@make clean
 	@printf "\n\033[34m[WEBSERV]\033[0m Now \033[32mWEBSERV\033[0m is executable.\n"
 	@printf "\033[34m[WEBSERV]\033[0m Launch this with \033[33m./webserv [config] [mime setting]\033[0m\n"
 
@@ -58,7 +59,7 @@ help:
 	@printf "\033[34m[WEBSERV]\033[0m \033[33m          \033[0m      \033[3m\033[4m./webserv CONF=\"nginx.conf\" MIME=\"mime.types\"\033[0m\n"
 
 all:
-	@make fclean
+	@make clean
 	@$(NAME)
 
 run:

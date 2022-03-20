@@ -26,7 +26,7 @@ class ResponseMessage {
 		std::string	setStatusMessage(std::string status_code);
 		void		setHeaderField();
 		void		setMessageBody();
-		void		setResponseMessage(std::string _tmp_directory);
+		int			setResponseMessage(std::string _tmp_directory);
 
 		void		printStartLine();
 		void		printHeaderField();
