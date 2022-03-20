@@ -46,6 +46,8 @@ class RequestMessage {
 		void	parseTarget(int &start, int &end, std::string &msg);
 		void	checkTarget(void);
 		std::vector<std::string>	checkURIDIR(void);
+		std::vector<std::string>	checkErrorPage(void);
+		std::string					getErrorPage(std::vector<std::string> error_page, std::string root);
 		void	parseHttpVersion (int &start, int &end, std::string &msg);
 		void	printStartLine(void);
 

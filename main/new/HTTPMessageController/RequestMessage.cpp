@@ -63,7 +63,7 @@ int		RequestMessage::parsingRequestMessage() {
 			this->seq = GET_CGI;
 		}
 	}
-	if (this->seq == GET_CGI) {	
+	if (this->seq == GET_CGI) {
 		char buffer[1024];
 		int cgi_read_fd = cgi->getOutputPair();
 		int len = read(cgi_read_fd, buffer, 1023); //1024하면 오버플로우 일어남
@@ -92,7 +92,7 @@ int		RequestMessage::parsingRequestMessage() {
 				std::cout << "MESSAGE BODY PARSING" << std::endl;
 				parseMessageBody(this->message);
 				this->seq = FINISH_PARSE;
-			}			
+			}
 		}
 		else
 			this->seq = FINISH_PARSE;
@@ -106,7 +106,7 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	this->parseTarget(start, end, msg);
 	this->parseHttpVersion(start, end, msg);
 	this->parsing_pointer = start + 5;
-	
+
 	if (this->data->uri_file.compare("") == 0) {
 		checkTarget();
 	}
@@ -143,7 +143,7 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 	if (query_pos != -1) {
 		data->query_string = target.substr(query_pos + 1);
 		target = target.substr(0, target.length() - data->query_string.length() - 1);
-		
+
 	}
 //	for (int i = 0; i < int(_config._http._server[this->data->server_block]._location.size()); i++)
 //	{
@@ -192,7 +192,36 @@ std::vector<std::string>	RequestMessage::checkURIDIR(void) {
 	return (_config._http._server[data->server_block]._index);
 }
 
-// location 블럭 별로 uri_dir의 index를 가져와야함
+std::vector<std::string>	RequestMessage::checkErrorPage(void) {
+	std::vector<NginxConfig::LocationBlock> location = _config._http._server[data->server_block]._location;
+	std::vector<NginxConfig::LocationBlock>::iterator it = location.begin();
+	for (it = location.begin(); it != location.end(); it++) {
+		if (it->_location.compare(data->uri_dir) == 0) {
+			return (it->_error_page);
+		}
+	}
+	return (_config._http._server[data->server_block]._error_page);
+}
+
+std::string					RequestMessage::getErrorPage(std::vector<std::string> error_page, std::string root) {
+	std::vector<std::string>::iterator pagePos = find(error_page.begin(), error_page.end(), std::to_string(data->status_code));
+	if (pagePos != error_page.end()) {
+		while (pagePos != error_page.end()) {
+			int finder = (*pagePos).find_last_of(".html");
+			if (finder != -1 && access((root + data->uri_dir + *pagePos).c_str(), F_OK) == 0) {
+				return (*pagePos);
+			}
+			pagePos++;
+		}
+		data->uri_dir = "/";
+		return ("defaul_error.html");
+	}
+	else {
+		data->uri_dir = "/";
+		return ("defaul_error.html");
+	}
+}
+
 // 에러 페이지 띄워주기 설정
 void	RequestMessage::checkTarget(void) {
 	std::map<std::string, std::string>::iterator rootFinder;
@@ -205,10 +234,15 @@ void	RequestMessage::checkTarget(void) {
 	}
 
 	std::string root = _config._http._server[this->data->server_block]._dir_map["root"];
+
+	std::vector<std::string> index = checkURIDIR();
+	std::vector<std::string>::iterator it;
+
+	std::vector<std::string> error_page = checkErrorPage();
 	// index 자체가 없을 때
 	// root 경로에  default index.html을 띄워준다.
 	// index.html이 없는 경우에는 403
-	if (_config._http._server[this->data->server_block]._index.empty()) {
+	if (index.empty()) {
 		std::string	filePath = root + data->uri_dir + "index.html";
 		if (access(filePath.c_str(), F_OK) == 0) {
 			data->uri_file = "index.html";
@@ -216,14 +250,12 @@ void	RequestMessage::checkTarget(void) {
 			data->status_code = 304;
 			return ;
 		} else {
+			data->uri_file = getErrorPage(error_page, root);
+			data->file_extension = "html";
 			data->status_code = 403;
 			return ;
 		}
 	}
-
-
-	std::vector<std::string> index = checkURIDIR();
-	std::vector<std::string>::iterator it;
 
 	for(it = index.begin(); it != index.end(); it++) {
 		std::string	filePath = root + data->uri_dir + *it;
@@ -234,8 +266,11 @@ void	RequestMessage::checkTarget(void) {
 			return ;
 		}
 	}
-	if (it == index.end())
+	if (it == index.end()) {
+		data->uri_file = getErrorPage(error_page, root);
+		data->file_extension = "html";
 		data->status_code = 403;
+	}
 }
 
 void	RequestMessage::parseHttpVersion (int &start, int &end, std::string &msg) {
@@ -300,7 +335,7 @@ void	RequestMessage::printHeaderField(void) {
 void	RequestMessage::parseMessageBody(std::string &msg) {
 	int start = this->parsing_pointer, end;
 	std::string key, value;
-	
+
 	end = msg.find("\r\n", start);
 	data->message_body = msg.substr(start, end - start);
 	if (data->isCGI) {
