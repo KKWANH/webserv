@@ -46,7 +46,9 @@ class ServerProcess {
 									close(conn_socket);
 									throw ErrorHandler(__FILE__, __func__, __LINE__, "We can't find that block", ErrorHandler::NON_CRIT);
 								}
-								HTTPConnection* httpConnection = new HTTPConnection(conn_socket, server_block, socketController);
+								int server_port = (int)ntohs((socketController->getServerAddr()).sin_port);
+								std::string	client_ip = std::string(inet_ntoa((socketController->getClientAddr()).sin_addr));
+								HTTPConnection* httpConnection = new HTTPConnection(conn_socket, server_block, server_port, client_ip);
 								if (fcntl(conn_socket, F_SETFL, O_NONBLOCK) == -1)
 									exit(-1);
 								kq.addEvent(conn_socket, EVFILT_READ, httpConnection);

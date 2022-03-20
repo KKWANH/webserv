@@ -36,12 +36,10 @@ class HTTPData {
 
 		int	getSBlock(void) { return(this->server_block); }
 		
-		HTTPData(int server_block, SocketController *Socket) {
+		HTTPData(int server_block, int server_port, std::string client_ip) {
 			this->server_block = server_block;
-			struct sockaddr_in serv_addr = Socket->getServerAddr();
-			struct sockaddr_in cli_addr = Socket->getClientAddr();
-			server_port = (int)ntohs(serv_addr.sin_port);
-			client_ip = std::string(inet_ntoa(cli_addr.sin_addr));
+			this->server_port = server_port;
+			this->client_ip = client_ip;
 			CGI_read = "";
 
 		}

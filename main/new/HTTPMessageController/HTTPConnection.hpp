@@ -5,7 +5,6 @@
 #include "HTTPData.hpp"
 #include "RequestMessage.hpp"
 #include "ResponseMessage.hpp"
-#include "SocketController.hpp"
 #include "KernelQueueController.hpp"
 
 #include <fcntl.h>
@@ -24,6 +23,8 @@ class HTTPConnection : public ClassController {
 			READY_TO_FILE,
 			FILE_READ,
 			FILE_WRITE,
+			IS_CGI,
+
 			CLOSE,
 			END
 		}				Seq;
@@ -40,10 +41,10 @@ class HTTPConnection : public ClassController {
 		int						writeLength;
 		
 	public:
-		HTTPConnection(int fd, int block, SocketController *Socket) {
+		HTTPConnection(int fd, int block, int server_port, std::string client_ip) {
 			seq = REQUEST;
 			socket_fd = fd;
-			http_data = new HTTPData(block, Socket);
+			http_data = new HTTPData(block, server_port, client_ip);
 			request_message = new RequestMessage(http_data);
 			response_message = new ResponseMessage(http_data);
 		}
