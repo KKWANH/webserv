@@ -23,8 +23,7 @@ std::string	returnRedirectMessage() {
 	std::string
 		redirectMessage = "HTTP/1.1 302\nLocation: ";
 	redirectMessage += _config._http._server[1]._location[6]._rewrite[1];
-	redirectMessage += "\nContent-Type: text/html;charset=UTF-8\nContent-Length: 0";
-	std::cout << redirectMessage << std::endl;
+	redirectMessage += "\nContent-Type: text/html;charset=UTF-8\nContent-Length: 0\r\n";
 	return (redirectMessage);
 }
 
@@ -133,18 +132,21 @@ void	ResponseMessage::setMessageBody() {
 	return ;
 }
 
-void		ResponseMessage::setResponseMessage() {
+void		ResponseMessage::setResponseMessage(std::string _tmp_directory)
+{
+	for (int _idx=0; _idx<(int)(_config._http._server[1]._location.size()); _idx++)
+	{
+		if (_config._http._server[1]._location[_idx]._location == _tmp_directory &&
+			(int)_config._http._server[1]._location[_idx]._rewrite.size() != 0 &&
+			_config._http._server[1]._location[_idx]._rewrite[0] == _tmp_directory)
+		{
+			this->message += returnRedirectMessage();
+			return;
+		}
+	}
 	setStartLine();
-	//printStartLine();
 	setHeaderField();
-
-	returnRedirectMessage();
-	
-	//setMessageBody();
-	//printHeaderField();
-	//printMessageBody();
 	this->message += (this->start_line + "\r\n");
 	this->message += (this->header_field + "\r\n");
-	//this->message += (this->message_body);
 	return ;
 }

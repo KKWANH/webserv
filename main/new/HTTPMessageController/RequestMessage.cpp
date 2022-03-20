@@ -13,14 +13,43 @@ void	RequestMessage::resetMessage() {
 	return ;
 }
 
+std::string
+	RequestMessage::getMessage(void)
+{
+	return this->message;
+}
+
+std::string
+	RequestMessage::getTmpDirectory(void)
+{
+	return this->_tmp_directory;
+}
+
 /** Header **/
 
 // message 내에 start line이 모두 담겨져있는지 확인하는 메소드
 // start line 파싱이 가능하면 true, 불가능하면 false 반환
+
+
 int		RequestMessage::parsingRequestMessage() {
 	if (this->seq == START_LINE) {
-		int	start_line_pos = int(this->message.find("\r\n", 0));
-		std::string start_line_msg = this->message.substr(0, start_line_pos);
+		int
+			start_line_pos = int(this->message.find("\r\n", 0)),
+			_second_space = 0;
+		std::string
+			start_line_msg = this->message.substr(0, start_line_pos);
+		for (int _idx=0; _idx<(int)start_line_msg.size(); _idx++)
+			if (start_line_msg[_idx] == ' ')
+			{
+				if (_second_space == 0)
+					_second_space = 1;
+				else
+				{
+					_second_space = _idx;
+					break;
+				}
+			}
+		this->_tmp_directory = start_line_msg.substr(4, _second_space - 4);
 		if (start_line_pos != -1) {
 			parseStartLine(start_line_msg);
 			resetMessage();

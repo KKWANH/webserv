@@ -62,7 +62,8 @@ class HTTPConnection : public ClassController {
 			return (this->socket_fd);
 		}
 		
-		int run() {	
+		int run() {
+			std::cout << "asdasd!!! " << (*request_message).getMessage() << std::endl;
 			if (seq == REQUEST) {
 				char buffer[BUF_SIZ];
 				readLength = read(socket_fd, buffer, BUF_SIZ);
@@ -72,7 +73,7 @@ class HTTPConnection : public ClassController {
 					seq = REQUEST_TO_RESPONSE;
 			}
 			else if (seq == REQUEST_TO_RESPONSE) {
-				response_message->setResponseMessage();
+				response_message->setResponseMessage(request_message->getTmpDirectory());
 				seq = RESPONSE;
 			}
 			else if (seq == RESPONSE) {
