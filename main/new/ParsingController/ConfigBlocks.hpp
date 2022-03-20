@@ -89,8 +89,12 @@ namespace				NginxConfig
 				_allowed_method;
 			std::vector<std::string> 
 				_inner_proxy;
-			InheritData 
+			InheritData
 				_inherit_data;
+			std::vector<std::string>
+				_rewrite;
+			bool
+				_is_break;
 
 			LocationBlock() {}
 			LocationBlock(	std::string _arg_raw,
