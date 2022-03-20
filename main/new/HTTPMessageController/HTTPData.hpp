@@ -33,6 +33,8 @@ class HTTPData {
 		std::string								message_body;
 
 		int										status_code;
+
+		int	getSBlock(void) { return(this->server_block); }
 		
 		HTTPData(int server_block, SocketController *Socket) {
 			this->server_block = server_block;

@@ -60,9 +60,14 @@ class ServerProcess {
 
 								int fd = kq.getFdByEventIndex(i);
 								if (kq.isCloseByEventIndex(i)) {
-									std::cout << "Client closed socket : " << fd << std::endl;
-									timer.del_time(udata);
-									delete hc;
+							//		if (timer.check_time(udata, hc->getServerBlock()))
+							//		{
+										std::cout << "Client closed socket : " << fd << std::endl;
+										delete hc;
+										timer.del_time(udata);
+							//		}
+								//	timer.del_time(udata);
+								//	delete hc;
 								}
 								else {
 									int result = hc->run();
@@ -83,11 +88,13 @@ class ServerProcess {
 										kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 									} else if (result == HTTPConnection::CLOSE) {
 										// 이벤트 제거
-										//std::cout << "kq(w) : " << fd << std::endl;
-										//if (check_time(udata, hc->getServerBlock()))
-										//저거일 경우에 지우는거지
-										delete hc;
-										timer.del_time(udata);
+										std::cout << "kq(w) : " << fd << std::endl;
+								//		if (timer.check_time(udata, hc->getServerBlock()))
+								//		{
+											std::cout << "bye" << std::endl;
+											delete hc;
+											timer.del_time(udata);
+								//		}
 									}
 								}
 							}

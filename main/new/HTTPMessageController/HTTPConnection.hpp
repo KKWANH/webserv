@@ -54,6 +54,8 @@ class HTTPConnection : public ClassController {
 			close(socket_fd);
 		}
 
+		int	getServerBlock(void) { return(this->http_data->getSBlock()); }
+
 		int	getFileFd() {
 			return (this->file_fd);
 		}

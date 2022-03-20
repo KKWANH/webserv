@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include <map>
 #include <iostream>
-
+#include <string>
 class TimeController
 {
 private:
@@ -23,9 +23,6 @@ public:
 	{
 		clock_t end;
 		end = clock();
-	//	std::cout << i << " end :" << (double)end << std::endl;
-	//	std::cout << i << " start :" << (double)timer_list[i] << std::endl;
-//		std::cout << "time : " << (double)(end - timer_list[i]) << std::endl;
 		return (double(end - timer_list[id]));
 	}
 
@@ -51,20 +48,28 @@ public:
 		else
 			return (false);
 	}
-/*
-	void check_time(void* id, int block)
+
+	bool check_time(void* id, int block)
 	{
-		int keepalive_timeout;
+		int keepalive_timeout = 0;
 
 		std::map<void*, clock_t>::iterator it;
 		it = timer_list.find(id);
-		keepalive_timeout = itoa(_config._http._server[block]._dir_map["keepalive_timeout"])
-		if (keepalive_timeout < 0)
+		keepalive_timeout = atoi(_config._http._server[block]._dir_map["keepalive_timeout"].c_str());
+		if (keepalive_timeout < 0) {
+			keepalive_timeout = atoi(_config._http._dir_map["keepalive_timeout"].c_str());
+			if (keepalive_timeout < 0)
+				return (false);
+		}
+		if (get_time(id) >= keepalive_timeout)
+			return (false);
+		return (true);
+		
+
 	//	std::cout << "Asd" << std::endl;//	std::cout << "keepalivetimeout1 : " << _config._http._dir_map["keepalive_timeout"] << std::endl;
 	//	std::cout << "keepalivetimeout2 : " << _config._http._server[0]._dir_map["keepalive_timeout"] << std::endl;
 	//	std::cout << "keepalivetimeout2 : " << _config._http._server[1]._dir_map["keepalive_timeout"] << std::endl;
 	}
-	*/
 };
 
 
