@@ -19,19 +19,20 @@ class HTTPConnection : public ClassController {
 			REQUEST,
 			REQUEST_TO_RESPONSE,
 			RESPONSE,
+			READY_TO_CGI,
+			CGI_READ,
+			CGI_WRITE,
 			READY_TO_FILE,
 			FILE_READ,
 			FILE_WRITE,
-			IS_CGI,
-			CGI_WRITE,
-			CLOSE,
-			END
+			CLOSE
 		}					Seq;
 
 	private:
 		Seq					seq;
 		int					socket_fd;
 		int					file_fd;
+		int					cgi_fd;
 		char				buffer[BUF_SIZ];
 		HTTPData*			http_data;
 		RequestMessage*		request_message;
@@ -47,6 +48,7 @@ class HTTPConnection : public ClassController {
 		int	getServerBlock(void);
 		int	getFileFd(void);
 		int	getSocketFd(void);
+		int	getCgiFd(void);
 		
 		int run();
 };
