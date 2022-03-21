@@ -85,7 +85,7 @@ void	ResponseMessage::setHeaderField() {
 		// FIXME
 		// CGI의 경우, Chunked data를 받아야 함.
 		//this->header_field += "Transfer-Encoding: chunked\r\n";
-		this->header_field += "Content-Length: 51\r\n";
+		//this->header_field += "Content-Length: 51\r\n";
 	}
 	else {
 		// TODO
@@ -93,7 +93,7 @@ void	ResponseMessage::setHeaderField() {
 		this->header_field += ("Content-Type: " + _mime.getMIME(this->data->file_extension) + "\r\n");
 		std::string path = _config._http._server[this->data->server_block]._dir_map["root"] + this->data->uri_dir + this->data->uri_file;
 		std::stringstream ss;
-		std::cout << FileController::getFileSize(path);
+		ss << FileController::getFileSize(path);
 		this->header_field += ("Content-Length: " + ss.str() + "\r\n");
 	}
 	this->header_field += "Accept-Ranges: bytes\r\n";

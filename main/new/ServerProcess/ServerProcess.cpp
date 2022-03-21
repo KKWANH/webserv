@@ -65,6 +65,15 @@ void	ServerProcess::serverProcess() {
 								kq.disableEvent(hc->getSocketFd(), EVFILT_READ, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 								timer.clean_time(udata);
+							} else if (result == HTTPConnection::READY_TO_CGI) {
+								kq.addEvent(hc->getCgiFd(), EVFILT_READ, udata);
+								kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
+							} else if (result == HTTPConnection::CGI_READ) {
+								kq.enableEvent(hc->getCgiFd(), EVFILT_READ, udata);
+								kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
+							} else if (result == HTTPConnection::CGI_WRITE) {
+								kq.disableEvent(hc->getCgiFd(), EVFILT_READ, udata);
+								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 							} else if (result == HTTPConnection::READY_TO_FILE) {
 								kq.addEvent(hc->getFileFd(), EVFILT_READ, udata);
 								kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
@@ -106,6 +115,7 @@ void	ServerProcess::serverProcess() {
 					ClassController* udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
 					int fd = kq.getFdByEventIndex(i);
 					timer.del_time(udata);
+					std::cerr << err.what() << std::endl;
 					//아마 요 사이에 에러 페이지를 만들고 보내는 코드가 추가되어야 할듯함(였던거)
 					if (fd > 5)
 					{
