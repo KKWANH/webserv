@@ -5,6 +5,7 @@ extern NginxConfig::GlobalConfig _config;
 HTTPConnection::HTTPConnection(int fd, int block, int server_port, std::string client_ip) {
 	seq = REQUEST;
 	socket_fd = fd;
+	keep_alive = false;
 	http_data = new HTTPData(block, server_port, client_ip);
 	request_message = new RequestMessage(http_data);
 	response_message = new ResponseMessage(http_data);
@@ -22,70 +23,33 @@ HTTPConnection::~HTTPConnection() {
 int	HTTPConnection::getServerBlock(void)	{ return (this->http_data->getSBlock()); }
 int	HTTPConnection::getFileFd(void)			{ return (this->file_fd); }
 int	HTTPConnection::getSocketFd(void)		{ return (this->socket_fd); }
-int	HTTPConnection::getCgiOutputFd(void)	{ return (this->cgi_output_fd); }
-int	HTTPConnection::getCgiInputFd(void)		{ return (this->cgi_input_fd); }
-
+int	HTTPConnection::getCgiFd(void)			{ return (this->cgi_fd); }
+		
 int HTTPConnection::run() {
 	if (seq == REQUEST) {
-		readLength = read(socket_fd, buffer, BUF_SIZ-1);
-		buffer[readLength] = '\0';
+		std::cout << "fd : " << socket_fd << std::endl;
+		readLength = read(socket_fd, buffer, BUF_SIZ);
+		if (readLength < BUF_SIZ)
+			buffer[readLength] = '\0';
 		if (readLength > 0)
 			request_message->setMessage(buffer);
-		int request_result = request_message->parsingRequestMessage();
-		if (request_result == RequestMessage::FINISH_PARSE) {
-			if (this->http_data->isCGI == true) {
-				cgi_process = new CGIProcess(http_data);
-				cgi_process->run();
-				cgi_output_fd = cgi_process->getOutputPair();
-				if (fcntl(cgi_output_fd, F_SETFL, O_NONBLOCK) == -1)
-					throw ErrorHandler(__FILE__, __func__, __LINE__,
-						"something wrong with fd. check the file exists : ?", ErrorHandler::NON_CRIT);
+		std::cout << "readcount : " << readLength << " buffer : \n" << buffer << std::endl;
+		if (request_message->parsingRequestMessage() == RequestMessage::FINISH_PARSE) {
+			std::map<std::string, std::string>::iterator res;
+			if ((res = this->http_data->header_field.find("Connection")) != this->http_data->header_field.end())
+			{
+				std::cout << "asd" << std::endl;
+				if (res->second == "keep-alive")
+				{
+					std::cout << "bsd" << std::endl;
+					keep_alive = true;
+				}
 			}
 			seq = REQUEST_TO_RESPONSE;
 		}
-		else if (request_result == RequestMessage::MESSAGE_BODY) {
-			if (this->http_data->isCGI == true) {
-				cgi_process = new CGIProcess(http_data);
-				cgi_process->run();
-				cgi_input_fd = cgi_process->getInputPair();
-				cgi_output_fd = cgi_process->getOutputPair();
-				if (fcntl(cgi_input_fd, F_SETFL, O_NONBLOCK) == -1 ||
-					fcntl(cgi_output_fd, F_SETFL, O_NONBLOCK) == -1)
-					throw ErrorHandler(__FILE__, __func__, __LINE__,
-						"something wrong with fd. check the file exists : ?", ErrorHandler::NON_CRIT);
-				seq = READY_TO_MESSAGE_BODY;
-			}
-			else
-				seq = REQUEST_TO_RESPONSE;
-		}
-	}
-	else if (seq == READY_TO_MESSAGE_BODY) {
-		//std::cout << "---WRITE MESSAGE---" << std::endl;
-		//std::cout << request_message->getMessage() << std::endl;
-		write(cgi_input_fd, request_message->getMessage().data(), request_message->getMessage().size());
-		seq = MESSAGE_BODY_READ;
-	}
-	else if (seq == MESSAGE_BODY_READ) {
-		readLength = read(socket_fd, buffer, BUF_SIZ-1);
-		if (readLength > 0) {
-			buffer[readLength] = '\0';
-			//std::cout << "---READ MESSAGE BODY---" << std::endl;
-			//std::cout << buffer << std::endl;
-			seq = MESSAGE_BODY_WRITE;
-		}
-		else
-			seq = REQUEST_TO_RESPONSE;
-	}
-	else if (seq == MESSAGE_BODY_WRITE) {
-		write(cgi_input_fd, buffer, readLength);
-		//std::cout << "---WRITE MESSAGE BODY---" << std::endl;
-		//std::cout << buffer << std::endl;
-		seq = MESSAGE_BODY_READ;
 	}
 	else if (seq == REQUEST_TO_RESPONSE) {
 		response_message->setResponseMessage(request_message->getTmpDirectory());
-		if(this->http_data->isCGI == true)
-			cgi_process->run();
 		seq = RESPONSE;
 	}
 	else if (seq == RESPONSE) {
@@ -93,21 +57,25 @@ int HTTPConnection::run() {
 		writeLength = write(socket_fd, response_message->getMessage().data(), write_size);
 		if (writeLength != BUF_SIZ) {
 			if (this->http_data->isCGI == true) {
+				cgi_process = new CGIProcess(http_data);
+				cgi_process->run();
+				cgi_fd = cgi_process->getOutputPair();
+				if (fcntl(cgi_fd, F_SETFL, O_NONBLOCK) == -1)
+					throw ErrorHandler(__FILE__, __func__, __LINE__,
+						"fd Changed. Maybe redirected by RequestMessage income. :) ", ErrorHandler::NON_CRIT);
 				seq = READY_TO_CGI;
 			}
 			else {
-				std::string	_pth =
-					_config._http._server[this->http_data->server_block]._dir_map["root"] +
-					this->http_data->uri_dir +
-					this->http_data->uri_file;
-				_pth = FileController::toAbsPath(_pth);
-				response_message->_type = FileController::checkType(_pth);
-				file_fd = open(_pth.c_str(), O_RDONLY);
+				std::string	path =
+						_config._http._server[this->http_data->server_block]._dir_map["root"] +
+						this->http_data->uri_dir +
+						this->http_data->uri_file;
+				file_fd = open(path.c_str(), O_RDONLY);
 				if (fcntl(file_fd, F_SETFL, O_NONBLOCK) == -1)
 					throw ErrorHandler(__FILE__, __func__, __LINE__,
-						"something wrong with fd. check the file exists : \n" + _pth, ErrorHandler::NON_CRIT);
+						"fd Changed. Maybe redirected by RequestMessage income. :) ", ErrorHandler::NON_CRIT);
 				seq = READY_TO_FILE;
- 			}
+			}
 		}
 		else
 			response_message->resetMessage(writeLength);
@@ -116,7 +84,7 @@ int HTTPConnection::run() {
 		seq = CGI_READ;
 	}
 	else if (seq == CGI_READ) {
-		readLength = read(cgi_output_fd, buffer, BUF_SIZ);
+		readLength = read(cgi_fd, buffer, BUF_SIZ);
 		seq = CGI_WRITE;
 	}
 	else if (seq == CGI_WRITE) {
@@ -164,5 +132,29 @@ int HTTPConnection::run() {
 				seq = FILE_READ;
 		}
 	}
+	if (seq == CLOSE && keep_alive == true)
+	{
+		int 		backup_block;
+		int 		backup_port;
+		std::string backup_ip;
+
+		backup_block = this->http_data->server_block;
+		backup_port = this->http_data->server_port;
+		backup_ip = this->http_data->client_ip;
+
+		if (this->http_data->isCGI == true)
+			delete cgi_process;
+		delete request_message;
+		delete response_message;
+		delete http_data;
+
+		http_data = new HTTPData(backup_block, backup_port, backup_ip);
+		request_message = new RequestMessage(http_data);
+		response_message = new ResponseMessage(http_data);
+		buffer[0] = '\0';
+		seq = RE_KEEPALIVE;
+	}
+	else if (seq == RE_KEEPALIVE)
+		seq = REQUEST;
 	return seq;
 };

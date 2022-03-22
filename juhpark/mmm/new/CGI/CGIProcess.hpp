@@ -26,11 +26,13 @@ class CGIProcess {
 		{
 			setCGIArgv(data);
 			setEnvp(data);
+			#if 0
             for (int i = 0; i < 3; i++)
                 std::cout << "argv[" << i << "] :" << argv[i] << std::endl;
 			//환경변수가 잘들갔나
             for (int i = 0; i < env_size; i++)
                 std::cout << envp[i] << std::endl;
+			#endif
 		}
 
 		~CGIProcess()
@@ -183,7 +185,6 @@ class CGIProcess {
 		//킹치만 그건 없었으니...
 		void run(void)
 		{
-			std::cout << "yeah" << std::endl;
 			if (pipe(this->inputPair) == -1 || pipe(this->outputPair) == -1) {
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "Pipe Making Error.");
 			}
@@ -208,8 +209,6 @@ class CGIProcess {
 				}
 			}
 		}
-
-
 };
 
 #endif

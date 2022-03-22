@@ -16,7 +16,7 @@ public:
 	void init_time(void* id)
 	{
 		timer_list[id] = clock();
-		std::cout << "timer start : " << (double)timer_list[id] << std::endl;
+		// std::cout << "timer start : " << (double)timer_list[id] << std::endl;
 	}
 
 	double get_time(void *id)
@@ -29,7 +29,7 @@ public:
 	void del_time(void *id)
 	{
 		timer_list.erase(id);
-		std::cout << "timer delete" << std::endl;
+		// std::cout << "timer delete" << std::endl;
 	}
 
 	void clean_time(void* id)
@@ -38,7 +38,7 @@ public:
 			timer_list[id] = clock();
 		else
 			return ;
-		std::cout << "timer reset" << std::endl;
+		// std::cout << "timer reset" << std::endl;
 	}
 
 	bool find_time(void* id)
