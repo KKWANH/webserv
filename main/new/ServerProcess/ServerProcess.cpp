@@ -65,23 +65,14 @@ void	ServerProcess::serverProcess() {
 								kq.disableEvent(hc->getSocketFd(), EVFILT_READ, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 								timer.clean_time(udata);
-							} else if (result == HTTPConnection::READY_TO_MESSAGE_BODY) {
-								kq.disableEvent(hc->getSocketFd(), EVFILT_READ, udata);
-								kq.addEvent(hc->getCgiInputFd(), EVFILT_WRITE, udata);
-							} else if (result == HTTPConnection::MESSAGE_BODY_READ) {
-								kq.enableEvent(hc->getSocketFd(), EVFILT_READ, udata);
-								kq.disableEvent(hc->getCgiInputFd(), EVFILT_WRITE, udata);
-							} else if (result == HTTPConnection::MESSAGE_BODY_WRITE) {
-								kq.disableEvent(hc->getSocketFd(), EVFILT_READ, udata);
-								kq.enableEvent(hc->getCgiInputFd(), EVFILT_WRITE, udata);
 							} else if (result == HTTPConnection::READY_TO_CGI) {
-								kq.addEvent(hc->getCgiOutputFd(), EVFILT_READ, udata);
+								kq.addEvent(hc->getCgiFd(), EVFILT_READ, udata);
 								kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 							} else if (result == HTTPConnection::CGI_READ) {
-								kq.enableEvent(hc->getCgiOutputFd(), EVFILT_READ, udata);
+								kq.enableEvent(hc->getCgiFd(), EVFILT_READ, udata);
 								kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 							} else if (result == HTTPConnection::CGI_WRITE) {
-								kq.disableEvent(hc->getCgiOutputFd(), EVFILT_READ, udata);
+								kq.disableEvent(hc->getCgiFd(), EVFILT_READ, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 							} else if (result == HTTPConnection::READY_TO_FILE) {
 								kq.addEvent(hc->getFileFd(), EVFILT_READ, udata);
