@@ -27,8 +27,11 @@ SRCS 			=	./server.cpp\
 					./ParsingController/ConfigServer.cpp \
 					./ParsingController/ConfigType.cpp \
 					./ParsingController/ConfigMime.cpp \
+					./ServerProcess/ServerProcess.cpp \
 					./KernelQueueController/KernelQueueController.cpp \
 					./SocketController/SocketController.cpp \
+					./HTTPMessageController/HTTPConnection.cpp \
+					./HTTPMessageController/HTTPData.cpp \
 					./HTTPMessageController/RequestMessage.cpp \
 					./HTTPMessageController/ResponseMessage.cpp \
 					./FileController/FileController.cpp
@@ -59,7 +62,7 @@ help:
 	@printf "\033[34m[WEBSERV]\033[0m \033[33m          \033[0m      \033[3m\033[4m./webserv CONF=\"nginx.conf\" MIME=\"mime.types\"\033[0m\n"
 
 all:
-	@make fclean
+	@make clean
 	@$(NAME)
 
 run:

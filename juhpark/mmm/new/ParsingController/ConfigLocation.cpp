@@ -6,7 +6,8 @@ NginxConfig::LocationBlock::LocationBlock(
 		InheritData		_arg_inh)
 	:	NginxBlock(_arg_raw),
 		_location(_arg_loc),
-		_inherit_data(_arg_inh)
+		_inherit_data(_arg_inh),
+		_is_break(false)
 {
 	setDirectiveTypes();
 	setBlock();
@@ -24,11 +25,12 @@ void
 	_dir_case.push_back("error_page");
 	_dir_case.push_back("client_max_body_size");
 	_dir_case.push_back("return");
-	_dir_case.push_back("return");
 	_dir_case.push_back("deny");
 	_dir_case.push_back("error_page");
 	_dir_case.push_back("cgi_pass");
 	_dir_case.push_back("allowed_method");
+	_dir_case.push_back("rewrite");
+	_dir_case.push_back("break");
 	_dir_case.push_back("inner_proxy");
 }
 
@@ -90,7 +92,6 @@ void
 			_tmp_pos = 0;
 		std::string
 			_tmp_dir = Parser::sideSpaceTrim(Parser::getIdentifier(_tmp_line, _tmp_pos, " ", true));
-
 		if (find(_dir_case.begin(), _dir_case.end(), _tmp_dir) == _dir_case.end())
 			throw ErrorHandler(__FILE__, __func__, __LINE__,
 				"Invalid directive: " + _tmp_dir + " is not in block: location list");
@@ -112,6 +113,10 @@ void
 				_inner_proxy	=	Parser::getSplitBySpace(_tmp_val);
 			else if (_tmp_dir	==	"return")
 				_return			=	Parser::getSplitBySpace(_tmp_val);
+			else if (_tmp_dir	== 	"break")
+				_is_break		= 	true;
+			else if (_tmp_dir	==	"rewrite")
+				_rewrite		=	Parser::getSplitBySpace(_tmp_val);
 			else
 			{
 				std::vector<std::string>
