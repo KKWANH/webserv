@@ -10,6 +10,7 @@ void	RequestMessage::setMessage(char* buffer) {
 
 void	RequestMessage::resetMessage() {
 	this->message = this->message.substr(this->parsing_pointer);
+	this->parsing_pointer = 0;
 	return ;
 }
 
@@ -34,11 +35,11 @@ std::string
 int		RequestMessage::parsingRequestMessage() {
 	if (this->seq == START_LINE) {
 		int
-			start_line_pos = int(this->message.find("\r\n", 0)),
+			start_line_pos = int(this->message.find("\r\n")),
 			_second_space = 0;
 		std::string
 			start_line_msg = this->message.substr(0, start_line_pos);
-		for (int _idx=0; _idx<(int)start_line_msg.size(); _idx++)
+		for (int _idx=0; _idx<(int)start_line_msg.size(); _idx++) {
 			if (start_line_msg[_idx] == ' ')
 			{
 				if (_second_space == 0)
@@ -49,6 +50,7 @@ int		RequestMessage::parsingRequestMessage() {
 					break;
 				}
 			}
+		}
 		this->_tmp_directory = start_line_msg.substr(4, _second_space - 4);
 		if (start_line_pos != -1) {
 			parseStartLine(start_line_msg);
@@ -83,8 +85,7 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	this->parseMethod(start, end, msg);
 	this->parseTarget(start, end, msg);
 	this->parseHttpVersion(start, end, msg);
-	this->parsing_pointer = start + 5;
-
+	this->parsing_pointer = start + 2;
 	if (this->data->uri_file.compare("") == 0) {
 		checkTarget();
 	}
@@ -156,7 +157,6 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 	}
 	data->uri_dir = target;
 	this->parsing_pointer = end + 2;
-	resetMessage();
 }
 
 std::vector<std::string>	RequestMessage::checkURIDIR(void) {

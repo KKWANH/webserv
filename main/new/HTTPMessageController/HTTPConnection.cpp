@@ -27,6 +27,8 @@ int	HTTPConnection::getCgiFd(void)			{ return (this->cgi_fd); }
 int HTTPConnection::run() {
 	if (seq == REQUEST) {
 		readLength = read(socket_fd, buffer, BUF_SIZ);
+		if (readLength < BUF_SIZ)
+			buffer[readLength] = '\0';
 		if (readLength > 0)
 			request_message->setMessage(buffer);
 		if (request_message->parsingRequestMessage() == RequestMessage::FINISH_PARSE)
