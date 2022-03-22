@@ -48,20 +48,22 @@ int HTTPConnection::run() {
 				cgi_fd = cgi_process->getOutputPair();
 				if (fcntl(cgi_fd, F_SETFL, O_NONBLOCK) == -1)
 					throw ErrorHandler(__FILE__, __func__, __LINE__,
-						"fd Changed. Maybe redirected by RequestMessage income. :) ", ErrorHandler::NON_CRIT);
+						"something wrong with fd. check the file exists : ?", ErrorHandler::NON_CRIT);
 				seq = READY_TO_CGI;
 			}
 			else {
-				std::string	path =
-						_config._http._server[this->http_data->server_block]._dir_map["root"] +
-						this->http_data->uri_dir +
-						this->http_data->uri_file;
-				file_fd = open(path.c_str(), O_RDONLY);
+				std::string	_pth =
+					_config._http._server[this->http_data->server_block]._dir_map["root"] +
+					this->http_data->uri_dir +
+					this->http_data->uri_file;
+				_pth = FileController::toAbsPath(_pth);
+				response_message->_type = FileController::checkType(_pth);
+				file_fd = open(_pth.c_str(), O_RDONLY);
 				if (fcntl(file_fd, F_SETFL, O_NONBLOCK) == -1)
 					throw ErrorHandler(__FILE__, __func__, __LINE__,
-						"fd Changed. Maybe redirected by RequestMessage income. :) ", ErrorHandler::NON_CRIT);
+						"something wrong with fd. check the file exists : \n" + _pth, ErrorHandler::NON_CRIT);
 				seq = READY_TO_FILE;
-			}
+ 			}
 		}
 		else
 			response_message->resetMessage(writeLength);

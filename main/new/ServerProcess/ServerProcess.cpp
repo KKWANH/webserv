@@ -85,10 +85,10 @@ void	ServerProcess::serverProcess() {
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 							} else if (result == HTTPConnection::CLOSE) {
 								// 이벤트 제거
-								std::cout << "kq(w) : " << fd << std::endl;
+								// std::cout << "kq(w) : " << fd << std::endl;
 						//		if (timer.check_time(udata, hc->getServerBlock()))
 						//		{
-									std::cout << "bye" << std::endl;
+									// std::cout << "bye" << std::endl;
 									delete hc;
 									timer.del_time(udata);
 						//		}
@@ -131,7 +131,7 @@ void	ServerProcess::serverProcess() {
 				}
 			}
 		} else {
-			std::cout << "waiting..." << std::endl;
+			// std::cout << "waiting..." << std::endl;
 		}
 	}
 	return;
