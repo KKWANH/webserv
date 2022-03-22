@@ -17,6 +17,9 @@ class HTTPConnection : public ClassController {
 	public:
 		typedef enum		e_Seq {
 			REQUEST,
+			READY_TO_MESSAGE_BODY,
+			MESSAGE_BODY_READ,
+			MESSAGE_BODY_WRITE,
 			REQUEST_TO_RESPONSE,
 			RESPONSE,
 			READY_TO_CGI,
@@ -32,7 +35,8 @@ class HTTPConnection : public ClassController {
 		Seq					seq;
 		int					socket_fd;
 		int					file_fd;
-		int					cgi_fd;
+		int					cgi_output_fd;
+		int					cgi_input_fd;
 		char				buffer[BUF_SIZ];
 		HTTPData*			http_data;
 		RequestMessage*		request_message;
@@ -48,7 +52,8 @@ class HTTPConnection : public ClassController {
 		int	getServerBlock(void);
 		int	getFileFd(void);
 		int	getSocketFd(void);
-		int	getCgiFd(void);
+		int	getCgiOutputFd(void);
+		int	getCgiInputFd(void);
 		
 		int run();
 };

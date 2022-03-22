@@ -51,7 +51,7 @@ int		RequestMessage::parsingRequestMessage() {
 				}
 			}
 		}
-		this->_tmp_directory = start_line_msg.substr(4, _second_space - 4);
+		this->_tmp_directory = start_line_msg.substr(data->method.length() + 1, _second_space - 4);
 		if (start_line_pos != -1) {
 			parseStartLine(start_line_msg);
 			resetMessage();
@@ -311,11 +311,9 @@ void	RequestMessage::printHeaderField(void) {
 
 /** Body **/
 void	RequestMessage::parseMessageBody(std::string &msg) {
-	int start = this->parsing_pointer, end;
-	std::string key, value;
+	int start = this->parsing_pointer;
 
-	end = msg.find("\r\n", start);
-	data->message_body = msg.substr(start, end - start);
+	data->message_body = msg.substr(start);
 	if (data->isCGI) {
 	//	data->message_body += data->CGI_read;
 	//	write(cgi->getInputPair(), data->message_body.c_str(), data->message_body.length());

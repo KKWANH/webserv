@@ -37,7 +37,6 @@ class CGIProcess {
 
 		~CGIProcess()
 		{
-			/*
 			int status;
 			if (_pid < 0) {
 				waitpid(_pid, &status, WNOHANG);
@@ -45,7 +44,6 @@ class CGIProcess {
 					kill(_pid, SIGTERM);
 				}
 			}
-			*/
 			if ((inputPair[1] && close(inputPair[1]) == -1) || (outputPair[0] && close(outputPair[0]) == -1))
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "CGI pipes close mat gam");
 			for (int i = 0; i < 3; i++)
