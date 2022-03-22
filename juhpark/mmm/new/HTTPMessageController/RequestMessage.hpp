@@ -15,7 +15,6 @@ class RequestMessage {
 	public:
 		typedef enum	e_Seq {
 			START_LINE,
-			GET_CGI,
 			HEADER_FIELD,
 			MESSAGE_BODY,
 			FINISH_PARSE
@@ -27,12 +26,17 @@ class RequestMessage {
 		int			parsing_pointer;
 		std::string	message;
 		Seq			seq;
+		std::string _tmp_directory;
 
 	public:
 		RequestMessage(HTTPData* _data);
 
 		void	setMessage(char* buffer);
 		void	resetMessage();
+		std::string
+				getMessage();
+		std::string
+				getTmpDirectory();
 
 		/** Header **/
 		int		parsingRequestMessage();
@@ -41,6 +45,8 @@ class RequestMessage {
 		void	parseTarget(int &start, int &end, std::string &msg);
 		void	checkTarget(void);
 		std::vector<std::string>	checkURIDIR(void);
+		std::vector<std::string>	checkErrorPage(void);
+		std::string					getErrorPage(std::vector<std::string> error_page, std::string root);
 		void	parseHttpVersion (int &start, int &end, std::string &msg);
 		void	printStartLine(void);
 

@@ -64,6 +64,7 @@ int		SocketController::binding() {
 };
 
 int		SocketController::run() {
+
 	// clientAddress를 이용해 요청한 클라이언트의 IP와 포트를 알 수 있음.
 	return accept(serverSocket, (struct sockaddr *) &clientAddress, &addressSize);
 };
