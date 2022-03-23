@@ -90,7 +90,6 @@ class CGIProcess {
 			// 요청으로 들어온 경로를 절대경로로 넣어줄 것
 			std::string path = _config._http._server[data->server_block]._dir_map["root"] + data->uri_dir + data->uri_file;
 			path = FileController::toAbsPath(path);
-			std::cout << path << std::endl;
 			this->argv[1] = new char[path.length() + 1];
             strcpy(argv[1], path.c_str());
 			// "/Users/hybae/Desktop/webserv/main/new/cgiBinary/sample.php"
@@ -123,8 +122,7 @@ class CGIProcess {
 			_envMap[std::string("REMOTE_ADDR")] = data->client_ip; // server socket addr
 			_envMap[std::string("SERVER_PORT")] = std::to_string(data->server_port); // host port
 			_envMap[std::string("QUERY_STRING")] = data->query_string;
-			_envMap[std::string("SCRIPT_NAME")] = root;
-			_envMap[std::string("PATH_INFO")] = root;
+			
 			_envMap[std::string("DOCUMENT_ROOT")] = only_root;
 			_envMap[std::string("REQUEST_URI")] = data->uri_dir + data->uri_file; // 리퀘스트에 명시된 전체 주소가 들어가야 함
 			_envMap[std::string("DOCUMENT_URI")] = data->uri_dir + data->uri_file; // 리퀘스트에 명시된 전체 주소가 들어가야 함
@@ -133,9 +131,9 @@ class CGIProcess {
 			// envp[1]과 동일
 			std::string path = _config._http._server[data->server_block]._dir_map["root"] + data->uri_dir + data->uri_file;
 			path = FileController::toAbsPath(path);
-			std::cout << path << std::endl;
 			_envMap[std::string("SCRIPT_FILENAME")] = path; // 실행하고자 하는 파일의 절대 경로가 들어가야 함.
-
+			_envMap[std::string("SCRIPT_NAME")] = path;
+			_envMap[std::string("PATH_INFO")] = data->uri_dir + data->uri_file;
 			envp = generateEnvp(_envMap);
 
 			//환경변수가 잘들갔나

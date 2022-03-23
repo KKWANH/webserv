@@ -64,7 +64,6 @@ int		RequestMessage::parsingRequestMessage() {
 		if (data->header_field.find("Content-Length") != data->header_field.end() &&
 			data->header_field["Content-Length"] != "0") {
 			if (int(this->message.length()) == atoi(data->header_field["Content-Length"].c_str())) {
-				std::cout << "MESSAGE BODY PARSING" << std::endl;
 				parseMessageBody(this->message);
 				this->seq = FINISH_PARSE;
 			}
