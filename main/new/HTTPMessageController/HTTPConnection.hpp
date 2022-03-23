@@ -21,6 +21,7 @@ class HTTPConnection : public ClassController {
 			MESSAGE_BODY_READ,
 			MESSAGE_BODY_WRITE,
 			REQUEST_TO_RESPONSE,
+			BODY_TO_RESPONSE,
 			RESPONSE,
 			READY_TO_CGI,
 			CGI_READ,

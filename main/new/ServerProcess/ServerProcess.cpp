@@ -65,6 +65,9 @@ void	ServerProcess::serverProcess() {
 								kq.disableEvent(hc->getSocketFd(), EVFILT_READ, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 								timer.clean_time(udata);
+							} else if (result == HTTPConnection::BODY_TO_RESPONSE) {
+								kq.disableEvent(hc->getCgiInputFd(), EVFILT_WRITE, udata);
+								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 							} else if (result == HTTPConnection::READY_TO_MESSAGE_BODY) {
 								kq.disableEvent(hc->getSocketFd(), EVFILT_READ, udata);
 								kq.addEvent(hc->getCgiInputFd(), EVFILT_WRITE, udata);

@@ -13,8 +13,8 @@ extern NginxConfig::GlobalConfig _config;
 
 class CGIProcess {
 	private:
-        char** 		argv;
 		char**		envp;
+        char** 		argv;
         int			inputPair[2];
         int 		outputPair[2];
 		int			env_size;
@@ -26,10 +26,10 @@ class CGIProcess {
 		{
 			setCGIArgv(data);
 			setEnvp(data);
+			
 			#if 0
             for (int i = 0; i < 3; i++)
                 std::cout << "argv[" << i << "] :" << argv[i] << std::endl;
-			//환경변수가 잘들갔나
             for (int i = 0; i < env_size; i++)
                 std::cout << envp[i] << std::endl;
 			#endif
@@ -38,14 +38,12 @@ class CGIProcess {
 		~CGIProcess()
 		{
 			int status;
-			if (_pid < 0) {
-				waitpid(_pid, &status, WNOHANG);
+			if (_pid > 0) {
+				waitpid(_pid, &status, 0);
 				if (status & 0177) {
 					kill(_pid, SIGTERM);
 				}
 			}
-			if ((inputPair[1] && close(inputPair[1]) == -1) || (outputPair[0] && close(outputPair[0]) == -1))
-				throw ErrorHandler(__FILE__, __func__, __LINE__, "CGI pipes close mat gam");
 			for (int i = 0; i < 3; i++)
 				delete argv[i];
 			delete argv;
@@ -87,9 +85,10 @@ class CGIProcess {
             this->argv[0] = new char[data->CGI_root.size() + 1];
             strcpy(argv[0], data->CGI_root.c_str());
 
-			this->argv[1] = new char[24];
-            strcpy(argv[1], "./cgiBinary/sample.php");
-			//요 변수는 어찌 해야 하는거지
+			this->argv[1] = new char[59];
+			// TODO
+			// 요청으로 들어온 경로를 절대경로로 넣어줄 것
+            strcpy(argv[1], "/Users/hybae/Desktop/webserv/main/new/cgiBinary/sample.php");
 
             this->argv[2] = new char[data->query_string.size() + 1];
             strcpy(argv[2], data->query_string.c_str());
@@ -105,54 +104,30 @@ class CGIProcess {
 			size_t finish = root.find_last_of(root);
 			only_file = root.substr(start + 1, finish - start);
 			only_root = root.substr(0, start);
-			//일단루트랑 파일명이랑 분리할 필요가 있음
-
-
-			//아래 주석처리된 얘는 
-			//CONTENT_LENGTH는 아직 정해진게 없으니 냅두고
-			//나머지 3개는 주석을 풀면 No input file specified. 란 문구가 뜨는데 무시해도 되는건가
-
-
-			// local 환경변수에 이미 존재하는 아이들
+			
 			_envMap[std::string("USER")] = std::string(std::getenv("USER"));
 			_envMap[std::string("PATH")] = std::string(std::getenv("PATH"));
 			_envMap[std::string("LANG")] = std::string(std::getenv("LANG"));
 			_envMap[std::string("PWD")] = std::string(std::getenv("PWD"));
-			// parsing으로 가져온 아이들
-//			_envMap[std::string("REQUEST_METHOD")] = data->method;
+			_envMap[std::string("REQUEST_METHOD")] = data->method;
 			_envMap[std::string("SERVER_PROTOCOL")] = std::string("HTTP/1.1");
 			_envMap[std::string("REQUEST_SCHEME")] = data->method;
-//			_envMap[std::string("GATEWAY_INTERFACE")] = std::string("CGI/1.1");
-//			_envMap[std::string("SERVER_SOFTWARE")] = std::string("webserv/1.0");
-
-			_envMap[std::string("CONTENT_TYPE")] = data->CGI_what;
-//			_envMap[std::string("CONTENT_LENGTH")] = reqMsg->getHeaderField("Content-Length");
-//			정말 헤더의 저것을 나타내는게 맞나?
-
+			_envMap[std::string("GATEWAY_INTERFACE")] = std::string("CGI/1.1");
+			_envMap[std::string("SERVER_SOFTWARE")] = std::string("webserv/1.0");
+			_envMap[std::string("CONTENT_TYPE")] = data->header_field["Content-Type"];
+			_envMap[std::string("CONTENT_LENGTH")] = data->header_field["Content-Length"];
 			_envMap[std::string("REMOTE_ADDR")] = data->client_ip; // server socket addr
 			_envMap[std::string("SERVER_PORT")] = std::to_string(data->server_port); // host port
-			// 요부분은 RFC에 명시되어 있어서 해둬야 할듯
 			_envMap[std::string("QUERY_STRING")] = data->query_string;
 			_envMap[std::string("SCRIPT_NAME")] = root;
 			_envMap[std::string("PATH_INFO")] = root;
-//			cgi스크립트가 어디에 있는거지
-//			저거 맞겠지?
-			//여기는 binary가 있는 루트경로 + binary파일 이름
-			//그럼 여걸 어캐 어디서 파싱해서 넣지
-			// _envMap[std::string("REQUEST_URI")] = requestMessage->_originURI;
 			_envMap[std::string("DOCUMENT_ROOT")] = only_root;
-			_envMap[std::string("REQUEST_URI")] = root;
-			_envMap[std::string("DOCUMENT_URI")] = root;
+			_envMap[std::string("REQUEST_URI")] = data->uri_dir + data->uri_file; // 리퀘스트에 명시된 전체 주소가 들어가야 함
+			_envMap[std::string("DOCUMENT_URI")] = data->uri_dir + data->uri_file; // 리퀘스트에 명시된 전체 주소가 들어가야 함
 			// _envMap[std::string("SERVER_NAME")] = requestMessage->_serverName; // config 파일의 서버 이름
-			_envMap[std::string("SCRIPT_FILENAME")] = root;
-			//그 이외RFC에 있는데 안들어간거
-			//일단 공통적으로 joopark님 예시에 없던것들
-			//AUTH_TYPE ->식별자
-			//PATH_TRANSLATED -> 로컬 변환값, 대충 cgi안에 있는 경로 불면 될듯한데...
-			//REMOTE_IDENT ->얜 안넣어도 된다고
-			//REMOTE_USER ->식별자2
-			//SERVER_NAME -> 얜 conf에 있는거 돚거하면 될듯
-			//SERVER_SOFTWARE
+			// TODO
+			// envp[1]과 동일
+			_envMap[std::string("SCRIPT_FILENAME")] = "/Users/hybae/Desktop/webserv/main/new/cgiBinary/sample.php"; // 실행하고자 하는 파일의 절대 경로가 들어가야 함.
 
 			envp = generateEnvp(_envMap);
 

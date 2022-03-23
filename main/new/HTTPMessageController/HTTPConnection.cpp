@@ -1,5 +1,5 @@
 #include "HTTPConnection.hpp"
-
+#include <sstream>
 extern NginxConfig::GlobalConfig _config;
 
 HTTPConnection::HTTPConnection(int fd, int block, int server_port, std::string client_ip) {
@@ -36,12 +36,18 @@ int HTTPConnection::run() {
 			if (this->http_data->isCGI == true) {
 				cgi_process = new CGIProcess(http_data);
 				cgi_process->run();
+				cgi_input_fd = cgi_process->getInputPair();
 				cgi_output_fd = cgi_process->getOutputPair();
-				if (fcntl(cgi_output_fd, F_SETFL, O_NONBLOCK) == -1)
+				if (fcntl(cgi_input_fd, F_SETFL, O_NONBLOCK) == -1 ||
+					fcntl(cgi_output_fd, F_SETFL, O_NONBLOCK) == -1)
 					throw ErrorHandler(__FILE__, __func__, __LINE__,
 						"something wrong with fd. check the file exists : ?", ErrorHandler::NON_CRIT);
 			}
-			seq = REQUEST_TO_RESPONSE;
+			if (http_data->header_field.find("Content-Length") != http_data->header_field.end() &&
+				(http_data->header_field["Content-Length"] != "0" && http_data->header_field["Content-Length"] != ""))
+				seq = READY_TO_MESSAGE_BODY;
+			else
+				seq = REQUEST_TO_RESPONSE;
 		}
 		else if (request_result == RequestMessage::MESSAGE_BODY) {
 			if (this->http_data->isCGI == true) {
@@ -60,32 +66,33 @@ int HTTPConnection::run() {
 		}
 	}
 	else if (seq == READY_TO_MESSAGE_BODY) {
-		//std::cout << "---WRITE MESSAGE---" << std::endl;
-		//std::cout << request_message->getMessage() << std::endl;
 		write(cgi_input_fd, request_message->getMessage().data(), request_message->getMessage().size());
-		seq = MESSAGE_BODY_READ;
+		std::stringstream ss;
+		ss << request_message->getMessage().size();
+		if (ss.str() == http_data->header_field["Content-Length"])
+			seq = BODY_TO_RESPONSE;
+		else
+			seq = MESSAGE_BODY_READ;
+	}
+	else if (seq == BODY_TO_RESPONSE) {
+		seq = REQUEST_TO_RESPONSE;
 	}
 	else if (seq == MESSAGE_BODY_READ) {
 		readLength = read(socket_fd, buffer, BUF_SIZ-1);
 		if (readLength > 0) {
 			buffer[readLength] = '\0';
-			//std::cout << "---READ MESSAGE BODY---" << std::endl;
-			//std::cout << buffer << std::endl;
 			seq = MESSAGE_BODY_WRITE;
 		}
-		else
+		else {
 			seq = REQUEST_TO_RESPONSE;
+		}
 	}
 	else if (seq == MESSAGE_BODY_WRITE) {
 		write(cgi_input_fd, buffer, readLength);
-		//std::cout << "---WRITE MESSAGE BODY---" << std::endl;
-		//std::cout << buffer << std::endl;
 		seq = MESSAGE_BODY_READ;
 	}
 	else if (seq == REQUEST_TO_RESPONSE) {
 		response_message->setResponseMessage(http_data->_tmp_directory);
-		if(this->http_data->isCGI == true)
-			cgi_process->run();
 		seq = RESPONSE;
 	}
 	else if (seq == RESPONSE) {
@@ -96,16 +103,6 @@ int HTTPConnection::run() {
 			if (this->http_data->isCGI == true) {
 				seq = READY_TO_CGI;
 			}
-			// else if (this-http_data->isAutoIndex == true) {
-				// Autoindex message body 만들기
-				// Content Length 구하기
-				// Content Length를 헤더필드로 넣어주기
-
-				// Content-Length: 100\r\n
-				// \r\n
-				// MESSAGE BODY
-				// seq = AUTOINDEX_WRITE
-			// }
 			else {
 				std::string	_pth =
 					_config._http._server[this->http_data->server_block]._dir_map["root"] +
@@ -122,10 +119,8 @@ int HTTPConnection::run() {
 		else
 			response_message->resetMessage(writeLength);
 	}
-	// else if (seq == AUTOINDEX_WRITE) {
-	// 	write(`~~~~, BUF_SIZ)
-	// }
 	else if (seq == READY_TO_CGI) {
+		close(cgi_input_fd);
 		seq = CGI_READ;
 	}
 	else if (seq == CGI_READ) {
@@ -144,8 +139,10 @@ int HTTPConnection::run() {
 				throw ErrorHandler(__FILE__, __func__, __LINE__,
 					"exit -1 replaced", ErrorHandler::CRIT);
 			}
-			if (writeLength != BUF_SIZ)
+			if (writeLength != BUF_SIZ) {
+				close(cgi_output_fd);
 				seq = CLOSE;
+			}
 			else
 				seq = CGI_READ;
 		}
