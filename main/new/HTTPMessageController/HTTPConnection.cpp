@@ -5,6 +5,7 @@ extern NginxConfig::GlobalConfig _config;
 HTTPConnection::HTTPConnection(int fd, int block, int server_port, std::string client_ip) {
 	seq = REQUEST;
 	socket_fd = fd;
+	keep_alive = false;
 	http_data = new HTTPData(block, server_port, client_ip);
 	request_message = new RequestMessage(http_data);
 	response_message = new ResponseMessage(http_data);
@@ -17,6 +18,10 @@ HTTPConnection::~HTTPConnection() {
 	delete response_message;
 	delete http_data;
 	close(socket_fd);
+}
+
+void HTTPConnection::killConnection(void* hc) {
+	delete reinterpret_cast<HTTPConnection*>(hc);
 }
 
 int	HTTPConnection::getServerBlock(void)	{ return (this->http_data->getSBlock()); }
@@ -33,6 +38,10 @@ int HTTPConnection::run() {
 			request_message->setMessage(buffer);
 		int request_result = request_message->parsingRequestMessage();
 		if (request_result == RequestMessage::FINISH_PARSE) {
+			std::map<std::string, std::string>::iterator res;
+			if ((res = this->http_data->header_field.find("Connection")) != this->http_data->header_field.end())
+				if (res->second == "keep-alive")
+					keep_alive = true;
 			if (this->http_data->isCGI == true) {
 				cgi_process = new CGIProcess(http_data);
 				cgi_process->run();
@@ -146,6 +155,9 @@ int HTTPConnection::run() {
 			else
 				seq = CGI_READ;
 		}
+		if (seq == CLOSE && keep_alive == true) {
+			seq = RE_KEEPALIVE;
+		}
 	}
 	else if (seq == READY_TO_FILE) {
 		seq = FILE_READ;
@@ -173,6 +185,40 @@ int HTTPConnection::run() {
 			else
 				seq = FILE_READ;
 		}
+		if (seq == CLOSE && keep_alive == true) {
+			seq = RE_KEEPALIVE;
+		}
+	}
+	else if (seq == RE_KEEPALIVE) {
+		int 		backup_block;
+		int 		backup_port;
+		std::string backup_ip;
+
+		backup_block = this->http_data->server_block;
+		backup_port = this->http_data->server_port;
+		backup_ip = this->http_data->client_ip;
+
+		if (this->http_data->isCGI == true)
+			delete cgi_process;
+		delete request_message;
+		delete response_message;
+		delete http_data;
+		buffer[0] = '\0';
+		readLength = -2;
+		writeLength = -2;
+		if (file_fd > 0)
+			file_fd = -2;
+		if (cgi_output_fd > 0)
+			cgi_output_fd = -2;
+		if (cgi_input_fd > 0)
+			cgi_input_fd = -2;
+		//keep_alive = false;
+		//다음 연결에서 keep-alive가 안되는 경우도 있다?
+
+		http_data = new HTTPData(backup_block, backup_port, backup_ip);
+		request_message = new RequestMessage(http_data);
+		response_message = new ResponseMessage(http_data);
+		seq = REQUEST;
 	}
 	return seq;
 };

@@ -29,7 +29,8 @@ class HTTPConnection : public ClassController {
 			READY_TO_FILE,
 			FILE_READ,
 			FILE_WRITE,
-			CLOSE
+			CLOSE,
+			RE_KEEPALIVE
 		}					Seq;
 
 	private:
@@ -45,10 +46,12 @@ class HTTPConnection : public ClassController {
 		CGIProcess*			cgi_process;
 		int					readLength;
 		int					writeLength;
+		bool				keep_alive;
 		
 	public:
 		HTTPConnection(int fd, int block, int server_port, std::string client_ip);
 		virtual ~HTTPConnection();
+		static void killConnection(void *hc);
 
 		int	getServerBlock(void);
 		int	getFileFd(void);

@@ -40,7 +40,15 @@ void	ServerProcess::serverProcess() {
 						kq.addEvent(conn_socket, EVFILT_READ, httpConnection);
 						kq.addEvent(conn_socket, EVFILT_WRITE, httpConnection);
 						kq.disableEvent(conn_socket, EVFILT_WRITE, httpConnection);
-						timer.init_time(udata);
+						int keepalive_timeout;
+						keepalive_timeout = atoi(_config._http._server[server_block]._dir_map["keepalive_timeout"].c_str());
+						if (keepalive_timeout < 0) {
+							keepalive_timeout = atoi(_config._http._dir_map["keepalive_timeout"].c_str());
+							if (keepalive_timeout < 0)
+								keepalive_timeout = 60;
+						}
+						timer.init_time(conn_socket, httpConnection, keepalive_timeout);
+						std::cout << "conn :" << conn_socket << std::endl;
 					}
 					// HTTPConnection 처리
 					else if (dynamic_cast<HTTPConnection*>(udata) != NULL) {
@@ -48,14 +56,9 @@ void	ServerProcess::serverProcess() {
 
 						int fd = kq.getFdByEventIndex(i);
 						if (kq.isCloseByEventIndex(i)) {
-					//		if (timer.check_time(udata, hc->getServerBlock()))
-					//		{
 								std::cout << "Client closed socket : " << fd << std::endl;
+								timer.del_time(hc->getSocketFd());
 								delete hc;
-								timer.del_time(udata);
-					//		}
-						//	timer.del_time(udata);
-						//	delete hc;
 						}
 						else {
 							int result = hc->run();
@@ -64,7 +67,6 @@ void	ServerProcess::serverProcess() {
 								//std::cout << "kq(r) : " << fd << std::endl;
 								kq.disableEvent(hc->getSocketFd(), EVFILT_READ, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
-								timer.clean_time(udata);
 							} else if (result == HTTPConnection::BODY_TO_RESPONSE) {
 								kq.disableEvent(hc->getCgiInputFd(), EVFILT_WRITE, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
@@ -98,12 +100,14 @@ void	ServerProcess::serverProcess() {
 							} else if (result == HTTPConnection::CLOSE) {
 								// 이벤트 제거
 								// std::cout << "kq(w) : " << fd << std::endl;
-						//		if (timer.check_time(udata, hc->getServerBlock()))
-						//		{
-									// std::cout << "bye" << std::endl;
+									std::cout << "bye" << std::endl;
+									timer.del_time(hc->getSocketFd());
 									delete hc;
-									timer.del_time(udata);
-						//		}
+							} else if (result == HTTPConnection::RE_KEEPALIVE) {
+								std::cout << "re" << std::endl;
+								kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
+								kq.enableEvent(hc->getSocketFd(), EVFILT_READ, udata);
+								timer.clean_time(hc->getSocketFd());
 							}
 						}
 					}
@@ -125,16 +129,14 @@ void	ServerProcess::serverProcess() {
 				*/
 				catch (const ErrorHandler& err) {
 					ClassController* udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
-					int fd = kq.getFdByEventIndex(i);
-					timer.del_time(udata);
-					std::cerr << err.what() << std::endl;
-					//아마 요 사이에 에러 페이지를 만들고 보내는 코드가 추가되어야 할듯함(였던거)
+					HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
+					int fd = hc->getSocketFd();
+					timer.del_time(fd);
 					if (fd > 5)
 					{
-						HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
-						close(hc->getSocketFd());
-						if (hc->getFileFd() > 0)
-							close (hc->getFileFd());
+					//	close(hc->getSocketFd());
+					//	if (hc->getFileFd() > 0)
+					//		close (hc->getFileFd());
 						delete hc;
 					}
 					std::cerr << err.what() << std::endl;
@@ -143,8 +145,13 @@ void	ServerProcess::serverProcess() {
 				}
 			}
 		} else {
-			// std::cout << "waiting..." << std::endl;
+			std::cout << "waiting..." << std::endl;
 		}
+		// 여기...
+		// 필요한거 : hc객체를 쪼갤 무언가
+		// 객체를 받는다...?, 인자로 받아야지
+		// 저번에 udata객체로 받았다가 망했자너
+		timer.check_time(HTTPConnection::killConnection);
 	}
 	return;
 };
