@@ -3,7 +3,7 @@
 <body>
 
 <form method="post" action="<?php echo $_SERVER['PHP_SELF'];?>">
-  id:   <input type="text" id="fid"> <br>
+  id:   <input type="text" name="fid"> <br>
   Name: <input type="text" name="fname">
   <input type="submit">
 </form>
