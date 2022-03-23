@@ -9,6 +9,7 @@
 #include <map>
 #include "HTTPData.hpp"
 #include "ConfigBlocks.hpp"
+#include "FileController.hpp"
 extern NginxConfig::GlobalConfig _config;
 
 class CGIProcess {
@@ -85,11 +86,14 @@ class CGIProcess {
             this->argv[0] = new char[data->CGI_root.size() + 1];
             strcpy(argv[0], data->CGI_root.c_str());
 
-			this->argv[1] = new char[59];
 			// TODO
 			// 요청으로 들어온 경로를 절대경로로 넣어줄 것
-            strcpy(argv[1], "/Users/hybae/Desktop/webserv/main/new/cgiBinary/sample.php");
-
+			std::string path = _config._http._server[data->server_block]._dir_map["root"] + data->uri_dir + data->uri_file;
+			path = FileController::toAbsPath(path);
+			std::cout << path << std::endl;
+			this->argv[1] = new char[path.length() + 1];
+            strcpy(argv[1], path.c_str());
+			// "/Users/hybae/Desktop/webserv/main/new/cgiBinary/sample.php"
             this->argv[2] = new char[data->query_string.size() + 1];
             strcpy(argv[2], data->query_string.c_str());
 
@@ -127,7 +131,10 @@ class CGIProcess {
 			// _envMap[std::string("SERVER_NAME")] = requestMessage->_serverName; // config 파일의 서버 이름
 			// TODO
 			// envp[1]과 동일
-			_envMap[std::string("SCRIPT_FILENAME")] = "/Users/hybae/Desktop/webserv/main/new/cgiBinary/sample.php"; // 실행하고자 하는 파일의 절대 경로가 들어가야 함.
+			std::string path = _config._http._server[data->server_block]._dir_map["root"] + data->uri_dir + data->uri_file;
+			path = FileController::toAbsPath(path);
+			std::cout << path << std::endl;
+			_envMap[std::string("SCRIPT_FILENAME")] = path; // 실행하고자 하는 파일의 절대 경로가 들어가야 함.
 
 			envp = generateEnvp(_envMap);
 
