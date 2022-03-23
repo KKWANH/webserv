@@ -26,7 +26,6 @@ class RequestMessage {
 		int			parsing_pointer;
 		std::string	message;
 		Seq			seq;
-		std::string _tmp_directory;
 
 	public:
 		RequestMessage(HTTPData* _data);
@@ -35,8 +34,6 @@ class RequestMessage {
 		void	resetMessage();
 		std::string
 				getMessage();
-		std::string
-				getTmpDirectory();
 
 		/** Header **/
 		int		parsingRequestMessage();

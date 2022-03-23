@@ -20,12 +20,6 @@ std::string
 	return this->message;
 }
 
-std::string
-	RequestMessage::getTmpDirectory(void)
-{
-	return this->_tmp_directory;
-}
-
 /** Header **/
 
 // message 내에 start line이 모두 담겨져있는지 확인하는 메소드
@@ -51,9 +45,10 @@ int		RequestMessage::parsingRequestMessage() {
 				}
 			}
 		}
-		this->_tmp_directory = start_line_msg.substr(data->method.length() + 1, _second_space - 4);
 		if (start_line_pos != -1) {
 			parseStartLine(start_line_msg);
+			data->_tmp_directory = start_line_msg.substr(data->method.length() + 1, _second_space - (data->method.length() + 1));
+			
 			resetMessage();
 			this->seq = HEADER_FIELD;
 		}
@@ -236,7 +231,7 @@ void	RequestMessage::checkTarget(void) {
 	}
 
 	for(it = index.begin(); it != index.end(); it++) {
-		std::string	filePath = root + data->uri_dir + *it;
+		std::string	filePath = root + data->uri_dir + "/" + *it;
 		if (access(filePath.c_str(), F_OK) == 0) {
 			data->file_extension = (*it).substr((*it).find_last_of('.') + 1);
 			data->uri_file = *it;

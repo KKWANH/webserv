@@ -22,7 +22,8 @@ class HTTPData {
 		std::string								CGI_what;
 		bool        							isCGI;
 		double									http_version;
-
+		bool									isAutoIndex;
+		std::string								_tmp_directory;
 		// Header Field
 		std::map<std::string, std::string>		header_field;
 

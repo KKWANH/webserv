@@ -83,25 +83,35 @@ int HTTPConnection::run() {
 		seq = MESSAGE_BODY_READ;
 	}
 	else if (seq == REQUEST_TO_RESPONSE) {
-		response_message->setResponseMessage(request_message->getTmpDirectory());
+		response_message->setResponseMessage(http_data->_tmp_directory);
 		if(this->http_data->isCGI == true)
 			cgi_process->run();
 		seq = RESPONSE;
 	}
 	else if (seq == RESPONSE) {
-		int	write_size = ((int)response_message->getMessage().size() < BUF_SIZ ? (int)response_message->getMessage().size() : BUF_SIZ);
+		int
+			write_size = ((int)response_message->getMessage().size() < BUF_SIZ ? (int)response_message->getMessage().size() : BUF_SIZ);
 		writeLength = write(socket_fd, response_message->getMessage().data(), write_size);
 		if (writeLength != BUF_SIZ) {
 			if (this->http_data->isCGI == true) {
 				seq = READY_TO_CGI;
 			}
+			// else if (this-http_data->isAutoIndex == true) {
+				// Autoindex message body 만들기
+				// Content Length 구하기
+				// Content Length를 헤더필드로 넣어주기
+
+				// Content-Length: 100\r\n
+				// \r\n
+				// MESSAGE BODY
+				// seq = AUTOINDEX_WRITE
+			// }
 			else {
 				std::string	_pth =
 					_config._http._server[this->http_data->server_block]._dir_map["root"] +
 					this->http_data->uri_dir +
 					this->http_data->uri_file;
 				_pth = FileController::toAbsPath(_pth);
-				response_message->_type = FileController::checkType(_pth);
 				file_fd = open(_pth.c_str(), O_RDONLY);
 				if (fcntl(file_fd, F_SETFL, O_NONBLOCK) == -1)
 					throw ErrorHandler(__FILE__, __func__, __LINE__,
@@ -112,6 +122,9 @@ int HTTPConnection::run() {
 		else
 			response_message->resetMessage(writeLength);
 	}
+	// else if (seq == AUTOINDEX_WRITE) {
+	// 	write(`~~~~, BUF_SIZ)
+	// }
 	else if (seq == READY_TO_CGI) {
 		seq = CGI_READ;
 	}
