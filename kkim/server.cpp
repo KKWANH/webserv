@@ -1,65 +1,65 @@
-# include				"srcs/utils/Utils.hpp"
-# include				"srcs/parse/Config_Controller.hpp"
-# include				"srcs/socket/Socket_Controller.hpp"
-# include				"srcs/server_process/Server_Process.hpp"
-# include				"srcs/http_message/HTTPMsg_Controller.hpp"
-# include				"srcs/kqueue/KQueue_Controller.hpp"
-# include				"srcs/error/Error_Handler.hpp"
-# include				"srcs/parse/ConfigBlocks.hpp"
+# include	"ConfigBlocks.hpp"
+# include	"ConfigMime.hpp"
+# include	"SocketController.hpp"
+# include	"ServerProcess.hpp"
+# include	"KernelQueueController.hpp"
+# include	"ErrorHandler.hpp"
 
-# define				CONF_PATH				"./conf/nginx.conf"
+# include	<iostream>
+# include	<cstring>
 
-ConfigController		_config;
-extern ConfigController	_config;
-ConfigController		_mime;
-extern ConfigController	_mime;
+# define	CONF_PATH	"./setting/nginx.conf"
+# define	MIME_PATH	"./setting/mime.types"
+
+NginxConfig::GlobalConfig
+	_config;
+extern NginxConfig::GlobalConfig
+	_config;
+
+MimeConfig
+	_mime;
+extern MimeConfig
+	_mime;
+// 
+
+void
+	check_argv_str(
+		std::string& _conf_uri,
+		std::string& _mime_uri,
+		std::string  _tmp)
+{
+	if (_tmp.substr(_tmp.length() - 5, _tmp.length()).compare(".conf") == 0)
+		_conf_uri = _tmp;
+	else if (_tmp.substr(_tmp.length() - 6, _tmp.length()).compare(".types") == 0)
+		_mime_uri = _tmp;
+	else
+		throw ErrorHandler(__FILE__, __func__, __LINE__,
+			"Invalid file name on argument(.conf and .types only) : " + _tmp);
+}
 
 int
-	main(int _arc, char **_arv)
-
-{
-	const char* _conf_path = static_cast<const char *>(CONF_PATH);
-	NginxConfig::GlobalConfig
-		nginx_config(_conf_path);
-	std::cout << "HERE!!!!!\n" <<
-		nginx_config._http._dir_map["charset"] << "\n" <<
-		std::endl;
-	// Ngi
-
-	_config.setIsMIME(false);
-
-	SocketController	_socket;
-
-	try
+	main(int _arc, char** _arv)
 	{
-		// Set config file
-		if (_arc == 1)
-			_config.setContent("./settings/wsv.config");
-		else
-			_config.setContent(_arv[1]);
+		try
+		{
+			std::string
+				_conf_uri = CONF_PATH,
+				_mime_uri = MIME_PATH;
+			if (_arc == 2)
+				check_argv_str(_conf_uri, _mime_uri, _arv[1]);
+			else if (_arc == 3)
+				check_argv_str(_conf_uri, _mime_uri, _arv[2]);
+			else if (_arc != 1)
+				throw ErrorHandler(__FILE__, __func__, __LINE__,
+					"Too many arguments. Please input one, two, or nothing.");
+			_config.startConfig(_conf_uri);
+			_mime.startConfig(_mime_uri);ServerProcess::serverProcess();
+		}
+		catch (const ErrorHandler& err)
+		{
+			std::cerr << err.what() << std::endl;
+			return (-1);
+		}
 
-		// Set MIME types
-		_mime.setIsMIME(true);
-		_mime.setContent("./settings/mime.types");
-
-		// Init socket communication
-		_socket.init();
-		
-		// Init polling
-		KQueueController
-			_kqueue;
-		_kqueue.init(_socket.getSocketServer());
-
-		// Non-blocking socket communication
-		ServerProcess::serverProcess(&_socket, &_kqueue);
-	}
-	catch (const std::exception& _err)
-	{
-		std::cerr << _err.what() << std::endl;
-		close(_socket.getSocketServer());
-		return (ERROR);
-	}
-
-	close(_socket.getSocketServer());
-	return				(0);
+		return (0);
 }
