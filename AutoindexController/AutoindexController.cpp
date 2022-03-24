@@ -44,7 +44,7 @@ std::string
 		_msg_body;
 
 	_msg_body << "<!DOCTYPE html><html><head>";
-	_msg_body << "<title>Index of " + _path + "</title></head>";
+	_msg_body << "<title>Index of " + _path + "</title><link rel=\"icon\" type=\"image/x-icon\" href=\"assets/favicon.ico\" /></head>";
 	_msg_body << "<body>";
 	_msg_body << "<h1>Index of " + _path + "</h1><hr><pre>";
 	for (int _idx = 0; _idx < _folder.getFilesSize(); _idx++)
