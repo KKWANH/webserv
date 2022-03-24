@@ -74,6 +74,36 @@ int		RequestMessage::parsingRequestMessage() {
 	return (this->seq);
 }
 
+int		RequestMessage::checkAutoIndex(std::string _root, std::string _path)
+{
+	std::string
+		_root_and_path = _root + _path,
+		_abs_path = FileController::toAbsPath(_root_and_path),
+		_abs_root = FileController::toAbsPath(_root);
+
+	if (FileController::checkType(_abs_path) != FileController::DIRECTORY)
+		return (-1);
+	else if (_config._http._server[this->data->server_block].findLocationIndexByDir(_path) != -1 &&
+			 _config._http._server[this->data->server_block]._location[
+				 _config._http._server[1].findLocationIndexByDir(_path)
+				]._dir_map["autoindex"] == "on")
+		return (1);
+	else if (_config._http._server[this->data->server_block].findLocationIndexByDir(_path) != -1 &&
+			 _config._http._server[this->data->server_block]._location[
+				 _config._http._server[1].findLocationIndexByDir(_path)
+				]._dir_map["autoindex"] == "off")
+		return (-1);
+	else
+	{
+		if (_abs_path.find_last_of("/") == _abs_path.length())
+			_abs_path = _abs_path.substr(0, _abs_path.length() - 1);
+		if (_abs_path == _abs_root)
+			return (-1);
+		else
+			return (checkAutoIndex(_root, FileController::getPrePath(_path)));
+	}
+}
+
 void	RequestMessage::parseStartLine(std::string &msg) {
 	int	start, end;
 	this->parseMethod(start, end, msg);
@@ -86,12 +116,10 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 
 	if (this->has_index == false)
 	{
-		std::string
-			tmp = _config._http._server[1]._dir_map["root"] + this->data->url_directory;
-		tmp = FileController::toAbsPath(tmp);
-		if (FileController::checkType(tmp) == FileController::DIRECTORY &&
-			_config._http._server[1].findLocationIndexByDir(this->data->url_directory) != -1 &&
-			_config._http._server[1]._location[_config._http._server[1].findLocationIndexByDir(this->data->url_directory)]._dir_map["autoindex"] == "on")
+		if (checkAutoIndex(
+				_config._http._server[1]._dir_map["root"],
+				this->data->url_directory)
+			== 1)
 		{
 			data->is_autoindex = true;
 			data->status_code = 200;
@@ -131,14 +159,6 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 		data->query_string = target.substr(query_pos + 1);
 		target = target.substr(0, target.length() - data->query_string.length() - 1);
 	}
-//	for (int i = 0; i < int(_config._http._server[this->data->server_block]._location.size()); i++)
-//	{
-//		std::cout << "what is this ? : " <<  _config._http._server[this->data->server_block]._location[i]._location << std::endl;
-//	}
-//	for (int i = 0; i < int(_config._http._server[this->data->server_block]._location.size()); i++)
-//	{
-//		std::cout << "cgi_pass : " << _config._http._server[this->data->server_block]._location[i]._dir_map["cgi_pass"] << std::endl;
-//	}
 	int	extension_pos = target.find_last_of(".");
 	this->data->isCGI = false;
 	this->data->CGI_root = "";

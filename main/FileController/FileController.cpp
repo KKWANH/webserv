@@ -212,3 +212,16 @@ std::string&
 		}
 	return (_pth);
 }
+
+std::string
+	FileController::getPrePath(
+		std::string _pth)
+{
+	std::string
+		_tmp;
+	if (_pth.substr(_pth.length() - 1, _pth.length()) == "/")
+		_tmp = _pth.substr(0, _pth.length() - 1);
+	int	
+		_idx = _tmp.find_last_of("/");
+    return (_tmp.substr(0, _idx + 1));
+}

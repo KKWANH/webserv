@@ -107,7 +107,7 @@ void	ServerProcess::serverProcess() {
 									delete hc;
 									//continue ;
 							} else if (result == HTTPConnection::RE_KEEPALIVE) {
-								std::cout << "re" << std::endl;
+								// std::cout << "re" << std::endl;
 								kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_READ, udata);
 								timer.clean_time(hc->getSocketFd());
@@ -120,7 +120,7 @@ void	ServerProcess::serverProcess() {
 					HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
 					int fd = hc->getSocketFd();
 					timer.del_time(fd);
-					std::cout << " fd : " << fd << std::endl;
+					// std::cout << " fd : " << fd << std::endl;
 					//아마 요 사이에 에러 페이지를 만들고 보내는 코드가 추가되어야 할듯함(였던거)
 					if (fd > 5)
 					{

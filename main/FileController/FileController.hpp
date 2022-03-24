@@ -96,6 +96,9 @@ class
 		static std::string&
 			toAbsPath(
 				std::string& _pth);
+		static std::string
+			getPrePath(
+				std::string path);
 };
 
 #endif

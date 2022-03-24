@@ -43,6 +43,7 @@ class RequestMessage {
 		void	parseStartLine(std::string &msg);
 		void	parseMethod(int &start, int &end, std::string &msg);
 		void	parseTarget(int &start, int &end, std::string &msg);
+		int		checkAutoIndex(std::string _root, std::string _pth);
 		void	checkTarget(void);
 		std::vector<std::string>	checkURIDIR(void);
 		std::vector<std::string>	checkErrorPage(void);
