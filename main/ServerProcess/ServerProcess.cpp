@@ -5,13 +5,15 @@ extern NginxConfig::GlobalConfig _config;
 
 void	ServerProcess::serverProcess() {
 	KernelQueueController kq(100);
-
+	int	serverFd;
 	SocketController *socketController = new SocketController[_config._http._server.size()];
 			
 	for (int i = 0; i < (int)_config._http._server.size(); i++) {
 		std::cout << "BIND PORT : " << atoi(_config._http._server[i]._dir_map["listen"].c_str()) << std::endl;
 		socketController[i].generator(atoi(_config._http._server[i]._dir_map["listen"].c_str()));
-		kq.addEvent(socketController[i].binding(), EVFILT_READ, &socketController[i]);
+		serverFd = socketController[i].binding();
+		if (serverFd != 0)
+			kq.addEvent(serverFd, EVFILT_READ, &socketController[i]);
 	}
 
 	TimeController timer;

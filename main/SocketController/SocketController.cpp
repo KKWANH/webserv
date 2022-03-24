@@ -58,7 +58,7 @@ int		SocketController::binding() {
 	int e3 = fcntl(serverSocket, F_SETFL, O_NONBLOCK);
 	if (e1 < 0 || e2 < 0 || e3 < 0) {
 		std::cout << "바인드 에러~" << std::endl;
-		exit(1);
+		return (0);
 	}
 	return serverSocket;
 };
