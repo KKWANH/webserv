@@ -9,6 +9,9 @@
 #include "FileController.hpp"
 #include "ConfigStatus.hpp"
 
+extern StatusConfig
+	_status;
+
 class ErrorPageController {
 	public:
     /*

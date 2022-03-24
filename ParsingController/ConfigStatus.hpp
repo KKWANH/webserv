@@ -13,10 +13,10 @@ class 					StatusConfig
 	private:
 		std::string
 			_uri;
-		std::map<std::string, std::string>
-			_status_map;
 	
 	public:
+		std::map<std::string, std::string>
+			_status_map;
 		void
 			startConfig(
 				std::string _uri_file);

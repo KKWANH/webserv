@@ -12,17 +12,16 @@ std::string
 		_msg_body << "\t<head>\n";
 			_msg_body << "\t\t<link rel=\"icon\" type=\"image/x-icon\" href=\"assets/favicon.ico\" />\n";
 			_msg_body << "\t\t<title>" +
-							_error_code +
-							StatusConfig::getStatus(_error_code) +
+							_error_code + " " +
+							_status.getStatus(_error_code) +
 							"</title>\n";
 		_msg_body << "\t</head>\n";
 		_msg_body << "\t<body>\n";
-			_msg_body << "\t\t<center>\n";
-				_msg_body << "\t\t\t<h1>" +
-								_error_code +
-								StatusConfig::getStatus(_error_code) +
-								"</h1>\n";
-			_msg_body << "\t\t</center>\n";
+			_msg_body << "\t\t<center><h1>" +
+						 _error_code + " " +
+						 _status.getStatus(_error_code) +
+						 "</h1>";
+			_msg_body << "</center>\n";
 			_msg_body << "\t\t<hr>\n";
 			_msg_body << "\t\t<center>nginx/1.21.6</center>\n";
 		_msg_body << "\t</body>\n";

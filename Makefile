@@ -16,7 +16,8 @@ HEADER			=	-I./HTTPMessageController \
 					-I./TimeController \
 					-I./CGI \
 					-I./FileController \
-					-I./AutoindexController
+					-I./AutoindexController \
+					-I./ErrorPageController
 
 SRCS 			=	./server.cpp\
 					./ParsingController/Parser.cpp \
@@ -28,6 +29,7 @@ SRCS 			=	./server.cpp\
 					./ParsingController/ConfigServer.cpp \
 					./ParsingController/ConfigType.cpp \
 					./ParsingController/ConfigMime.cpp \
+					./ParsingController/ConfigStatus.cpp \
 					./ServerProcess/ServerProcess.cpp \
 					./KernelQueueController/KernelQueueController.cpp \
 					./SocketController/SocketController.cpp \
@@ -36,7 +38,8 @@ SRCS 			=	./server.cpp\
 					./HTTPMessageController/RequestMessage.cpp \
 					./HTTPMessageController/ResponseMessage.cpp \
 					./FileController/FileController.cpp \
-					./AutoindexController/AutoindexController.cpp
+					./AutoindexController/AutoindexController.cpp \
+					./ErrorPageController/ErrorPageController.cpp
 
 OBJS			=	$(SRCS:.cpp=.o)
 
@@ -60,7 +63,7 @@ help:
 	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make fclean]\033[0m : delete ./webserv and object files\n"
 	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make re]\033[0m :     execute \033[33m[make fclean]\033[0m and \033[33m[make]\033[0m\n"
 	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make run]\033[0m :    \033[33m[make]\033[0m and execute ./webserv.\n"
-	@printf "\033[34m[WEBSERV]\033[0m \033[33m          \033[0m      \033[3m\033[4m./webserv CONF=\"nginx.conf\" MIME=\"mime.types\"\033[0m\n"
+	@printf "\033[34m[WEBSERV]\033[0m \033[33m          \033[0m      \033[3m\033[4m./webserv nginx.conf mime.types status_code.txt\033[0m\n"
 
 all:
 	@make clean
