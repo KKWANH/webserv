@@ -80,4 +80,5 @@ $RECYCLE.BIN/
 
 a.out
 *.o
+webserv
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,macos,windows
