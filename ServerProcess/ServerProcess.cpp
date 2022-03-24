@@ -65,7 +65,7 @@ void	ServerProcess::serverProcess() {
 						HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
 
 						int fd = kq.getFdByEventIndex(i);
-						if (kq.isCloseByEventIndex(i)) {
+						if (kq.isCloseByEventIndex(i) && fd == hc->getSocketFd()) {
 							std::cout << "Client closed socket : " << fd << std::endl;
 							timer.del_time(hc->getSocketFd());
 							delete hc;

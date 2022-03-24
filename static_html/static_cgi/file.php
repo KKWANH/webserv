@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     echo "<br />";
 } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     echo '
-    <form action="filesys.php" method="post" enctype="multipart/form-data">
+    <form action="file.php" method="post" enctype="multipart/form-data">
       Select image to upload:
       <input type="file" name="fileToUpload" id="fileToUpload">
       <input type="submit" value="Upload Image" name="submit">
