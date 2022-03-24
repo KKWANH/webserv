@@ -133,3 +133,28 @@ void
 	checkValidErrorPage(  _error_page);
 	checkAutoIndexValue(  *this);
 }
+
+int
+	NginxConfig::ServerBlock::findLocationIndexByDir(
+		std::string _dir)
+{
+	int
+		_idx = 0;
+	if (this->_location.size() != 0)
+		for (_idx = 0; _idx < (int)this->_location.size(); _idx++)
+		{
+			if (this->_location[_idx]._location == _dir)
+				return (_idx);
+			else if (_dir.substr(_dir.size() - 1, _dir.size()) == "/")
+			{
+				if (_location[_idx]._location == _dir.substr(0, _dir.size()-1))
+					return (_idx);
+			}
+			else if (_location[_idx]._location.substr(_location[_idx]._location.size() - 1, _location[_idx]._location.size()) == "/")
+			{
+				if (_location[_idx]._location.substr(0, _location[_idx]._location.size()-1) == _dir)
+					return (_idx);
+			}
+		}
+	return (-1);
+}

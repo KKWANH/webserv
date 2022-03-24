@@ -15,7 +15,8 @@ HEADER			=	-I./HTTPMessageController \
 					-I./ClassController \
 					-I./TimeController \
 					-I./CGI \
-					-I./FileController
+					-I./FileController \
+					-I./AutoindexController
 
 SRCS 			=	./server.cpp\
 					./ParsingController/Parser.cpp \
@@ -34,7 +35,7 @@ SRCS 			=	./server.cpp\
 					./HTTPMessageController/HTTPData.cpp \
 					./HTTPMessageController/RequestMessage.cpp \
 					./HTTPMessageController/ResponseMessage.cpp \
-					./FileController/FileController.cpp
+					./FileController/FileController.cpp \
 
 OBJS			=	$(SRCS:.cpp=.o)
 
@@ -49,7 +50,6 @@ $(NAME): $(OBJS)
 	@$(COMP) $(FLAG) $(HEADER) $(OBJS) -o $(NAME)
 	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
 	@printf "\033[32mOK\033[0m\n"
-	@make clean
 	@printf "\n\033[34m[WEBSERV]\033[0m Now \033[32mWEBSERV\033[0m is executable.\n"
 	@printf "\033[34m[WEBSERV]\033[0m Launch this with \033[33m./webserv [config] [mime setting]\033[0m\n"
 

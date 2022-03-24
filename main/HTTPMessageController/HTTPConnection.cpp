@@ -100,7 +100,7 @@ int HTTPConnection::run() {
 		seq = MESSAGE_BODY_READ;
 	}
 	else if (seq == REQUEST_TO_RESPONSE) {
-		response_message->setResponseMessage(http_data->_tmp_directory);
+		response_message->setResponseMessage();
 		seq = RESPONSE;
 	}
 	else if (seq == RESPONSE) {
@@ -110,6 +110,17 @@ int HTTPConnection::run() {
 		if (writeLength != BUF_SIZ) {
 			if (this->http_data->isCGI == true) {
 				seq = READY_TO_CGI;
+			}
+			else if (this->http_data->is_autoindex == true) {
+				std::string
+					_msg_body = AutoindexController::getAutoIndexBody(_config._http._server[1]._dir_map["root"], this->http_data->url_directory);
+				_str_buffer = "Content-Length: ";
+				std::stringstream ss;
+				ss << _msg_body.size();
+				_str_buffer += ss.str();
+				_str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
+				_str_buffer += _msg_body;
+				seq = AUTOINDEX_WRITE;
 			}
 			else {
 				std::string	_pth =
@@ -126,6 +137,10 @@ int HTTPConnection::run() {
 		}
 		else
 			response_message->resetMessage(writeLength);
+	}
+	else if (seq == AUTOINDEX_WRITE) {
+		write(socket_fd, _str_buffer.data(), _str_buffer.size());
+		seq = CLOSE;
 	}
 	else if (seq == READY_TO_CGI) {
 		close(cgi_input_fd);

@@ -8,6 +8,11 @@
 # include	"ConfigMime.hpp"
 # include	"FileController.hpp"
 
+extern MimeConfig
+	_mime;
+extern NginxConfig::GlobalConfig
+	_config;
+
 class ResponseMessage {
 	private:
 		/**
@@ -30,16 +35,24 @@ class ResponseMessage {
 		FileController::Type
 				_type;
 		ResponseMessage(HTTPData* _data);
-		void		setStartLine();
-		std::string	setStatusMessage(std::string status_code);
-		void		setHeaderField();
-		int			setResponseMessage(std::string _tmp_directory);
+		void
+			setStartLine(void);
+		std::string
+			setStatusMessage(std::string status_code);
+		void
+			setHeaderField(void);
+		int
+			setResponseMessage(void);
 
-		void		printStartLine();
-		void		printHeaderField();
-		std::string	getMessage();
+		void
+			printStartLine(void);
+		void
+			printHeaderField(void);
 
-		void		resetMessage(int buf_size);
+		std::string
+			getMessage();
+		void
+			resetMessage(int buf_size);
 };
 
 #endif

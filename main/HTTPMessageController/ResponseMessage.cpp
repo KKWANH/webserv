@@ -1,10 +1,5 @@
 #include "ResponseMessage.hpp"
 
-extern MimeConfig
-	_mime;
-extern NginxConfig::GlobalConfig
-	_config;
-
 ResponseMessage::ResponseMessage(HTTPData* _tmp) {
 	this->_data = _tmp;
 	this->_message = "";
@@ -82,13 +77,16 @@ void	ResponseMessage::setHeaderField() {
 		//this->_header_field += "Transfer-Encoding: chunked\r\n";
 		//this->_header_field += "Content-Length: 51\r\n";
 	}
+	else if (this->_data->is_autoindex == true)
+	{
+
+	}
 	else {
 		// TODO
 		// content-type을 지정해주기 위해서 request message의 uri중 파일 확장자가 필요
 		this->_header_field += ("Content-Type: " + _mime.getMIME(this->_data->file_extension) + "\r\n");
 		std::string
 			_path = _config._http._server[this->_data->server_block]._dir_map["root"] + this->_data->uri_dir + this->_data->uri_file;
-		std::cout << "check here : " << _path << std::endl;
 		std::stringstream
 			_strstream;
 		_strstream << FileController::getFileSize(_path);
@@ -98,13 +96,15 @@ void	ResponseMessage::setHeaderField() {
 	return ;
 }
 
-int			ResponseMessage::setResponseMessage(std::string _tmp_directory)
+int	
+	ResponseMessage::setResponseMessage(
+		void)
 {
 	for (int _idx=0; _idx<(int)(_config._http._server[1]._location.size()); _idx++)
 	{
-		if (_config._http._server[1]._location[_idx]._location == _tmp_directory &&
+		if (_config._http._server[1]._location[_idx]._location == this->_data->url_directory &&
 			(int)_config._http._server[1]._location[_idx]._rewrite.size() != 0 &&
-			_config._http._server[1]._location[_idx]._rewrite[0] == _tmp_directory)
+			_config._http._server[1]._location[_idx]._rewrite[0] == this->_data->url_directory)
 		{
 			this->_message += returnRedirectMessage();
 			return (1);
@@ -113,8 +113,11 @@ int			ResponseMessage::setResponseMessage(std::string _tmp_directory)
 	setStartLine();
 	setHeaderField();
 	this->_message += (this->_start_line + "\r\n");
+	std::cout << "message out 1 : " << this->_message << std::endl;
 	this->_message += this->_header_field;
-	if (this->_data->isCGI == false)
+	std::cout << "message out 2 : " << this->_message << std::endl;
+	if (this->_data->isCGI == false &&
+		this->_data->is_autoindex == false)
 		this->_message += "\r\n";
 	return (0);
 }

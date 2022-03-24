@@ -5,6 +5,7 @@ RequestMessage::RequestMessage(HTTPData* _data) : data(_data), parsing_pointer(0
 void	RequestMessage::setMessage(char* buffer) {
 	std::string	temp(buffer);
 	this->message += temp;
+	this->has_index = true;
 	return ;
 }
 
@@ -47,8 +48,7 @@ int		RequestMessage::parsingRequestMessage() {
 		}
 		if (start_line_pos != -1) {
 			parseStartLine(start_line_msg);
-			data->_tmp_directory = start_line_msg.substr(data->method.length() + 1, _second_space - (data->method.length() + 1));
-			
+			data->url_directory = this->message.substr(0, start_line_pos).substr(data->method.length() + 1, _second_space - (data->method.length() + 1));
 			resetMessage();
 			this->seq = HEADER_FIELD;
 		}
@@ -83,6 +83,20 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	if (this->data->uri_file.compare("") == 0) {
 		checkTarget();
 	}
+
+	if (this->has_index == false)
+	{
+		std::string
+			tmp = _config._http._server[1]._dir_map["root"] + this->data->url_directory;
+		tmp = FileController::toAbsPath(tmp);
+		if (FileController::checkType(tmp) == FileController::DIR &&
+			_config._http._server[1].findLocationIndexByDir(this->data->url_directory) != -1 &&
+			_config._http._server[1]._location[_config._http._server[1].findLocationIndexByDir(this->data->url_directory)]._dir_map["autoindex"] == "on")
+		{
+			data->is_autoindex = true;
+			data->status_code = 200;
+		}
+	}
 }
 
 void	RequestMessage::parseMethod(int &start, int &end, std::string &msg) {
@@ -116,7 +130,6 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 	if (query_pos != -1) {
 		data->query_string = target.substr(query_pos + 1);
 		target = target.substr(0, target.length() - data->query_string.length() - 1);
-
 	}
 //	for (int i = 0; i < int(_config._http._server[this->data->server_block]._location.size()); i++)
 //	{
@@ -206,6 +219,7 @@ void	RequestMessage::checkTarget(void) {
 	}
 
 	std::string root = _config._http._server[this->data->server_block]._dir_map["root"];
+	this->data->url_directory = data->uri_dir;
 
 	std::vector<std::string> index = checkURIDIR();
 	std::vector<std::string>::iterator it;
@@ -214,17 +228,20 @@ void	RequestMessage::checkTarget(void) {
 	// index 자체가 없을 때
 	// root 경로에  default index.html을 띄워준다.
 	// index.html이 없는 경우에는 403
+
 	if (index.empty()) {
 		std::string	filePath = root + data->uri_dir + "index.html";
 		if (access(filePath.c_str(), F_OK) == 0) {
 			data->uri_file = "index.html";
 			data->file_extension = "html";
 			data->status_code = 304;
+			this->has_index = true;
 			return ;
 		} else {
 			data->uri_file = getErrorPage(error_page, root);
 			data->file_extension = "html";
 			data->status_code = 403;
+			this->has_index = true;
 			return ;
 		}
 	}
@@ -235,6 +252,7 @@ void	RequestMessage::checkTarget(void) {
 			data->file_extension = (*it).substr((*it).find_last_of('.') + 1);
 			data->uri_file = *it;
 			data->status_code = 200;
+			this->has_index = true;
 			return ;
 		}
 	}
@@ -242,6 +260,7 @@ void	RequestMessage::checkTarget(void) {
 		data->uri_file = getErrorPage(error_page, root);
 		data->file_extension = "html";
 		data->status_code = 403;
+		this->has_index = false;
 	}
 }
 

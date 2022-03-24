@@ -8,8 +8,10 @@
 #include "ErrorHandler.hpp"
 #include "ConfigBlocks.hpp"
 #include "CGIProcess.hpp"
+#include "FileController.hpp"
 
-extern NginxConfig::GlobalConfig _config;
+extern NginxConfig::GlobalConfig
+	_config;
 
 class RequestMessage {
 	public:
@@ -26,6 +28,7 @@ class RequestMessage {
 		int			parsing_pointer;
 		std::string	message;
 		Seq			seq;
+		bool		has_index;
 
 	public:
 		RequestMessage(HTTPData* _data);

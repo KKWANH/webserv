@@ -123,16 +123,26 @@ namespace				NginxConfig
 			std::vector<class LocationBlock>
 				_location;
 
-			ServerBlock(void) {}
-			ServerBlock(std::string _str);
+			ServerBlock(
+				void) {}
+			ServerBlock(
+				std::string _str);
+
 			void
-				setDirectiveTypes(void);
+				setDirectiveTypes(
+					void);
 			InheritData
-				getInheritData(void);
+				getInheritData(
+					void);
 			void
-				setBlock(void);
+				setBlock(
+					void);
 			void
-				checkServerBlock(void);
+				checkServerBlock(
+					void);
+			int
+				findLocationIndexByDir(
+					std::string _nam);
 	};
 
 	class				HttpBlock		: public NginxBlock

@@ -49,6 +49,7 @@ class AutoindexController {
 		message_body += ("\t\t\tIndex of " + dir_path + "\n");
 		message_body += "\t\t</title>\n";
 		message_body += "\t</head>\n";
+		message_body += "<link rel=\"icon\" type=\"image/x-icon\" href=\"assets/favicon.ico\" />\n";
 		message_body += "\t<body>\n";
 		message_body += "\t\t<h1>\n";
 		message_body += ("\t\t\tIndex of " + dir_path + "\n");
@@ -69,7 +70,7 @@ class AutoindexController {
 		message_body += "\t\t</pre>\n";
 		message_body += "\t\t<hr>\n";
 		message_body += "\t</body>\n";
-		message_body += "</html>\n";
+		message_body += "</html>";
 		closedir(dir);
 		return (message_body);
 	}

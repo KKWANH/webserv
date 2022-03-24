@@ -8,7 +8,7 @@
 # include				<iostream>
 # include				<fstream>
 
-# include				"../ErrorHandler/ErrorHandler.hpp"
+# include				"ErrorHandler.hpp"
 
 class					Parser
 {

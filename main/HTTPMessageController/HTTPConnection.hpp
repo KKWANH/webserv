@@ -7,7 +7,9 @@
 #include "ResponseMessage.hpp"
 #include "KernelQueueController.hpp"
 #include "FileController.hpp"
+#include "AutoindexController.hpp"
 #include <fcntl.h>
+#include <sstream>
 
 #define BUF_SIZ 2048
 
@@ -30,7 +32,8 @@ class HTTPConnection : public ClassController {
 			FILE_READ,
 			FILE_WRITE,
 			CLOSE,
-			RE_KEEPALIVE
+			RE_KEEPALIVE,
+			AUTOINDEX_WRITE
 		}					Seq;
 
 	private:
@@ -47,6 +50,7 @@ class HTTPConnection : public ClassController {
 		int					readLength;
 		int					writeLength;
 		bool				keep_alive;
+		std::string			_str_buffer;
 		
 	public:
 		HTTPConnection(int fd, int block, int server_port, std::string client_ip);

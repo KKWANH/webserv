@@ -38,8 +38,8 @@ public:
 	{
 		time_t end;
 		end = time(NULL);
-//		std::cout << "start : " << timer_list[id].start << " end : " << double(end) << std::endl;
-//		std::cout << "time :  " << double(end - timer_list[id].start) << std::endl;
+		std::cout << "start : " << timer_list[id].start << " end : " << double(end) << std::endl;
+		std::cout << "time :  " << double(end - timer_list[id].start) << std::endl;
 		return (double(end - timer_list[id].start));
 	}
 
