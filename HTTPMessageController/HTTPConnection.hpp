@@ -8,6 +8,7 @@
 #include "KernelQueueController.hpp"
 #include "FileController.hpp"
 #include "AutoindexController.hpp"
+#include "ErrorPageController.hpp"
 #include <fcntl.h>
 #include <sstream>
 
@@ -33,7 +34,8 @@ class HTTPConnection : public ClassController {
 			FILE_WRITE,
 			CLOSE,
 			RE_KEEPALIVE,
-			AUTOINDEX_WRITE
+			AUTOINDEX_WRITE,
+			ERROR_WRITE
 		}					Seq;
 
 	private:
