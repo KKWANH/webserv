@@ -2,10 +2,14 @@
 #include <sstream>
 extern NginxConfig::GlobalConfig _config;
 
-HTTPConnection::HTTPConnection(int fd, int block, int server_port, std::string client_ip) {
+HTTPConnection::HTTPConnection(int fd, int block, int server_port, std::string client_ip, std::string client_port, std::string host_ip, std::string host_port) {
 	seq = REQUEST;
 	socket_fd = fd;
 	http_data = new HTTPData(block, server_port, client_ip);
+	http_data->client_ip = client_ip;
+	http_data->client_port = client_port;
+	http_data->host_ip = host_ip;
+	http_data->host_port = host_port;
 	request_message = new RequestMessage(http_data);
 	response_message = new ResponseMessage(http_data);
 }

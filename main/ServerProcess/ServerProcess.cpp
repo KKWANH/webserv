@@ -7,7 +7,7 @@ void	ServerProcess::serverProcess() {
 	KernelQueueController kq(100);
 	int	serverFd;
 	SocketController *socketController = new SocketController[_config._http._server.size()];
-			
+
 	for (int i = 0; i < (int)_config._http._server.size(); i++) {
 		std::cout << "BIND PORT : " << atoi(_config._http._server[i]._dir_map["listen"].c_str()) << std::endl;
 		socketController[i].generator(atoi(_config._http._server[i]._dir_map["listen"].c_str()));
@@ -34,9 +34,17 @@ void	ServerProcess::serverProcess() {
 							close(conn_socket);
 							throw ErrorHandler(__FILE__, __func__, __LINE__, "We can't find that block", ErrorHandler::NON_CRIT);
 						}
+						std::stringstream	clientPortString;
+						std::stringstream	hostPortString;
+
+						std::string	client_ip = std::string(inet_ntoa((socketController->getServerAddr()).sin_addr));
+						clientPortString << ntohs(socketController->getServerAddr().sin_port);
+
+						std::string host_ip = std::string(inet_ntoa((socketController->getClientAddr()).sin_addr));
+						hostPortString << ntohs(socketController->getClientAddr().sin_port);
+
 						int server_port = (int)ntohs((socketController->getServerAddr()).sin_port);
-						std::string	client_ip = std::string(inet_ntoa((socketController->getClientAddr()).sin_addr));
-						HTTPConnection* httpConnection = new HTTPConnection(conn_socket, server_block, server_port, client_ip);
+						HTTPConnection* httpConnection = new HTTPConnection(conn_socket, server_block, server_port, client_ip, std::string(clientPortString.str()), host_ip, std::string(hostPortString.str()));
 						if (fcntl(conn_socket, F_SETFL, O_NONBLOCK) == -1)
 							exit(-1);
 						kq.addEvent(conn_socket, EVFILT_READ, httpConnection);

@@ -15,13 +15,13 @@ extern NginxConfig::GlobalConfig _config;
 class CGIProcess {
 	private:
 		char**		envp;
-        char** 		argv;
-        int			inputPair[2];
-        int 		outputPair[2];
+		char** 		argv;
+		int			inputPair[2];
+		int 		outputPair[2];
 		int			env_size;
 		std::string	only_root;
 		std::string	only_file;
-        pid_t 		_pid;
+		pid_t 		_pid;
 	public:
 		CGIProcess(HTTPData* data)
 		{
@@ -29,10 +29,10 @@ class CGIProcess {
 			setEnvp(data);
 
 			#if 0
-            for (int i = 0; i < 3; i++)
-                std::cout << "argv[" << i << "] :" << argv[i] << std::endl;
-            for (int i = 0; i < env_size; i++)
-                std::cout << envp[i] << std::endl;
+			for (int i = 0; i < 3; i++)
+				std::cout << "argv[" << i << "] :" << argv[i] << std::endl;
+			for (int i = 0; i < env_size; i++)
+				std::cout << envp[i] << std::endl;
 			#endif
 		}
 
@@ -55,49 +55,49 @@ class CGIProcess {
 		}
 
 
-        // execve 1번째 파라미터
-        char*   getFilePath() { return (argv[0]); }
+		// execve 1번째 파라미터
+		char*   getFilePath() { return (argv[0]); }
 
-        // execve 2번째 파라미터
-        char**  getArgv() { return (argv); }
+		// execve 2번째 파라미터
+		char**  getArgv() { return (argv); }
 
-        // execve 3번째 파라미터, setEnvp의 후속으로
-        char    **generateEnvp(std::map<std::string, std::string> env)
-        {
-            char    **ret = new char*[env.size() + 1];
-            int i = 0;
-            std::map<std::string, std::string>::iterator it;
+		// execve 3번째 파라미터, setEnvp의 후속으로
+		char	**generateEnvp(std::map<std::string, std::string> env)
+		{
+			char	**ret = new char*[env.size() + 1];
+			int i = 0;
+			std::map<std::string, std::string>::iterator it;
 			env_size = env.size();
-            for (it = env.begin(); it != env.end(); ++it)
-            {
-                ret[i] = new char[(it->first.length() + it->second.length() + 2)];
-                strcpy(ret[i], it->first.c_str());
-                strcat(ret[i], "=");
-                strcat(ret[i], it->second.c_str());
-                i++;
-            }
-            ret[i] = NULL;
-            return (ret);
-        }
+			for (it = env.begin(); it != env.end(); ++it)
+			{
+				ret[i] = new char[(it->first.length() + it->second.length() + 2)];
+				strcpy(ret[i], it->first.c_str());
+				strcat(ret[i], "=");
+				strcat(ret[i], it->second.c_str());
+				i++;
+			}
+			ret[i] = NULL;
+			return (ret);
+		}
 
-        void    setCGIArgv(HTTPData* data) {
-            this->argv = new char*[4];
+		void	setCGIArgv(HTTPData* data) {
+			this->argv = new char*[4];
 
-            this->argv[0] = new char[data->CGI_root.size() + 1];
-            strcpy(argv[0], data->CGI_root.c_str());
+			this->argv[0] = new char[data->CGI_root.size() + 1];
+			strcpy(argv[0], data->CGI_root.c_str());
 
 			// TODO
 			// 요청으로 들어온 경로를 절대경로로 넣어줄 것
 			std::string path = _config._http._server[data->server_block]._dir_map["root"] + data->uri_dir + data->uri_file;
 			path = FileController::toAbsPath(path);
 			this->argv[1] = new char[path.length() + 1];
-            strcpy(argv[1], path.c_str());
+			strcpy(argv[1], path.c_str());
 			// "/Users/hybae/Desktop/webserv/main/new/cgiBinary/sample.php"
-            this->argv[2] = new char[data->query_string.size() + 1];
-            strcpy(argv[2], data->query_string.c_str());
+			this->argv[2] = new char[data->query_string.size() + 1];
+			strcpy(argv[2], data->query_string.c_str());
 
-            argv[3] = NULL;
-        }
+			argv[3] = NULL;
+		}
 
 		void setEnvp(HTTPData* data) {
 			std::map<std::string, std::string> _envMap;
@@ -119,8 +119,6 @@ class CGIProcess {
 			_envMap[std::string("SERVER_SOFTWARE")] = std::string("webserv/1.0");
 			_envMap[std::string("CONTENT_TYPE")] = data->header_field["Content-Type"];
 			_envMap[std::string("CONTENT_LENGTH")] = data->header_field["Content-Length"];
-			_envMap[std::string("REMOTE_ADDR")] = data->client_ip; // server socket addr
-			_envMap[std::string("SERVER_PORT")] = std::to_string(data->server_port); // host port
 			_envMap[std::string("QUERY_STRING")] = data->query_string;
 
 			_envMap[std::string("DOCUMENT_ROOT")] = only_root;
@@ -135,13 +133,24 @@ class CGIProcess {
 			_envMap[std::string("SCRIPT_NAME")] = path;
 			_envMap[std::string("PATH_INFO")] = data->uri_dir + data->uri_file;
 
+			_envMap[std::string("REMOTE_ADDR")] = data->client_ip; // server socket addr
+			_envMap[std::string("REMOTE_PORT")] = data->client_port; // serverSocketAddr.sin_port => string화
+			_envMap[std::string("SERVER_ADDR")] = data->host_ip; // server socket addr
+			_envMap[std::string("SERVER_PORT")] = data->host_port;
+
 			// cookie
-			std::map<std::string, std::string>::iterator	iter = data->header_field.find("Cookie");
-
-			if (iter != data->header_field.end())
-				_envMap[std::string("HTTP_COOKIE")] = iter->second;
-
-
+			std::map<std::string, std::string>::iterator iter = data->header_field.begin();
+			for (iter = data->header_field.begin(); iter != data->header_field.end(); iter++) {
+				std::string key = std::string("HTTP_") + iter->first;
+				for (size_t i = 0; i < key.length(); i++) {
+					if (key[i] >= 'a' && key[i] <= 'z') {
+						key[i] = key[i] - ('a' - 'A');
+					} else if (key[i] == '-') {
+						key[i] = '_';
+					}
+				}
+				_envMap[key] = iter->second;
+			}
 			envp = generateEnvp(_envMap);
 
 			//환경변수가 잘들갔나

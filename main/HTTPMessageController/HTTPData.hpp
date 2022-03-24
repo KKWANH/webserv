@@ -12,6 +12,9 @@ class HTTPData {
 		// server port & client IP
 		int										server_port;
 		std::string								client_ip;
+		std::string								client_port;
+		std::string								host_ip;
+		std::string								host_port;
         // Start Line
 		std::string								method;
 		std::string								uri_dir;
@@ -33,7 +36,7 @@ class HTTPData {
 		int										status_code;
 
 		int	getSBlock(void);
-		
+
 		HTTPData(int server_block, int server_port, std::string client_ip);
 };
 

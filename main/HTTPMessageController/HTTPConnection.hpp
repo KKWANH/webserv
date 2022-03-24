@@ -51,9 +51,9 @@ class HTTPConnection : public ClassController {
 		int					writeLength;
 		bool				keep_alive;
 		std::string			_str_buffer;
-		
+
 	public:
-		HTTPConnection(int fd, int block, int server_port, std::string client_ip);
+		HTTPConnection(int fd, int block, int server_port, std::string client_ip, std::string client_port, std::string host_ip, std::string host_port);
 		virtual ~HTTPConnection();
 		static void killConnection(void* hc);
 
@@ -62,7 +62,7 @@ class HTTPConnection : public ClassController {
 		int	getSocketFd(void);
 		int	getCgiOutputFd(void);
 		int	getCgiInputFd(void);
-		
+
 		int run();
 };
 
