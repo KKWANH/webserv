@@ -27,7 +27,7 @@ class CGIProcess {
 		{
 			setCGIArgv(data);
 			setEnvp(data);
-			
+
 			#if 0
             for (int i = 0; i < 3; i++)
                 std::cout << "argv[" << i << "] :" << argv[i] << std::endl;
@@ -107,7 +107,7 @@ class CGIProcess {
 			size_t finish = root.find_last_of(root);
 			only_file = root.substr(start + 1, finish - start);
 			only_root = root.substr(0, start);
-			
+
 			_envMap[std::string("USER")] = std::string(std::getenv("USER"));
 			_envMap[std::string("PATH")] = std::string(std::getenv("PATH"));
 			_envMap[std::string("LANG")] = std::string(std::getenv("LANG"));
@@ -122,7 +122,7 @@ class CGIProcess {
 			_envMap[std::string("REMOTE_ADDR")] = data->client_ip; // server socket addr
 			_envMap[std::string("SERVER_PORT")] = std::to_string(data->server_port); // host port
 			_envMap[std::string("QUERY_STRING")] = data->query_string;
-			
+
 			_envMap[std::string("DOCUMENT_ROOT")] = only_root;
 			_envMap[std::string("REQUEST_URI")] = data->uri_dir + data->uri_file; // 리퀘스트에 명시된 전체 주소가 들어가야 함
 			_envMap[std::string("DOCUMENT_URI")] = data->uri_dir + data->uri_file; // 리퀘스트에 명시된 전체 주소가 들어가야 함
@@ -134,6 +134,14 @@ class CGIProcess {
 			_envMap[std::string("SCRIPT_FILENAME")] = path; // 실행하고자 하는 파일의 절대 경로가 들어가야 함.
 			_envMap[std::string("SCRIPT_NAME")] = path;
 			_envMap[std::string("PATH_INFO")] = data->uri_dir + data->uri_file;
+
+			// cookie
+			std::map<std::string, std::string>::iterator	iter = data->header_field.find("Cookie");
+
+			if (iter != data->header_field.end())
+				_envMap[std::string("HTTP_COOKIE")] = iter->second;
+
+
 			envp = generateEnvp(_envMap);
 
 			//환경변수가 잘들갔나
