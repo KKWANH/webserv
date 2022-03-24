@@ -40,7 +40,15 @@ void	ServerProcess::serverProcess() {
 						kq.addEvent(conn_socket, EVFILT_READ, httpConnection);
 						kq.addEvent(conn_socket, EVFILT_WRITE, httpConnection);
 						kq.disableEvent(conn_socket, EVFILT_WRITE, httpConnection);
-						timer.init_time(udata);
+						int keepalive_timeout = -1;
+						if (_config._http._dir_map["keepalive_timeout"].size() > 0)
+							keepalive_timeout = atoi(_config._http._dir_map["keepalive_timeout"].c_str());
+						if (_config._http._server[server_block]._dir_map["keepalive_timeout"].size() > 0)
+							keepalive_timeout = atoi(_config._http._server[server_block]._dir_map["keepalive_timeout"].c_str());
+						else if (keepalive_timeout < 0)
+							keepalive_timeout = 60;
+						timer.init_time(conn_socket, httpConnection, keepalive_timeout);
+						std::cout << "conn :" << conn_socket << std::endl;
 					}
 					// HTTPConnection 처리
 					else if (dynamic_cast<HTTPConnection*>(udata) != NULL) {
@@ -48,14 +56,10 @@ void	ServerProcess::serverProcess() {
 
 						int fd = kq.getFdByEventIndex(i);
 						if (kq.isCloseByEventIndex(i)) {
-					//		if (timer.check_time(udata, hc->getServerBlock()))
-					//		{
-								std::cout << "Client closed socket : " << fd << std::endl;
-								delete hc;
-								timer.del_time(udata);
-					//		}
-						//	timer.del_time(udata);
-						//	delete hc;
+							std::cout << "Client closed socket : " << fd << std::endl;
+							timer.del_time(hc->getSocketFd());
+							delete hc;
+							//continue ;
 						}
 						else {
 							int result = hc->run();
@@ -64,7 +68,6 @@ void	ServerProcess::serverProcess() {
 								//std::cout << "kq(r) : " << fd << std::endl;
 								kq.disableEvent(hc->getSocketFd(), EVFILT_READ, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
-								timer.clean_time(udata);
 							} else if (result == HTTPConnection::BODY_TO_RESPONSE) {
 								kq.disableEvent(hc->getCgiInputFd(), EVFILT_WRITE, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
@@ -98,43 +101,30 @@ void	ServerProcess::serverProcess() {
 							} else if (result == HTTPConnection::CLOSE) {
 								// 이벤트 제거
 								// std::cout << "kq(w) : " << fd << std::endl;
-						//		if (timer.check_time(udata, hc->getServerBlock()))
-						//		{
-									// std::cout << "bye" << std::endl;
+									timer.del_time(hc->getSocketFd());
 									delete hc;
-									timer.del_time(udata);
-						//		}
+									//continue ;
+							} else if (result == HTTPConnection::RE_KEEPALIVE) {
+								std::cout << "re" << std::endl;
+								kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
+								kq.enableEvent(hc->getSocketFd(), EVFILT_READ, udata);
+								timer.clean_time(hc->getSocketFd());
 							}
 						}
 					}
 				}
-				/*
-				catch (const ErrorHandler& err) {
-					int fd = kq.getFdByEventIndex(i);
-					timer.del_time(fd);
-					if (fd > 5)
-						close(fd);
-					//근데 소켓 연결시에는 알 도리가 없으니..
-					//거기서 직접 해제를 해야 할듯
-					//delete hc는 어디에
-					//근데 없어도 누수가 안남...
-					std::cerr << err.what() << std::endl;
-					if (err.getLevel() == ErrorHandler::CRIT)
-						exit(1);
-				}
-				*/
 				catch (const ErrorHandler& err) {
 					ClassController* udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
-					int fd = kq.getFdByEventIndex(i);
-					timer.del_time(udata);
-					std::cerr << err.what() << std::endl;
+					HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
+					int fd = hc->getSocketFd();
+					timer.del_time(fd);
+					std::cout << " fd : " << fd << std::endl;
 					//아마 요 사이에 에러 페이지를 만들고 보내는 코드가 추가되어야 할듯함(였던거)
 					if (fd > 5)
 					{
-						HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
-						close(hc->getSocketFd());
-						if (hc->getFileFd() > 0)
-							close (hc->getFileFd());
+					//	close(hc->getSocketFd());
+					//	if (hc->getFileFd() > 0)
+					//		close (hc->getFileFd());
 						delete hc;
 					}
 					std::cerr << err.what() << std::endl;
@@ -145,6 +135,7 @@ void	ServerProcess::serverProcess() {
 		} else {
 			// std::cout << "waiting..." << std::endl;
 		}
+		timer.check_time(HTTPConnection::killConnection);
 	}
 	return;
 };
