@@ -113,9 +113,7 @@ int
 	setStartLine();
 	setHeaderField();
 	this->_message += (this->_start_line + "\r\n");
-	std::cout << "message out 1 : " << this->_message << std::endl;
 	this->_message += this->_header_field;
-	std::cout << "message out 2 : " << this->_message << std::endl;
 	if (this->_data->isCGI == false &&
 		this->_data->is_autoindex == false)
 		this->_message += "\r\n";

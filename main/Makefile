@@ -36,6 +36,7 @@ SRCS 			=	./server.cpp\
 					./HTTPMessageController/RequestMessage.cpp \
 					./HTTPMessageController/ResponseMessage.cpp \
 					./FileController/FileController.cpp \
+					./AutoindexController/AutoindexController.cpp
 
 OBJS			=	$(SRCS:.cpp=.o)
 

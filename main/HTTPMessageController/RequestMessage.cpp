@@ -89,7 +89,7 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 		std::string
 			tmp = _config._http._server[1]._dir_map["root"] + this->data->url_directory;
 		tmp = FileController::toAbsPath(tmp);
-		if (FileController::checkType(tmp) == FileController::DIR &&
+		if (FileController::checkType(tmp) == FileController::DIRECTORY &&
 			_config._http._server[1].findLocationIndexByDir(this->data->url_directory) != -1 &&
 			_config._http._server[1]._location[_config._http._server[1].findLocationIndexByDir(this->data->url_directory)]._dir_map["autoindex"] == "on")
 		{
