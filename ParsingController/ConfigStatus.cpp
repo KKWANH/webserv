@@ -36,15 +36,10 @@ std::string
 	StatusConfig::getStatus(
 		std::string _key)
 {
-	if (_status_map.find(_key) != _status_map.end())
-		return (_status_map.find(_key)->second);
-	return (_status_map.find("bin")->second);
+	std::map<std::string, std::string>::iterator
+		_itr;
+	for (_itr = _status_map.begin(); _itr != _status_map.end(); _itr++)
+		if (_itr->first == _key)
+			return (_itr->second);
+	return (_status_map.find("empty")->second);
 }
-
-// void
-// 	MimeConfig::printMIME(
-// 		void)
-// 	{
-// 		for (std::map<std::string, std::string>::iterator _itr = _mime_map.begin(); _itr != _mime_map.end(); _itr++)
-// 			std::cout	<< _itr->first << "\t:\t" << _itr->second << std::endl;
-// 	}
