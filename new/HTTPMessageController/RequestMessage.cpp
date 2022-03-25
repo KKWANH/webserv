@@ -118,7 +118,7 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	if (data->uri_file.compare("") == 0) {
 		checkTarget();
 	}
-	if (this->seq == ERROR && this->has_index == false)
+	if (this->seq != ERROR && this->has_index == false)
 	{
 		if (checkAutoIndex(
 				_config._http._server[1]._dir_map["root"],
