@@ -77,19 +77,20 @@ int		RequestMessage::parsingRequestMessage() {
 int		RequestMessage::checkAutoIndex(std::string _root, std::string _path)
 {
 	std::string
-		_root_and_path = _root + _path,
-		_abs_path = FileController::toAbsPath(_root_and_path),
-		_abs_root = FileController::toAbsPath(_root);
+		_abs_path =  _root + _path,
+		_abs_root = _root;
+	_abs_path = FileController::toAbsPath(_abs_path);
+	_abs_root = FileController::toAbsPath(_abs_root);
 		
 	if (FileController::checkType(_abs_path) != FileController::DIRECTORY)
 		return (-1);
-	else if (_config._http._server[this->data->server_block].findLocationIndexByDir(_path) != -1 &&
-			 _config._http._server[this->data->server_block]._location[
+	else if (_config._http._server[1].findLocationIndexByDir(_path) != -1 &&
+			 _config._http._server[1]._location[
 				 _config._http._server[1].findLocationIndexByDir(_path)
 				]._dir_map["autoindex"] == "on")
 		return (1);
-	else if (_config._http._server[this->data->server_block].findLocationIndexByDir(_path) != -1 &&
-			 _config._http._server[this->data->server_block]._location[
+	else if (_config._http._server[1].findLocationIndexByDir(_path) != -1 &&
+			 _config._http._server[1]._location[
 				 _config._http._server[1].findLocationIndexByDir(_path)
 				]._dir_map["autoindex"] == "off")
 		return (-1);
@@ -166,12 +167,12 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 		int	file_pos = target.find_last_of("/");
 		data->uri_file = target.substr(file_pos + 1);
 		target = target.substr(0, target.length() - data->uri_file.length());
-		for (int i = 0; i < int(_config._http._server[this->data->server_block]._location.size()); i++) {
-			std::string temp = _config._http._server[this->data->server_block]._location[i]._location;
+		for (int i = 0; i < int(_config._http._server[1]._location.size()); i++) {
+			std::string temp = _config._http._server[1]._location[i]._location;
 			temp = temp.substr(1, temp.length() - 2);
 			if (this->data->file_extension.compare(temp) == 0) {
 				this->data->isCGI = true;
-				this->data->CGI_root = _config._http._server[this->data->server_block]._location[i]._dir_map["cgi_pass"];
+				this->data->CGI_root = _config._http._server[1]._location[i]._dir_map["cgi_pass"];
 				this->data->CGI_what = temp;
 				//그럼 cgi를 찾았다면
 				//어느 cgi인지(php냐 아님 python이냐)
@@ -230,17 +231,17 @@ std::string					RequestMessage::getErrorPage(std::vector<std::string> error_page
 void	RequestMessage::checkTarget(void) {
 	std::map<std::string, std::string>::iterator
 		rootFinder;
-	rootFinder = _config._http._server[this->data->server_block]._dir_map.find("root");
+	rootFinder = _config._http._server[1]._dir_map.find("root");
 	std::string 
 		root;
 	// default root 값 변경해야함
 	// root값이 없다는 것을 알려주여야 status 코드를 띄울 수 있음 (304)
-	if (rootFinder == _config._http._server[this->data->server_block]._dir_map.end()) {
+	if (rootFinder == _config._http._server[1]._dir_map.end()) {
 		root = "./static_html";
 		std::cout << "여기서 default root 값을 넣어주여야 함!" << std::endl;
 	}
 
-	root = _config._http._server[this->data->server_block]._dir_map["root"];
+	root = _config._http._server[1]._dir_map["root"];
 	this->data->url_directory = data->uri_dir;
 
 	std::vector<std::string> index = checkURIDIR();
