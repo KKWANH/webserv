@@ -218,9 +218,9 @@ std::string
 		std::string _pth)
 {
 	std::string
-		_tmp;
+		_tmp = _pth;
 	if (_pth.substr(_pth.length() - 1, _pth.length()) == "/")
-		_tmp = _pth.substr(0, _pth.length() - 1);
+		_tmp = _tmp.substr(0, _tmp.length() - 1);
 	int	
 		_idx = _tmp.find_last_of("/");
     return (_tmp.substr(0, _idx + 1));

@@ -80,7 +80,7 @@ int		RequestMessage::checkAutoIndex(std::string _root, std::string _path)
 		_root_and_path = _root + _path,
 		_abs_path = FileController::toAbsPath(_root_and_path),
 		_abs_root = FileController::toAbsPath(_root);
-
+		
 	if (FileController::checkType(_abs_path) != FileController::DIRECTORY)
 		return (-1);
 	else if (_config._http._server[this->data->server_block].findLocationIndexByDir(_path) != -1 &&
@@ -113,7 +113,6 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	if (this->data->uri_file.compare("") == 0) {
 		checkTarget();
 	}
-
 	if (this->has_index == false)
 	{
 		if (checkAutoIndex(
@@ -229,16 +228,19 @@ std::string					RequestMessage::getErrorPage(std::vector<std::string> error_page
 
 // 에러 페이지 띄워주기 설정
 void	RequestMessage::checkTarget(void) {
-	std::map<std::string, std::string>::iterator rootFinder;
+	std::map<std::string, std::string>::iterator
+		rootFinder;
 	rootFinder = _config._http._server[this->data->server_block]._dir_map.find("root");
-
+	std::string 
+		root;
 	// default root 값 변경해야함
 	// root값이 없다는 것을 알려주여야 status 코드를 띄울 수 있음 (304)
 	if (rootFinder == _config._http._server[this->data->server_block]._dir_map.end()) {
+		root = "./static_html";
 		std::cout << "여기서 default root 값을 넣어주여야 함!" << std::endl;
 	}
 
-	std::string root = _config._http._server[this->data->server_block]._dir_map["root"];
+	root = _config._http._server[this->data->server_block]._dir_map["root"];
 	this->data->url_directory = data->uri_dir;
 
 	std::vector<std::string> index = checkURIDIR();
