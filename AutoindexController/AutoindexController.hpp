@@ -7,6 +7,9 @@
 #include <sstream>
 #include <iomanip>
 #include "FileController.hpp"
+#include "ConfigBlocks.hpp"
+
+extern NginxConfig::GlobalConfig _config;
 
 class AutoindexController {
 	public:
