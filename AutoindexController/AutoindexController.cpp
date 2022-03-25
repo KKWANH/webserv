@@ -25,12 +25,17 @@ std::string
 		else
 			_file_name = _folder.getFiles(_idx)->_name;
 		std::cout << "Autoindex test : " << _file_name << std::endl;
-		_msg_body << "<a href=\"" + _file_name + "\">";
-//		_msg_body << "<a href=\"localhost:";
-//		_msg_body << _config._http._server[1]._dir_map["listen"];
-//		_msg_body << "/";
-//		_msg_body << _file_name;
-//		_msg_body << "\">";
+
+		// _msg_body << "<a href=\"" + _file_name + "\">";
+
+		_msg_body << "<a href=\"http://localhost:";
+		_msg_body << _config._http._server[1]._dir_map["listen"];
+		_msg_body << _path;
+		if (_path.find_last_of("/") != _path.length() - 1)
+			_msg_body << "/";
+		_msg_body << _file_name;
+		_msg_body << "\">";
+
 		_msg_body << std::setw(53) << std::setfill(' ');
 		_msg_body << std::left << (_file_name + std::string("</a>"));
 		_msg_body << std::right;
