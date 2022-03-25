@@ -82,8 +82,15 @@ int HTTPConnection::run() {
 			if (http_data->header_field["Content-Length"].empty() == false &&
 				atoi(http_data->header_field["Content-Length"].c_str()) > limit_size)
 			{
-				std::cout << "???" << std::endl;
-				ErrorPageController::getErrorBody("413");
+				std::cout << "???1" << std::endl;
+				std::string
+					_msg_body = ErrorPageController::getErrorBody("413");
+				str_buffer = "Content-Length: ";
+				std::stringstream ss;
+				ss << _msg_body.size();
+				str_buffer += ss.str();
+				str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
+				str_buffer += _msg_body;
 				seq = ERROR_WRITE;
 			}
 		}
@@ -104,8 +111,15 @@ int HTTPConnection::run() {
 			if (http_data->header_field["Content-Length"].empty() == false &&
 				atoi(http_data->header_field["Content-Length"].c_str()) > limit_size)
 			{
-				std::cout << "???" << std::endl;
-				ErrorPageController::getErrorBody("413");
+				std::cout << "???2" << std::endl;
+				std::string
+					_msg_body = ErrorPageController::getErrorBody("413");
+				str_buffer = "Content-Length: ";
+				std::stringstream ss;
+				ss << _msg_body.size();
+				str_buffer += ss.str();
+				str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
+				str_buffer += _msg_body;
 				seq = ERROR_WRITE;
 			}
 		}
@@ -179,8 +193,8 @@ int HTTPConnection::run() {
 		write(socket_fd, str_buffer.data(), str_buffer.size());
 		seq = CLOSE;
 	}
-	else if (seq == ERROR_WRITE){
-		std::cout << "외안돼?" << std::endl;
+	else if (seq == ERROR_WRITE) {
+		std::cout << "ddadadad?" << std::endl;
 		write(socket_fd, str_buffer.data(), str_buffer.size());
 		seq = CLOSE;
 	}

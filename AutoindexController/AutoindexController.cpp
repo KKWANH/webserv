@@ -1,38 +1,5 @@
 #include "AutoindexController.hpp"
 
-int
-	AutoindexController::isCorrectDir(
-		std::string	root_path,
-		std::string dir_path,
-		std::string index_file)
-{
-	DIR*
-		dir;
-	struct dirent
-		*diread;
-	std::string	
-		absolutePath = root_path + dir_path;
-	int	
-		count = -1;
-
-	// 404 Not Found + extension html
-	if ((dir = opendir(absolutePath.c_str())) == NULL)
-		return (count);
-	while ((diread = readdir(dir)) != NULL)
-	{
-		if (diread->d_ino == 0)
-			continue;
-		// 200 OK with index file
-		if (strcmp(index_file.c_str(), diread->d_name) == 0) {
-			closedir(dir);
-			return (0);		
-		}
-		++count;
-	}
-	closedir(dir);
-	return (count);
-}
-
 std::string
 	AutoindexController::getAutoIndexBody(
 		std::string _root,
@@ -57,6 +24,14 @@ std::string
 			_file_name = _folder.getFiles(_idx)->_name + std::string("/");
 		else
 			_file_name = _folder.getFiles(_idx)->_name;
+		std::cout << "Autoindex test : " << _file_name << std::endl;
+		// std::string
+		// 	_root_file = _root + _path + _folder.getFiles(_idx)->_name;
+		// _root_file = FileController::toAbsPath(_root_file);
+		// if (_folder.getFiles(_idx)->_name == std::string(".."))
+		// 	_msg_body << "<a href=\"" + _file_name + "\">";
+		// else
+		// 	_msg_body << "<a href=\"" + _root_file + "\">";
 		_msg_body << "<a href=\"" + _file_name + "\">";
 		_msg_body << std::setw(53) << std::setfill(' ');
 		_msg_body << std::left << (_file_name + std::string("</a>"));
