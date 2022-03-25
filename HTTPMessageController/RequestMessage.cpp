@@ -48,7 +48,7 @@ int		RequestMessage::parsingRequestMessage() {
 		}
 		if (start_line_pos != -1) {
 			parseStartLine(start_line_msg);
-			if (this->seq != UNKNOWN_METHOD)
+			if (this->seq != ERROR)
 			{
 				data->url_directory = this->message.substr(0, start_line_pos).substr(data->method.length() + 1, _second_space - (data->method.length() + 1));
 				resetMessage();
@@ -118,7 +118,7 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	if (data->uri_file.compare("") == 0) {
 		checkTarget();
 	}
-	if (this->seq == UNKNOWN_METHOD && this->has_index == false)
+	if (this->seq == ERROR && this->has_index == false)
 	{
 		if (checkAutoIndex(
 				_config._http._server[1]._dir_map["root"],
@@ -142,7 +142,10 @@ void	RequestMessage::parseMethod(int &start, int &end, std::string &msg) {
 		data->method.compare("DELETE") == 0)
 		return;
 	else
-		this->seq = UNKNOWN_METHOD;
+	{
+		this->error_code = "405";
+		this->seq = ERROR;
+	}
 }
 
 void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {

@@ -61,10 +61,10 @@ int HTTPConnection::run() {
 		if (readLength > 0)
 			request_message->setMessage(buffer);
 		int request_result = request_message->parsingRequestMessage();
-		if (request_result == RequestMessage::UNKNOWN_METHOD)
+		if (request_result == RequestMessage::ERROR)
 		{
 			std::string
-				_msg_body = ErrorPageController::getErrorBody("405");
+				_msg_body = ErrorPageController::getErrorBody(request_message->error_code);
 			http_data->str_buffer = "Content-Length: ";
 			std::stringstream ss;
 			ss << _msg_body.size();

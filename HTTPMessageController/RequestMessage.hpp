@@ -19,9 +19,10 @@ class RequestMessage {
 			START_LINE,
 			HEADER_FIELD,
 			MESSAGE_BODY,
-			UNKNOWN_METHOD,
-			FINISH_PARSE
+			FINISH_PARSE,
+			ERROR
 		}				Seq;
+		std::string error_code;
 
 	private:
 		HTTPData*	data;
