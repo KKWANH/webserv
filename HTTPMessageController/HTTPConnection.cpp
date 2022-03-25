@@ -53,13 +53,28 @@ int	HTTPConnection::getCgiOutputFd(void)	{ return (this->cgi_output_fd); }
 int	HTTPConnection::getCgiInputFd(void)		{ return (this->cgi_input_fd); }
 
 int HTTPConnection::run() {
+	std::cout << "sequence : " << seq << std::endl;
 	if (seq == REQUEST) {
+		std::cout << "[REQUEST]\n";
 		readLength = read(socket_fd, buffer, BUF_SIZ-1);
 		buffer[readLength] = '\0';
 		if (readLength > 0)
 			request_message->setMessage(buffer);
 		int request_result = request_message->parsingRequestMessage();
-		if (request_result == RequestMessage::FINISH_PARSE) {
+		if (request_result == RequestMessage::UNKNOWN_METHOD)
+		{
+			std::string
+				_msg_body = ErrorPageController::getErrorBody("405");
+			http_data->str_buffer = "Content-Length: ";
+			std::stringstream ss;
+			ss << _msg_body.size();
+			http_data->str_buffer += ss.str();
+			http_data->str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
+			http_data->str_buffer += _msg_body;
+			http_data->is_buffer_write = true;
+			seq = REQUEST_TO_RESPONSE;
+		}
+		else if (request_result == RequestMessage::FINISH_PARSE) {
 			std::map<std::string, std::string>::iterator res;
 			if ((res = this->http_data->header_field.find("Connection")) != this->http_data->header_field.end())
 				if (res->second == "keep-alive")
@@ -85,13 +100,13 @@ int HTTPConnection::run() {
 				std::cout << "???1" << std::endl;
 				std::string
 					_msg_body = ErrorPageController::getErrorBody("413");
-				str_buffer = "Content-Length: ";
+				http_data->str_buffer = "Content-Length: ";
 				std::stringstream ss;
 				ss << _msg_body.size();
-				str_buffer += ss.str();
-				str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
-				str_buffer += _msg_body;
-				seq = ERROR_WRITE;
+				http_data->str_buffer += ss.str();
+				http_data->str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
+				http_data->str_buffer += _msg_body;
+				seq = REQUEST_TO_RESPONSE;
 			}
 		}
 		else if (request_result == RequestMessage::MESSAGE_BODY) {
@@ -114,17 +129,18 @@ int HTTPConnection::run() {
 				std::cout << "???2" << std::endl;
 				std::string
 					_msg_body = ErrorPageController::getErrorBody("413");
-				str_buffer = "Content-Length: ";
+				http_data->str_buffer = "Content-Length: ";
 				std::stringstream ss;
 				ss << _msg_body.size();
-				str_buffer += ss.str();
-				str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
-				str_buffer += _msg_body;
+				http_data->str_buffer += ss.str();
+				http_data->str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
+				http_data->str_buffer += _msg_body;
 				seq = ERROR_WRITE;
 			}
 		}
 	}
 	else if (seq == READY_TO_MESSAGE_BODY) {
+		std::cout << "[READY_TO_MESSAGE_BODY]\n";
 		write(cgi_input_fd, request_message->getMessage().data(), request_message->getMessage().size());
 		std::stringstream ss;
 		ss << request_message->getMessage().size();
@@ -134,6 +150,7 @@ int HTTPConnection::run() {
 			seq = MESSAGE_BODY_READ;
 	}
 	else if (seq == BODY_TO_RESPONSE) {
+		std::cout << "[BODY_TO_RESPONSE]\n";
 		seq = REQUEST_TO_RESPONSE;
 	}
 	else if (seq == MESSAGE_BODY_READ) {
@@ -158,13 +175,8 @@ int HTTPConnection::run() {
 	}
 	else if (seq == REQUEST_TO_RESPONSE) {
 		std::cout << "[REQUEST_TO_RESPONSE]" << std::endl;
-		/*
-		if (http_data->isCGI == true) {
-			std::cout << "CGI INPUT" << std::endl << request_message->getMessage().data() << std::endl;
-			write(cgi_input_fd, request_message->getMessage().data(), request_message->getMessage().size());
-		}
-		*/
-		response_message->setResponseMessage();
+		if (http_data->is_buffer_write == false)
+			response_message->setResponseMessage();
 		seq = RESPONSE;
 	}
 	else if (seq == RESPONSE) {
@@ -172,19 +184,27 @@ int HTTPConnection::run() {
 		int
 			write_size = ((int)response_message->getMessage().size() < BUF_SIZ ? (int)response_message->getMessage().size() : BUF_SIZ);
 		writeLength = write(socket_fd, response_message->getMessage().data(), write_size);
-		if (writeLength != BUF_SIZ) {
+		if (http_data->is_buffer_write == true)
+		{
+			size_t r = write(socket_fd, http_data->str_buffer.data(), http_data->str_buffer.size());
+			std::cout << "r : " << r << std::endl;
+			std::cout << "buffer_size : " << http_data->str_buffer.size() << std::endl;
+			http_data->is_buffer_write = false;
+			seq = CLOSE;
+		}
+		else if (writeLength != BUF_SIZ) {
 			if (this->http_data->isCGI == true) {
 				seq = READY_TO_CGI;
 			}
 			else if (this->http_data->is_autoindex == true) {
 				std::string
 					_msg_body = AutoindexController::getAutoIndexBody(_config._http._server[1]._dir_map["root"], this->http_data->url_directory);
-				str_buffer = "Content-Length: ";
+				http_data->str_buffer = "Content-Length: ";
 				std::stringstream ss;
 				ss << _msg_body.size();
-				str_buffer += ss.str();
-				str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
-				str_buffer += _msg_body;
+				http_data->str_buffer += ss.str();
+				http_data->str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
+				http_data->str_buffer += _msg_body;
 				seq = AUTOINDEX_WRITE;
 			}
 			else {
@@ -204,12 +224,14 @@ int HTTPConnection::run() {
 			response_message->resetMessage(writeLength);
 	}
 	else if (seq == AUTOINDEX_WRITE) {
-		write(socket_fd, str_buffer.data(), str_buffer.size());
+		std::cout << "[AUTOINDEX_WRITE]\n";
+		write(socket_fd, http_data->str_buffer.data(), http_data->str_buffer.size());
 		seq = CLOSE;
 	}
 	else if (seq == ERROR_WRITE) {
-		write(socket_fd, str_buffer.data(), str_buffer.size());
-		seq = CLOSE;
+		// std::cout << "[ERROR_WRITE]\n";
+		// write(socket_fd, http_data->str_buffer.data(), http_data->str_buffer.size());
+		// seq = CLOSE;
 	}
 	else if (seq == READY_TO_CGI) {
 		std::cout << "[READY_TO_CGI]" << std::endl;
@@ -255,6 +277,7 @@ int HTTPConnection::run() {
 	else if (seq == FILE_READ) {
 		std::cout << "[FILE_READ]" << std::endl;
 		readLength = read(file_fd, buffer, BUF_SIZ);
+		std::cout << buffer << std::endl;
 		seq = FILE_WRITE;
 	}
 	else if (seq == FILE_WRITE) {
@@ -312,5 +335,6 @@ int HTTPConnection::run() {
 		response_message = new ResponseMessage(http_data);
 		seq = REQUEST;
 	}
+	std::cout << "sequence : " << seq << std::endl;
 	return seq;
 };

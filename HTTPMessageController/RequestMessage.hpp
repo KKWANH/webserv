@@ -19,6 +19,7 @@ class RequestMessage {
 			START_LINE,
 			HEADER_FIELD,
 			MESSAGE_BODY,
+			UNKNOWN_METHOD,
 			FINISH_PARSE
 		}				Seq;
 

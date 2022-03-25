@@ -221,6 +221,7 @@ std::string
 		_tmp = _pth;
 	if (_pth.substr(_pth.length() - 1, _pth.length()) == "/")
 		_tmp = _tmp.substr(0, _tmp.length() - 1);
+	std::cout << _tmp << " vs " << _pth << std::endl;
 	int	
 		_idx = _tmp.find_last_of("/");
     return (_tmp.substr(0, _idx + 1));

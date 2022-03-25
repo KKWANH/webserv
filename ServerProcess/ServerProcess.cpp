@@ -74,8 +74,6 @@ void	ServerProcess::serverProcess() {
 						else {
 							int result = hc->run();
 							if (result == HTTPConnection::REQUEST_TO_RESPONSE) {
-								// READ -> WRITE
-								//std::cout << "kq(r) : " << fd << std::endl;
 								kq.disableEvent(hc->getSocketFd(), EVFILT_READ, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 							} else if (result == HTTPConnection::BODY_TO_RESPONSE) {

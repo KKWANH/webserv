@@ -52,7 +52,6 @@ class HTTPConnection : public ClassController {
 		int					readLength;
 		int					writeLength;
 		bool				keep_alive;
-		std::string			str_buffer;
 		int					current_size;	
 		int					limit_size;
 

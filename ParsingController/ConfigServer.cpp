@@ -122,13 +122,9 @@ void
 		_dir_map["root"] = DEFAULT_ROOT;
 	if (_dir_map["client_max_body_size"].empty())
 		_dir_map["client_max_body_size"] = DEFAULT_CLIENT_MAX_BODY_SIZE;
-	// std::cout << "1" << std::endl;
 	checkValidNumberValue(*this, "listen");
-	// std::cout << "2" << std::endl;
 	checkValidNumberValue(*this, "client_max_body_size");
-	// std::cout << "3" << std::endl;
 	checkValidNumberValue(*this, "keepalive_timeout");
-	// std::cout << "4" << std::endl;
 	checkValidErrorPage(  _error_page);
 	checkAutoIndexValue(  *this);
 }

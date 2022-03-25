@@ -48,9 +48,12 @@ int		RequestMessage::parsingRequestMessage() {
 		}
 		if (start_line_pos != -1) {
 			parseStartLine(start_line_msg);
-			data->url_directory = this->message.substr(0, start_line_pos).substr(data->method.length() + 1, _second_space - (data->method.length() + 1));
-			resetMessage();
-			this->seq = HEADER_FIELD;
+			if (this->seq != UNKNOWN_METHOD)
+			{
+				data->url_directory = this->message.substr(0, start_line_pos).substr(data->method.length() + 1, _second_space - (data->method.length() + 1));
+				resetMessage();
+				this->seq = HEADER_FIELD;
+			}
 		}
 	}
 	if (this->seq == HEADER_FIELD) {
@@ -71,6 +74,7 @@ int		RequestMessage::parsingRequestMessage() {
 		else
 			this->seq = FINISH_PARSE;
 	}
+	std::cout << "request sequence : " << this->seq << std::endl;
 	return (this->seq);
 }
 
@@ -111,10 +115,10 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	this->parseTarget(start, end, msg);
 	this->parseHttpVersion(start, end, msg);
 	this->parsing_pointer = start + 2;
-	if (this->data->uri_file.compare("") == 0) {
+	if (data->uri_file.compare("") == 0) {
 		checkTarget();
 	}
-	if (this->has_index == false)
+	if (this->seq == UNKNOWN_METHOD && this->has_index == false)
 	{
 		if (checkAutoIndex(
 				_config._http._server[1]._dir_map["root"],
@@ -132,18 +136,13 @@ void	RequestMessage::parseMethod(int &start, int &end, std::string &msg) {
 	end = msg.find(' ');
 	if (end == -1)
 		throw ErrorHandler(__FILE__, __func__, __LINE__, "There is no HTTP Method in Request msg");
-		data->method = msg.substr(start, end);
-		if (data->method.compare("GET") == 0 ||
-			data->method.compare("POST") == 0 ||
-			data->method.compare("PUT") == 0 ||
-			data->method.compare("PATCH") == 0 ||
-			data->method.compare("DELETE") == 0 ||
-			data->method.compare("HEAD") == 0 ||
-			data->method.compare("CONNECT") == 0 ||
-			data->method.compare("OPTIONS") == 0 ||
-			data->method.compare("TRACE") == 0)
-		return ;
-	throw ErrorHandler(__FILE__, __func__, __LINE__, "HTTP Method parsing error in request msg");
+	data->method = msg.substr(start, end);
+	if (data->method.compare("GET") == 0 ||
+		data->method.compare("POST") == 0 ||
+		data->method.compare("DELETE") == 0)
+		return;
+	else
+		this->seq = UNKNOWN_METHOD;
 }
 
 void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {

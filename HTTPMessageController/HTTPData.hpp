@@ -33,6 +33,8 @@ class HTTPData {
 		// Message Body
 		std::string								message_body;
 
+		std::string								str_buffer;
+		bool									is_buffer_write;
 		int										status_code;
 
 		int	getSBlock(void);
