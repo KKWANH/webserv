@@ -33,9 +33,7 @@ class HTTPConnection : public ClassController {
 			FILE_READ,
 			FILE_WRITE,
 			CLOSE,
-			RE_KEEPALIVE,
-			AUTOINDEX_WRITE,
-			ERROR_WRITE
+			RE_KEEPALIVE
 		}					Seq;
 
 	private:
