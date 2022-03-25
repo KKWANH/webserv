@@ -58,9 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     $upload_file = $dir . '/' . basename($_FILES["fileToUpload"]["name"]);
     $imageFileType = strtolower(pathinfo($upload_file, PATHINFO_EXTENSION));
     $uploadOk = 1;
+    var_dump($_FILES);
 
+    echo $_FILES["fileToUpload"]["tmp_name"];
+    
     // Check if image file is a actual image or fake image
     if(isset($_POST["submit"])) {
+      echo $_FILES["fileToUpload"]["tmp_name"];
       $check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
       if($check !== false) {
         echo "File is an image - " . $check["mime"] . ".";
@@ -101,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         echo "Sorry, there was an error uploading your file.";
       }
     }
+    
     echo "<br />";
 }
 

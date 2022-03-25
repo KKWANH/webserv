@@ -137,9 +137,11 @@ int HTTPConnection::run() {
 		seq = REQUEST_TO_RESPONSE;
 	}
 	else if (seq == MESSAGE_BODY_READ) {
-		readLength = read(socket_fd, buffer, BUF_SIZ-1);
+		std::cout << "[MESSAGE_BODY_READ]" << std::endl;
+		readLength = read(socket_fd, buffer, BUF_SIZ - 1);
+		buffer[readLength] = '\0';
 		if (readLength > 0) {
-			buffer[readLength] = '\0';
+//			buffer[readLength] = '\0';
 			seq = MESSAGE_BODY_WRITE;
 		}
 		else {
@@ -147,14 +149,26 @@ int HTTPConnection::run() {
 		}
 	}
 	else if (seq == MESSAGE_BODY_WRITE) {
-		write(cgi_input_fd, buffer, readLength);
-		seq = MESSAGE_BODY_READ;
+		std::cout << "[MESSAGE_BODY_WRITE]" << std::endl;
+		writeLength = write(cgi_input_fd, buffer, readLength);
+		if (writeLength == BUF_SIZ - 1)
+			seq = MESSAGE_BODY_READ;
+		else
+			seq = REQUEST_TO_RESPONSE;
 	}
 	else if (seq == REQUEST_TO_RESPONSE) {
+		std::cout << "[REQUEST_TO_RESPONSE]" << std::endl;
+		/*
+		if (http_data->isCGI == true) {
+			std::cout << "CGI INPUT" << std::endl << request_message->getMessage().data() << std::endl;
+			write(cgi_input_fd, request_message->getMessage().data(), request_message->getMessage().size());
+		}
+		*/
 		response_message->setResponseMessage();
 		seq = RESPONSE;
 	}
 	else if (seq == RESPONSE) {
+		std::cout << "RESPONSE" << std::endl;
 		int
 			write_size = ((int)response_message->getMessage().size() < BUF_SIZ ? (int)response_message->getMessage().size() : BUF_SIZ);
 		writeLength = write(socket_fd, response_message->getMessage().data(), write_size);
@@ -194,19 +208,22 @@ int HTTPConnection::run() {
 		seq = CLOSE;
 	}
 	else if (seq == ERROR_WRITE) {
-		std::cout << "ddadadad?" << std::endl;
 		write(socket_fd, str_buffer.data(), str_buffer.size());
 		seq = CLOSE;
 	}
 	else if (seq == READY_TO_CGI) {
+		std::cout << "[READY_TO_CGI]" << std::endl;
 		close(cgi_input_fd);
 		seq = CGI_READ;
 	}
 	else if (seq == CGI_READ) {
-		readLength = read(cgi_output_fd, buffer, BUF_SIZ);
+		std::cout << "[CGI_READ]" << std::endl;
+		readLength = read(cgi_output_fd, buffer, BUF_SIZ - 1);
+		buffer[readLength] = '\0';
 		seq = CGI_WRITE;
 	}
 	else if (seq == CGI_WRITE) {
+		std::cout << "[CGI_WRITE]" << std::endl;
 		if (readLength == 0)
 			seq = CLOSE;
 		else if (readLength == -1)
@@ -214,28 +231,34 @@ int HTTPConnection::run() {
 				"exit -1 replaced", ErrorHandler::CRIT);
 		else {
 			writeLength = write(socket_fd, buffer, readLength);
+			std::cout << "---CGI_WRITE---" << std::endl << buffer << std::endl;
 			if (readLength != writeLength) {
 				throw ErrorHandler(__FILE__, __func__, __LINE__,
 					"exit -1 replaced", ErrorHandler::CRIT);
-			}
-			if (writeLength != BUF_SIZ) {
+			}/*
+			if (writeLength != BUF_SIZ - 1) {
+				std::cout << "READ LEN : " << readLength << std::endl;
+				std::cout << "WRITE LEN : " << writeLength << std::endl;
+				std::cout << "test1" << std::endl;
 				close(cgi_output_fd);
 				seq = CLOSE;
 			}
 			else
+			*/
 				seq = CGI_READ;
 		}
-		if (seq == CLOSE && keep_alive == true)
-			seq = RE_KEEPALIVE;
 	}
 	else if (seq == READY_TO_FILE) {
+		std::cout << "[READY_TO_FILE]" << std::endl;
 		seq = FILE_READ;
 	}
 	else if (seq == FILE_READ) {
+		std::cout << "[FILE_READ]" << std::endl;
 		readLength = read(file_fd, buffer, BUF_SIZ);
 		seq = FILE_WRITE;
 	}
 	else if (seq == FILE_WRITE) {
+		std::cout << "[FILE_WRITE]" << std::endl;
 		if (readLength == 0)
 			seq = CLOSE;
 		else if (readLength == -1)
