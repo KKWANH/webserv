@@ -71,7 +71,7 @@ void	ResponseMessage::setHeaderField() {
 	std::string
 		_path = _config._http._server[this->_data->server_block]._dir_map["root"] + this->_data->uri_dir + this->_data->uri_file;
 	std::cout << "PATH : " << _path << std::endl;
-	if (this->_data->isCGI == true) {
+	if (this->_data->is_cgi == true) {
 		// FIXME
 		// CGI의 경우, Chunked _data를 받아야 함.
 		//this->_header_field += "Transfer-Encoding: chunked\r\n";
@@ -114,7 +114,7 @@ int
 	setHeaderField();
 	this->_message += (this->_start_line + "\r\n");
 	this->_message += this->_header_field;
-	if (this->_data->isCGI == false &&
+	if (this->_data->is_cgi == false &&
 		this->_data->is_autoindex == false)
 		this->_message += "\r\n";
 	return (0);

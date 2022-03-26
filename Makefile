@@ -39,18 +39,20 @@ SRCS 			=	./server.cpp\
 					./HTTPMessageController/ResponseMessage.cpp \
 					./FileController/FileController.cpp \
 					./AutoindexController/AutoindexController.cpp \
-					./ErrorPageController/ErrorPageController.cpp
+					./ErrorPageController/ErrorPageController.cpp \
+					./ErrorHandler/ErrorHandler.cpp \
+					./TimeController/TimeController.cpp
 
 OBJS			=	$(SRCS:.cpp=.o)
 
 %.o: %.cpp
-	@printf "\033[34m[WEBSERV]\033[0m Generating file : "
+	@printf "\033[34m[WEBSERV]\033[0m Compiling file ($<) : "
 	@$(COMP) $(FLAG) $(HEADER) -c -o $@ $<
 	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
 	@printf "\033[32mOK\033[0m\n"
 
 $(NAME): $(OBJS)
-	@printf "\033[34m[WEBSERV]\033[0m Compiling file  : "
+	@printf "\033[34m[WEBSERV]\033[0m Linking object files (*.o) to $(NAME) binary : "
 	@$(COMP) $(FLAG) $(HEADER) $(OBJS) -o $(NAME)
 	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
 	@printf "\033[32mOK\033[0m\n"

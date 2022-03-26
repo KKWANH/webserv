@@ -162,8 +162,8 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 		target = target.substr(0, target.length() - data->query_string.length() - 1);
 	}
 	int	extension_pos = target.find_last_of(".");
-	this->data->isCGI = false;
-	this->data->CGI_root = "";
+	this->data->is_cgi = false;
+	this->data->cgi_pass = "";
 	if (extension_pos != -1) {
 		data->file_extension = target.substr(extension_pos + 1);
 		int	file_pos = target.find_last_of("/");
@@ -173,9 +173,9 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 			std::string temp = _config._http._server[1]._location[i]._location;
 			temp = temp.substr(1, temp.length() - 2);
 			if (this->data->file_extension.compare(temp) == 0) {
-				this->data->isCGI = true;
-				this->data->CGI_root = _config._http._server[1]._location[i]._dir_map["cgi_pass"];
-				this->data->CGI_what = temp;
+				this->data->is_cgi = true;
+				this->data->cgi_pass = _config._http._server[1]._location[i]._dir_map["cgi_pass"];
+				this->data->cgi_extension = temp;
 				//그럼 cgi를 찾았다면
 				//어느 cgi인지(php냐 아님 python이냐)
 				//그것도 여기서 찾아야 할것이고
@@ -309,7 +309,7 @@ void	RequestMessage::printStartLine(void) {
 	std::cout << "query_string : " << data->query_string << std::endl;
 	std::cout << "file_extension : " << data->file_extension << std::endl;
 	std::cout << "http_version : " << data->http_version << std::endl;
-	std::cout << "isCGI : " << data->isCGI << std::endl;
+	std::cout << "is_cgi : " << data->is_cgi << std::endl;
 }
 
 		/** Header Field **/
@@ -352,7 +352,7 @@ void	RequestMessage::parseMessageBody(std::string &msg) {
 	int start = this->parsing_pointer;
 
 	data->message_body = msg.substr(start);
-	if (data->isCGI) {
+	if (data->is_cgi) {
 	//	data->message_body += data->CGI_read;
 	//	write(cgi->getInputPair(), data->message_body.c_str(), data->message_body.length());
 	}
@@ -371,5 +371,5 @@ void
 	data->file_extension = "html";
 	data->status_code = 413;
 	data->uri_dir = "/";
-	data->isCGI = false;
+	data->is_cgi = false;
 }

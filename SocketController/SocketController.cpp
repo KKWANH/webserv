@@ -1,9 +1,5 @@
+// NOTE: modified coding convention by joopark
 #include "SocketController.hpp"
-#include "ConfigBlocks.hpp"
-
-#include <stdlib.h>
-#include <iostream>
-
 
 extern NginxConfig::GlobalConfig _config;
 
@@ -31,7 +27,7 @@ struct sockaddr_in SocketController::getClientAddr() {
 
 int		SocketController::getServerBlockNum(){
 	int port = int(ntohs(serverAddress.sin_port));
-	for (int i = 0; i < (int)_config._http._server.size(); i++) {
+	for (size_t i = 0; i < _config._http._server.size(); i++) {
 		if (atoi(_config._http._server[i]._dir_map["listen"].c_str()) == port)
 			return (i);
 	}
@@ -57,8 +53,7 @@ int		SocketController::binding() {
 	int e2 = listen(serverSocket, 42);
 	int e3 = fcntl(serverSocket, F_SETFL, O_NONBLOCK);
 	if (e1 < 0 || e2 < 0 || e3 < 0) {
-		std::cout << "바인드 에러~" << std::endl;
-		return (0);
+		throw ErrorHandler(__FILE__, __func__, __LINE__, "Bind Error~");
 	}
 	return serverSocket;
 };

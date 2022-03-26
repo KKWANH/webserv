@@ -1,3 +1,4 @@
+// NOTE: modified coding convention by joopark
 #ifndef CGIPROCESS_HPP
 #define CGIPROCESS_HPP
 
@@ -21,7 +22,7 @@ class CGIProcess {
 		int			env_size;
 		std::string	only_root;
 		std::string	only_file;
-		pid_t 		_pid;
+		pid_t 		pid;
 	public:
 		CGIProcess(HTTPData* data)
 		{
@@ -36,13 +37,12 @@ class CGIProcess {
 			#endif
 		}
 
-		~CGIProcess()
-		{
+		~CGIProcess() {
 			int status;
-			if (_pid > 0) {
-				waitpid(_pid, &status, 0);
+			if (pid > 0) {
+				waitpid(pid, &status, 0);
 				if (status & 0177) {
-					kill(_pid, SIGTERM);
+					kill(pid, SIGTERM);
 				}
 			}
 			for (int i = 0; i < 3; i++)
@@ -62,14 +62,12 @@ class CGIProcess {
 		char**  getArgv() { return (argv); }
 
 		// execve 3번째 파라미터, setEnvp의 후속으로
-		char	**generateEnvp(std::map<std::string, std::string> env)
-		{
+		char	**generateEnvp(std::map<std::string, std::string> env) {
 			char	**ret = new char*[env.size() + 1];
 			int i = 0;
 			std::map<std::string, std::string>::iterator it;
 			env_size = env.size();
-			for (it = env.begin(); it != env.end(); ++it)
-			{
+			for (it = env.begin(); it != env.end(); ++it) {
 				ret[i] = new char[(it->first.length() + it->second.length() + 2)];
 				strcpy(ret[i], it->first.c_str());
 				strcat(ret[i], "=");
@@ -83,8 +81,8 @@ class CGIProcess {
 		void	setCGIArgv(HTTPData* data) {
 			this->argv = new char*[4];
 
-			this->argv[0] = new char[data->CGI_root.size() + 1];
-			strcpy(argv[0], data->CGI_root.c_str());
+			this->argv[0] = new char[data->cgi_pass.size() + 1];
+			strcpy(argv[0], data->cgi_pass.c_str());
 
 			// TODO
 			// 요청으로 들어온 경로를 절대경로로 넣어줄 것
@@ -102,7 +100,7 @@ class CGIProcess {
 		void setEnvp(HTTPData* data) {
 			std::map<std::string, std::string> _envMap;
 			//cgi루트에서 파일명만 뺴고 싶다면
-			std::string root = data->CGI_root.substr(1, data->CGI_root.size());
+			std::string root = data->cgi_pass.substr(1, data->cgi_pass.size());
 			size_t start = root.find_last_of("/");
 			size_t finish = root.find_last_of(root);
 			only_file = root.substr(start + 1, finish - start);
@@ -152,19 +150,7 @@ class CGIProcess {
 				_envMap[key] = iter->second;
 			}
 			envp = generateEnvp(_envMap);
-
-			//환경변수가 잘들갔나
-	//		for (std::map<std::string, std::string>::iterator iter = _envMap.begin(); iter != _envMap.end(); iter++) {
-	//			std::cout << iter->first << " = " << iter->second << std::endl;
-//			}
 		}
-
-		//파이프는 1로 들어가서 0으로 나온다
-		/*
-		 * 				파이프A[1] -----------------> 파이프A[0]
-		 *		메인												자식
-		 *				파이프B[0] <----------------- 파이프B[1]
-		 * */
 		int& getInputPair(void)
 		{
 			return (inputPair[1]);
@@ -175,20 +161,17 @@ class CGIProcess {
 			return (outputPair[0]);
 		}
 
-		//얜 타겟 없어도 되는건가
-		//그건 POST메소드에서 타겟이 있다면 해당 타겟을fd화 시켜서 인자로 넣으면 됨
-		//킹치만 그건 없었으니...
 		void run(void)
 		{
 			if (pipe(this->inputPair) == -1 || pipe(this->outputPair) == -1) {
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "Pipe Making Error.");
 			}
 			//fork
-			if ((_pid = fork()) < 0) {
+			if ((pid = fork()) < 0) {
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "Process Making Error.");
 			}
 			//자식
-			if (_pid == 0) {
+			if (pid == 0) {
 				if ((dup2(this->inputPair[0], STDIN_FILENO) == -1) || (dup2(this->outputPair[1], STDOUT_FILENO) == -1)) {
 					throw ErrorHandler(__FILE__, __func__, __LINE__, "duplicate File Descriptor Error.");
 				}

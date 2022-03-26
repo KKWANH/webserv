@@ -34,16 +34,14 @@ void	ServerProcess::serverProcess() {
 							close(conn_socket);
 							throw ErrorHandler(__FILE__, __func__, __LINE__, "We can't find that block", ErrorHandler::NON_CRIT);
 						}
+						int server_port = (int)ntohs((socketController->getServerAddr()).sin_port);
+						std::string			client_ip = std::string(inet_ntoa((socketController->getServerAddr()).sin_addr));
+						std::string			host_ip = std::string(inet_ntoa((socketController->getClientAddr()).sin_addr));
 						std::stringstream	clientPortString;
 						std::stringstream	hostPortString;
-
-						std::string	client_ip = std::string(inet_ntoa((socketController->getServerAddr()).sin_addr));
 						clientPortString << ntohs(socketController->getServerAddr().sin_port);
-
-						std::string host_ip = std::string(inet_ntoa((socketController->getClientAddr()).sin_addr));
 						hostPortString << ntohs(socketController->getClientAddr().sin_port);
-
-						int server_port = (int)ntohs((socketController->getServerAddr()).sin_port);
+						
 						HTTPConnection* httpConnection = new HTTPConnection(conn_socket, server_block, server_port, client_ip, std::string(clientPortString.str()), host_ip, std::string(hostPortString.str()));
 						if (fcntl(conn_socket, F_SETFL, O_NONBLOCK) == -1)
 							exit(-1);

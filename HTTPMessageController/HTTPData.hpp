@@ -21,9 +21,9 @@ class HTTPData {
 		std::string								uri_file;
 		std::string								query_string;
 		std::string								file_extension;
-		std::string								CGI_root;
-		std::string								CGI_what;
-		bool        							isCGI;
+		std::string								cgi_pass;
+		std::string								cgi_extension;
+		bool        							is_cgi;
 		double									http_version;
 		bool									is_autoindex;
 		std::string								url_directory;

@@ -1,3 +1,4 @@
+// NOTE: modified coding convention by joopark
 #ifndef		FILECONTROLLER_HPP
 # define	FILECONTROLLER_HPP
 
@@ -12,93 +13,52 @@
 # include	<fcntl.h>
 # include	"ErrorHandler.hpp"
 
-class
-	FileController
-{
-    public:
-		typedef enum eType
-		{
-			FILE,
-			DIRECTORY,
-			NON
-		} Type;
+class FileController {
+public:
+	typedef enum Type {
+		FILE,
+		DIRECTORY,
+		NON
+	} Type;
 
-		typedef enum eMode
-		{
-			READ,
-			WRITE
-		} Mode;
+	typedef enum Mode {
+		READ,
+		WRITE
+	} Mode;
 
-		typedef struct sFileMetaData
-		{
-			std::string
-				_name,
-				_user,
-				_genr_time;
-			long
-				_size;
-			FileController::Type
-				_type;
-		} FileMetaData;
+	typedef struct FileMetaData {
+		std::string name;
+		std::string user;
+		std::string gen_time;
+		long size;
+		FileController::Type type;
+	} FileMetaData;
+
+private:
+	int							fd;
+	Type						type;
+	Mode						mode;
+	std::string					path;
+	FileMetaData*				meta;
+	std::vector<FileMetaData*>	files_meta;
 	
-	private:
-		int
-			_fd;
-		Type
-			_type;
-		Mode
-			_mode;
-		std::string
-			_path;
-		FileMetaData*
-			_meta;
-		std::vector<FileMetaData*>
-			_files_meta;
-		
-		static FileMetaData*
-			getMetaData(
-				std::string _tmp_path);
-		static inline void
-			getFilesOfFolder(
-				std::string&				_tmp_path,
-				std::vector<FileMetaData*>& _tmp_files_meta);
+	static FileMetaData* 		getMetaData(std::string path);
+	static inline void 			getFilesOfFolder(std::string& path, std::vector<FileMetaData*>& files_meta);
 
-	public:
-		FileController(
-				void);
-		FileController(
-				std::string _tmp_path, Mode _tmp_mode);
-		~FileController(
-				void);
+public:
+	FileController(void);
+	FileController(std::string path, Mode mode);
+	~FileController(void);
 
-		int
-			setPath(
-				std::string _tmp_path);
-		std::string
-			getPath(
-				void);
-		int
-			getFilesSize(
-				void) const;
-		FileMetaData*
-			getFiles(
-				int _idx) const;
-
-		static int
-			getFileSize(
-				std::string _pth);
-		static inline Type
-			modeToType(
-				mode_t _mod);
-		static Type
-			checkType(
-				std::string _pth);
-		static std::string&
-			toAbsPath(
-				std::string& _pth);
-		static std::string
-			getPrePath(
-				std::string path);
+	int					setPath(std::string path);
+	std::string			getPath(void);
+	int					getFilesSize(void) const;
+	FileMetaData*		getFiles(int idx) const;
+	static int			getFileSize(std::string path);
+	static inline Type	modeToType(mode_t mode);
+	static Type			checkType(std::string path);
+	static std::string&	toAbsPath(std::string& path);
+	static std::string	getPrePath(std::string path);
 };
 
 #endif

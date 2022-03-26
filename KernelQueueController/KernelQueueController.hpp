@@ -1,3 +1,4 @@
+// NOTE: modified coding convention by joopark
 #ifndef KERNELQUEUECONTROLLER_HPP
 # define KERNELQUEUECONTROLLER_HPP
 

@@ -2,15 +2,7 @@
 
 extern NginxConfig::GlobalConfig _config;
 
-HTTPConnection::HTTPConnection(
-	int fd,
-	int block,
-	int server_port,
-	std::string client_ip,
-	std::string client_port,
-	std::string host_ip,
-	std::string host_port)
-{
+HTTPConnection::HTTPConnection(int fd, int block, int server_port, std::string client_ip, std::string client_port, std::string host_ip, std::string host_port) {
 	seq = REQUEST;
 	socket_fd = fd;
 	http_data = new HTTPData(block, server_port, client_ip);
@@ -20,21 +12,15 @@ HTTPConnection::HTTPConnection(
 	http_data->host_port = host_port;
 	request_message = new RequestMessage(http_data);
 	response_message = new ResponseMessage(http_data);
-	if (_config._http._server[
-			this->http_data->server_block]._dir_map[
-				"client_max_body_size"].empty() == true)
+	if (_config._http._server[this->http_data->server_block]._dir_map["client_max_body_size"].empty() == true)
 		limit_size = 1024;
 	else
-		limit_size =
-			atoi(
-				_config._http._server[
-					this->http_data->server_block]._dir_map[
-						"client_max_body_size"].c_str());
+		limit_size = atoi(_config._http._server[this->http_data->server_block]._dir_map["client_max_body_size"].c_str());
 	current_size = 0;
 }
 
 HTTPConnection::~HTTPConnection() {
-	if (this->http_data->isCGI == true)
+	if (this->http_data->is_cgi == true)
 		delete cgi_process;
 	delete request_message;
 	delete response_message;
@@ -53,10 +39,9 @@ int	HTTPConnection::getCgiOutputFd(void)	{ return (this->cgi_output_fd); }
 int	HTTPConnection::getCgiInputFd(void)		{ return (this->cgi_input_fd); }
 
 int HTTPConnection::run() {
-	std::cout << "sequence : " << seq << std::endl;
 	if (seq == REQUEST) {
 		std::cout << "[REQUEST]\n";
-		readLength = read(socket_fd, buffer, BUF_SIZ-1);
+		readLength = read(socket_fd, buffer, BUF_SIZ - 1);
 		buffer[readLength] = '\0';
 		if (readLength > 0)
 			request_message->setMessage(buffer);
@@ -79,7 +64,7 @@ int HTTPConnection::run() {
 			if ((res = this->http_data->header_field.find("Connection")) != this->http_data->header_field.end())
 				if (res->second == "keep-alive")
 					keep_alive = true;
-			if (this->http_data->isCGI == true) {
+			if (this->http_data->is_cgi == true) {
 				cgi_process = new CGIProcess(http_data);
 				cgi_process->run();
 				cgi_input_fd = cgi_process->getInputPair();
@@ -110,7 +95,7 @@ int HTTPConnection::run() {
 			}
 		}
 		else if (request_result == RequestMessage::MESSAGE_BODY) {
-			if (this->http_data->isCGI == true) {
+			if (this->http_data->is_cgi == true) {
 				cgi_process = new CGIProcess(http_data);
 				cgi_process->run();
 				cgi_input_fd = cgi_process->getInputPair();
@@ -193,7 +178,7 @@ int HTTPConnection::run() {
 			seq = CLOSE;
 		}
 		else if (writeLength != BUF_SIZ) {
-			if (this->http_data->isCGI == true) {
+			if (this->http_data->is_cgi == true) {
 				seq = READY_TO_CGI;
 			}
 			else if (this->http_data->is_autoindex == true) {
@@ -253,7 +238,6 @@ int HTTPConnection::run() {
 				"exit -1 replaced", ErrorHandler::CRIT);
 		else {
 			writeLength = write(socket_fd, buffer, readLength);
-			std::cout << "---CGI_WRITE---" << std::endl << buffer << std::endl;
 			if (readLength != writeLength) {
 				throw ErrorHandler(__FILE__, __func__, __LINE__,
 					"exit -1 replaced", ErrorHandler::CRIT);
@@ -277,7 +261,6 @@ int HTTPConnection::run() {
 	else if (seq == FILE_READ) {
 		std::cout << "[FILE_READ]" << std::endl;
 		readLength = read(file_fd, buffer, BUF_SIZ);
-		std::cout << buffer << std::endl;
 		seq = FILE_WRITE;
 	}
 	else if (seq == FILE_WRITE) {
@@ -312,7 +295,7 @@ int HTTPConnection::run() {
 		backup_port = this->http_data->server_port;
 		backup_ip = this->http_data->client_ip;
 
-		if (this->http_data->isCGI == true)
+		if (this->http_data->is_cgi == true)
 			delete cgi_process;
 		delete request_message;
 		delete response_message;
@@ -335,6 +318,5 @@ int HTTPConnection::run() {
 		response_message = new ResponseMessage(http_data);
 		seq = REQUEST;
 	}
-	std::cout << "sequence : " << seq << std::endl;
 	return seq;
 };

@@ -1,3 +1,4 @@
+// NOTE: modified coding convention by joopark
 #ifndef AUTOINDEXCONTROLLER_HPP
 # define AUTOINDEXCONTROLLER_HPP
 
@@ -13,9 +14,7 @@ extern NginxConfig::GlobalConfig _config;
 
 class AutoindexController {
 	public:
-		static std::string
-			getAutoIndexBody(
-				std::string root_path, std::string dir_path);
+		static std::string getAutoIndexBody(std::string root_path, std::string dir_path);
 };
 
 #endif

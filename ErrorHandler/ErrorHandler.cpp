@@ -1,45 +1,54 @@
+// NOTE: modified coding convention by joopark
 #include "ErrorHandler.hpp"
 
-ErrorHandler::ErrorHandler() : msg(""), tmp(-1), e_file(""), e_func("") { }
+ErrorHandler::ErrorHandler() {};
+ErrorHandler::ErrorHandler(char const* file, char const* func, int line, std::string msg)
+			: file(file), func(func), line(line), msg(msg), level(DEFAULT) { }
+ErrorHandler::ErrorHandler(char const* file, char const* func, int line, std::string msg, e_Lev level)
+			: file(file), func(func), line(line), msg(msg), level(level) { }
+ErrorHandler::~ErrorHandler() throw() {};
 
-ErrorHandler::ErrorHandler(std::string wha) : msg(wha), tmp(-1), e_file(""), e_func("") { }
+const char* ErrorHandler::what() const throw() {
+			static std::string rtn;
 
-ErrorHandler::ErrorHandler(std::string wha, int asd) : msg(wha), tmp(asd), e_file(""), e_func("") { }
+			rtn += "\n\033[38;5;196m";
+			rtn += "~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~\n";
+			rtn += "[ERR] ";
+			if (level == DEFAULT)
+				rtn += "DEFAULT OR NOT YET : ";
+			if (level == CRIT)
+				rtn += "CRITICAL : ";
+			if (level == NON_CRIT)
+				rtn += "NON_CRITICAL : ";
+			rtn += "\033[38;5;220m";
+			rtn += msg;
+			rtn += "\033[38;5;196m";
+			rtn += "\n[FILE] ";
+			rtn += "\033[38;5;220m";
+			rtn += file;
+			rtn += "\033[38;5;196m";
+			rtn += "\n[FUNC] ";
+			rtn += "\033[38;5;220m";
+			rtn += func;
+			rtn += "\033[38;5;196m";
+			rtn += "\n[LINE] ";
+			rtn += "\033[38;5;220m";
+			rtn += std::to_string(line);
 
-ErrorHandler::~ErrorHandler() throw() { }
+			if (errno)
+			{
+				rtn += "\n";
+				//rtn += ANSI_BLU;
+				rtn += "[INF] ";
+				//rtn += ANSI_RES;
+				rtn += (std::strerror(errno));
+			}
+			rtn += "\033[38;5;196m";
+			rtn += "\n~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~";
+			rtn += "\033[0m";
+			return (rtn.c_str());
+}
 
-//yamkim님의 것을 슬쩍 보았는데
-//에러처리에선
-//발생한 시간이랑 메세지 출력만 나와있었다
-
-//에러 메세지를 만든다
-const char* ErrorHandler::what() const throw() 
-{
-	static std::string reason;
-
-	reason.clear();
-	reason += "\033[38;5;196m";
-	reason += "ERROR! : ";
-	reason += msg;
-	/*
-	if (e_file && e_func)
-	{
-		reason += "file : "
-		reason += e_file;
-		reason += "\nfunc : "
-		reason += e_func;
-	}
-	*/
-	if (errno) //yamkim님의 것에선 저걸 넣었는데 read,write만 아니면 되는건가
-	{
-		reason += "\n";
-		reason += "Reason : ";
-		reason += "\033[38;5;220m";
-		reason += (std::strerror(errno));
-	}
-	//요 if 문은 그냥 명목상으로 만든거
-	if (tmp == 0)
-		reason += "!";
-	reason += "\033[0m";
-	return (reason.c_str());
+ErrorHandler::e_Lev	ErrorHandler::getLevel() const {
+	return level;
 }
