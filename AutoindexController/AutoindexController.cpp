@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #include "AutoindexController.hpp"
 
 std::string AutoindexController::getAutoIndexBody(std::string _root, std::string _path) {

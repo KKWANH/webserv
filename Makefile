@@ -19,7 +19,7 @@ HEADER			=	-I./HTTPMessageController \
 					-I./AutoindexController \
 					-I./ErrorPageController
 
-SRCS 			=	./server.cpp\
+SRCS 			=	./webserv.cpp\
 					./ParsingController/Parser.cpp \
 					./ParsingController/NginxParser.cpp \
 					./ParsingController/ConfigGlobal.cpp \

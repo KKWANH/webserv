@@ -3,7 +3,7 @@
 extern NginxConfig::GlobalConfig _config;
 
 HTTPConnection::HTTPConnection(int fd, int block, int server_port, std::string client_ip, std::string client_port, std::string host_ip, std::string host_port) {
-	seq = REQUEST;
+	seq = HTTP_READ;
 	socket_fd = fd;
 	http_data = new HTTPData(block, server_port, client_ip);
 	http_data->client_ip = client_ip;
@@ -13,9 +13,9 @@ HTTPConnection::HTTPConnection(int fd, int block, int server_port, std::string c
 	request_message = new RequestMessage(http_data);
 	response_message = new ResponseMessage(http_data);
 	if (_config._http._server[this->http_data->server_block]._dir_map["client_max_body_size"].empty() == true)
-		limit_size = 1024;
+		http_data->client_body_size = 1024;
 	else
-		limit_size = atoi(_config._http._server[this->http_data->server_block]._dir_map["client_max_body_size"].c_str());
+		http_data->client_body_size = atoi(_config._http._server[this->http_data->server_block]._dir_map["client_max_body_size"].c_str());
 	current_size = 0;
 }
 
@@ -39,6 +39,14 @@ int	HTTPConnection::getCgiOutputFd(void)	{ return (this->cgi_output_fd); }
 int	HTTPConnection::getCgiInputFd(void)		{ return (this->cgi_input_fd); }
 
 int HTTPConnection::run() {
+	if (seq == HTTP_READ) {
+		readLength = read(socket_fd, buffer, BUF_SIZ - 1);
+		buffer[readLength] = '\0';
+		if (readLength > 0)
+			request_message->setMessage(buffer);
+		int request_result = request_message->parsingRequestMessage();
+	}
+	/*
 	if (seq == REQUEST) {
 		std::cout << "[REQUEST]\n";
 		readLength = read(socket_fd, buffer, BUF_SIZ - 1);
@@ -250,7 +258,7 @@ int HTTPConnection::run() {
 				seq = CLOSE;
 			}
 			else
-			*/
+			///
 				seq = CGI_READ;
 		}
 	}
@@ -317,6 +325,6 @@ int HTTPConnection::run() {
 		request_message = new RequestMessage(http_data);
 		response_message = new ResponseMessage(http_data);
 		seq = REQUEST;
-	}
+	}*/
 	return seq;
 };

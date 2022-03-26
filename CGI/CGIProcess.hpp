@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #ifndef CGIPROCESS_HPP
 #define CGIPROCESS_HPP
 
@@ -24,8 +23,7 @@ class CGIProcess {
 		std::string	only_file;
 		pid_t 		pid;
 	public:
-		CGIProcess(HTTPData* data)
-		{
+		CGIProcess(HTTPData* data) {
 			setCGIArgv(data);
 			setEnvp(data);
 
@@ -54,15 +52,13 @@ class CGIProcess {
 			delete envp;
 		}
 
-
-		// execve 1번째 파라미터
-		char*   getFilePath() { return (argv[0]); }
-
-		// execve 2번째 파라미터
-		char**  getArgv() { return (argv); }
+		char*	getFilePath(void)	{ return (argv[0]); }
+		char**	getArgv(void)		{ return (argv); }
+		int&	getInputPair(void)	{ return (inputPair[1]); }
+		int&	getOutputPair(void)	{ return (outputPair[0]); }
 
 		// execve 3번째 파라미터, setEnvp의 후속으로
-		char	**generateEnvp(std::map<std::string, std::string> env) {
+		char**	generateEnvp(std::map<std::string, std::string> env) {
 			char	**ret = new char*[env.size() + 1];
 			int i = 0;
 			std::map<std::string, std::string>::iterator it;
@@ -97,7 +93,7 @@ class CGIProcess {
 			argv[3] = NULL;
 		}
 
-		void setEnvp(HTTPData* data) {
+		void 	setEnvp(HTTPData* data) {
 			std::map<std::string, std::string> _envMap;
 			//cgi루트에서 파일명만 뺴고 싶다면
 			std::string root = data->cgi_pass.substr(1, data->cgi_pass.size());
@@ -151,40 +147,24 @@ class CGIProcess {
 			}
 			envp = generateEnvp(_envMap);
 		}
-		int& getInputPair(void)
-		{
-			return (inputPair[1]);
-		}
-
-		int& getOutputPair(void)
-		{
-			return (outputPair[0]);
-		}
-
-		void run(void)
-		{
-			if (pipe(this->inputPair) == -1 || pipe(this->outputPair) == -1) {
+		
+		void	run(void) {
+			if (pipe(this->inputPair) == -1 || pipe(this->outputPair) == -1)
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "Pipe Making Error.");
-			}
 			//fork
-			if ((pid = fork()) < 0) {
+			if ((pid = fork()) < 0)
 				throw ErrorHandler(__FILE__, __func__, __LINE__, "Process Making Error.");
-			}
 			//자식
 			if (pid == 0) {
-				if ((dup2(this->inputPair[0], STDIN_FILENO) == -1) || (dup2(this->outputPair[1], STDOUT_FILENO) == -1)) {
+				if ((dup2(this->inputPair[0], STDIN_FILENO) == -1) || (dup2(this->outputPair[1], STDOUT_FILENO) == -1))
 					throw ErrorHandler(__FILE__, __func__, __LINE__, "duplicate File Descriptor Error.");
-				}
-				if ((close(this->inputPair[1]) == -1) || (close(this->outputPair[0]) == -1)) {
+				if ((close(this->inputPair[1]) == -1) || (close(this->outputPair[0]) == -1))
 					throw ErrorHandler(__FILE__, __func__, __LINE__, "File Descriptor closing Error1.");
-				}
-				if (execve(this->argv[0], argv, envp) == -1) {
+				if (execve(this->argv[0], argv, envp) == -1)
 					throw ErrorHandler(__FILE__, __func__, __LINE__, "execve File Descriptor Error.");
-				}
 			} else {
-				if ((close(this->inputPair[0]) == -1) || (close(this->outputPair[1]) == -1)) {
+				if ((close(this->inputPair[0]) == -1) || (close(this->outputPair[1]) == -1))
 					throw ErrorHandler(__FILE__, __func__, __LINE__, "File Descriptor closing Error2.");
-				}
 			}
 		}
 };

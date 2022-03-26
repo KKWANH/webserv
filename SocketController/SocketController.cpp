@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #include "SocketController.hpp"
 
 extern NginxConfig::GlobalConfig _config;
@@ -16,13 +15,8 @@ SocketController::~SocketController() {
 	close(serverSocket);
 };
 
-struct sockaddr_in SocketController::getServerAddr() {
-	return (this->serverAddress);
-};
-
-struct sockaddr_in SocketController::getClientAddr() {
-	return (this->clientAddress);
-};
+struct sockaddr_in	SocketController::getServerAddr() { return (this->serverAddress); };
+struct sockaddr_in	SocketController::getClientAddr() { return (this->clientAddress); };
 
 
 int		SocketController::getServerBlockNum(){

@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #ifndef SOCKETCONTROLLER_HPP
 # define SOCKETCONTROLLER_HPP
 
@@ -24,14 +23,14 @@ public:
 	SocketController(int port);
 	virtual ~SocketController();
 	
-	int 	getServerBlockNum();
+	int					getServerBlockNum();
 
-	struct sockaddr_in getServerAddr();
-	struct sockaddr_in getClientAddr();
+	struct sockaddr_in	getServerAddr();
+	struct sockaddr_in	getClientAddr();
 
-	void	generator(int port);
-	int		binding();
-	int		run();
+	void				generator(int port);
+	int					binding();
+	int					run();
 };
 
 #endif

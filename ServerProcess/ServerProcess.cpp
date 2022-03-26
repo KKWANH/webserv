@@ -71,6 +71,8 @@ void	ServerProcess::serverProcess() {
 						}
 						else {
 							int result = hc->run();
+							if ()
+							/*
 							if (result == HTTPConnection::REQUEST_TO_RESPONSE) {
 								kq.disableEvent(hc->getSocketFd(), EVFILT_READ, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
@@ -104,7 +106,8 @@ void	ServerProcess::serverProcess() {
 							} else if (result == HTTPConnection::FILE_WRITE) {
 								kq.disableEvent(hc->getFileFd(), EVFILT_READ, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
-							} else if (result == HTTPConnection::CLOSE) {
+							} 
+							*/else if (result == HTTPConnection::CLOSE) {
 								// 이벤트 제거
 								// std::cout << "kq(w) : " << fd << std::endl;
 									timer.del_time(hc->getSocketFd());

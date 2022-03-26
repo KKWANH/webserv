@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #ifndef ERRORHANDLER_HPP
 # define ERRORHANDLER_HPP
 

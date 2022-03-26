@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #ifndef AUTOINDEXCONTROLLER_HPP
 # define AUTOINDEXCONTROLLER_HPP
 

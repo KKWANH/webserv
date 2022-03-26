@@ -1,24 +1,32 @@
 #include "RequestMessage.hpp"
 
-RequestMessage::RequestMessage(HTTPData* _data) : data(_data), parsing_pointer(0), message(""), seq(START_LINE) { cgi = NULL; }
+RequestMessage::RequestMessage(HTTPData* _data) {
+	this->data = _data;
+	this->parsing_pointer = 0;
+	this->message = "";
+	this->seq = START_LINE;
+}
 
-void	RequestMessage::setMessage(char* buffer) {
+int				RequestMessage::setError(int status_code) {
+	this->data->is_error = true;
+	this->data->status_code = status_code;
+	return (ERROR);
+}
+
+void			RequestMessage::setMessage(char* buffer) {
 	std::string	temp(buffer);
 	this->message += temp;
-	this->has_index = true;
 	return ;
 }
 
-void	RequestMessage::resetMessage() {
+void			RequestMessage::resetMessage() {
 	this->message = this->message.substr(this->parsing_pointer);
 	this->parsing_pointer = 0;
 	return ;
 }
 
-std::string
-	RequestMessage::getMessage(void)
-{
-	return this->message;
+std::string		RequestMessage::getMessage(void) {
+	return (this->message);
 }
 
 /** Header **/
@@ -27,38 +35,19 @@ std::string
 // start line 파싱이 가능하면 true, 불가능하면 false 반환
 
 
-int		RequestMessage::parsingRequestMessage() {
+int				RequestMessage::parsingRequestMessage() {
 	if (this->seq == START_LINE) {
-		int
-			start_line_pos = int(this->message.find("\r\n")),
-			_second_space = 0;
-		std::string
-			start_line_msg = this->message.substr(0, start_line_pos);
-		for (int _idx=0; _idx<(int)start_line_msg.size(); _idx++) {
-			if (start_line_msg[_idx] == ' ')
-			{
-				if (_second_space == 0)
-					_second_space = 1;
-				else
-				{
-					_second_space = _idx;
-					break;
-				}
-			}
-		}
-		if (start_line_pos != -1) {
-			parseStartLine(start_line_msg);
-			if (this->seq != ERROR)
-			{
-				data->url_directory = this->message.substr(0, start_line_pos).substr(data->method.length() + 1, _second_space - (data->method.length() + 1));
-				resetMessage();
-				this->seq = HEADER_FIELD;
-			}
+		if (int(this->message.find("\r\n")) != -1) {
+			if (parseStartLine(this->message) == ERROR)
+				return (ERROR);
+			resetMessage();
+			this->seq = HEADER_FIELD;
 		}
 	}
 	if (this->seq == HEADER_FIELD) {
 		if (int(this->message.find("\r\n\r\n", 0)) != -1) {
-			parseHeaderField(this->message);
+			if (parseHeaderField(this->message) == ERROR)
+				return (ERROR);
 			resetMessage();
 			this->seq = MESSAGE_BODY;
 		}
@@ -74,11 +63,10 @@ int		RequestMessage::parsingRequestMessage() {
 		else
 			this->seq = FINISH_PARSE;
 	}
-	std::cout << "request sequence : " << this->seq << std::endl;
 	return (this->seq);
 }
 
-int		RequestMessage::checkAutoIndex(std::string _root, std::string _path)
+int				RequestMessage::checkAutoIndex(std::string _root, std::string _path)
 {
 	std::string
 		_abs_path =  _root + _path,
@@ -109,51 +97,54 @@ int		RequestMessage::checkAutoIndex(std::string _root, std::string _path)
 	}
 }
 
-void	RequestMessage::parseStartLine(std::string &msg) {
+// TODO
+// 접근하는 경로가 파일이고, 해당 파일을 찾을 수 없는 경우 -> 404 ERROR
+// 접근하는 경로가 파일이고, 해당 파일을 열 수 없는 경우 -> 403 ERROR
+// 접근하는 경로가 디렉토리일 때, 오토인덱스 on이고, 인덱스 파일이 없는 경우 -> this->data->is_autoindex = true;
+// 접근하는 경로가 디렉토리일 때, 오토인덱스 off이고, 인덱스 파일이 있는 경우 -> nginx 비교
+// 접근하는 경로가 디렉토리일 때, 오토인덱스 off이고, 인덱스 파일이 없는 경우 -> nginx 비교
+int				RequestMessage::parseStartLine(std::string &msg) {
 	int	start, end;
-	this->parseMethod(start, end, msg);
-	this->parseTarget(start, end, msg);
+	if (this->parseMethod(start, end, msg) == ERROR)
+		return (ERROR);
+	if (this->parseTarget(start, end, msg) == ERROR)
+		return (ERROR);
 	this->parseHttpVersion(start, end, msg);
 	this->parsing_pointer = start + 2;
-	if (data->uri_file.compare("") == 0) {
-		checkTarget();
-	}
-	if (this->seq == ERROR && this->has_index == false)
-	{
-		if (checkAutoIndex(
-				_config._http._server[1]._dir_map["root"],
-				this->data->url_directory)
-			== 1)
-		{
-			data->is_autoindex = true;
-			data->status_code = 200;
-		}
-	}
+	/*
+	if (TODO 조건에 따라 에러인 경우)
+		return (setError(해당 에러 번호));
+	*/
+	return (START_LINE);
 }
 
-void	RequestMessage::parseMethod(int &start, int &end, std::string &msg) {
+// TODO
+// nginx.conf 에서 accepted_method에 해당하지 않는 경우, 405 에러 반환
+// accepted_method에 GET, POST는 명시되지 않아도 적용 가능해야 함.
+int				RequestMessage::parseMethod(int &start, int &end, std::string &msg) {
 	start = 0;
 	end = msg.find(' ');
 	if (end == -1)
-		throw ErrorHandler(__FILE__, __func__, __LINE__, "There is no HTTP Method in Request msg");
+		return (setError(400));
 	data->method = msg.substr(start, end);
-	if (data->method.compare("GET") == 0 ||
-		data->method.compare("POST") == 0 ||
-		data->method.compare("DELETE") == 0)
-		return;
-	else
-	{
-		this->error_code = "405";
-		this->seq = ERROR;
+	if (data->method.compare("GET") != 0 && data->method.compare("POST") != 0 && data->method.compare("DELETE") != 0)
+		return (setError(400));
+	/*
+	if (nginx.conf 내 accepted_method가 있는 경우) {
+		if (현재 HTTP method가 accepted_method와 매칭되지 않는 경우)
+			return (setError(405));
 	}
+	*/
+	return (START_LINE);
 }
 
-void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
+int				RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 	std::string target;
 	start = end + 1;
 	end = msg.find(' ', start);
 	if (end == -1)
-		throw ErrorHandler(__FILE__, __func__, __LINE__, "There is no URI in Request msg");
+		return (setError(400));
+
 	target = msg.substr(start, end - start);
 
 	int query_pos = int(target.find_last_of("?"));
@@ -162,30 +153,28 @@ void	RequestMessage::parseTarget(int &start, int &end, std::string &msg) {
 		target = target.substr(0, target.length() - data->query_string.length() - 1);
 	}
 	int	extension_pos = target.find_last_of(".");
-	this->data->is_cgi = false;
-	this->data->cgi_pass = "";
 	if (extension_pos != -1) {
 		data->file_extension = target.substr(extension_pos + 1);
 		int	file_pos = target.find_last_of("/");
 		data->uri_file = target.substr(file_pos + 1);
 		target = target.substr(0, target.length() - data->uri_file.length());
-		for (int i = 0; i < int(_config._http._server[1]._location.size()); i++) {
-			std::string temp = _config._http._server[1]._location[i]._location;
-			temp = temp.substr(1, temp.length() - 2);
-			if (this->data->file_extension.compare(temp) == 0) {
-				this->data->is_cgi = true;
-				this->data->cgi_pass = _config._http._server[1]._location[i]._dir_map["cgi_pass"];
-				this->data->cgi_extension = temp;
-				//그럼 cgi를 찾았다면
-				//어느 cgi인지(php냐 아님 python이냐)
-				//그것도 여기서 찾아야 할것이고
-				//그것에 대한 경로 파일도 찾아내는게 맞을듯
-				break;
-			}
-		}
 	}
 	data->uri_dir = target;
 	this->parsing_pointer = end + 2;
+	return (START_LINE);
+}
+
+void						RequestMessage::checkIsCgi(void) {
+	for (int i = 0; i < int(_config._http._server[this->data->server_block]._location.size()); i++) {
+		std::string temp = _config._http._server[this->data->server_block]._location[i]._location;
+		temp = temp.substr(1, temp.length() - 2);
+		if (this->data->file_extension.compare(temp) == 0) {
+			this->data->is_cgi = true;
+			this->data->cgi_pass = _config._http._server[this->data->server_block]._location[i]._dir_map["cgi_pass"];
+			this->data->cgi_extension = temp;
+			break;
+		}
+	}
 }
 
 std::vector<std::string>	RequestMessage::checkURIDIR(void) {
@@ -231,19 +220,17 @@ std::string					RequestMessage::getErrorPage(std::vector<std::string> error_page
 
 // 에러 페이지 띄워주기 설정
 void	RequestMessage::checkTarget(void) {
-	std::map<std::string, std::string>::iterator
-		rootFinder;
+	std::map<std::string, std::string>::iterator	rootFinder;
 	rootFinder = _config._http._server[1]._dir_map.find("root");
-	std::string 
-		root;
+	std::string	root;
 	// default root 값 변경해야함
 	// root값이 없다는 것을 알려주여야 status 코드를 띄울 수 있음 (304)
-	if (rootFinder == _config._http._server[1]._dir_map.end()) {
+	if (rootFinder == _config._http._server[this->data->server_block]._dir_map.end()) {
 		root = "./static_html";
 		std::cout << "여기서 default root 값을 넣어주여야 함!" << std::endl;
 	}
 
-	root = _config._http._server[1]._dir_map["root"];
+	root = _config._http._server[this->data->server_block]._dir_map["root"];
 	this->data->url_directory = data->uri_dir;
 
 	std::vector<std::string> index = checkURIDIR();
@@ -291,10 +278,10 @@ void	RequestMessage::checkTarget(void) {
 
 void	RequestMessage::parseHttpVersion (int &start, int &end, std::string &msg) {
 	start = end + 1;
-	std::string httpCheck = msg.substr(start);
-	if (httpCheck.compare("HTTP/1.1") == 0) {
+	std::string http_check = msg.substr(start);
+	if (http_check.compare("HTTP/1.1") == 0) {
 		this->data->http_version = 1.1;
-		start += httpCheck.length();
+		start += http_check.length();
 		return ;
 	}
 	else
@@ -313,13 +300,13 @@ void	RequestMessage::printStartLine(void) {
 }
 
 		/** Header Field **/
-void	RequestMessage::parseHeaderField(std::string &msg) {
+int		RequestMessage::parseHeaderField(std::string &msg) {
 	int start = this->parsing_pointer, end;
 	std::string key, value;
 	// header_field가 없는 경우
 	if ((int)msg.length() == start) {
 		this->parsing_pointer = start + 2;
-		return ;
+		return (HEADER_FIELD);
 	}
 	while (true) {
 		end = msg.find(':', start);
@@ -335,8 +322,13 @@ void	RequestMessage::parseHeaderField(std::string &msg) {
 		if (msg.at(start) == '\r' && msg.at(start + 1) == '\n')
 			break;
 	}
+	if (this->data->is_cgi == true && data->header_field["Content-Length"].empty() == false) {
+		int	content_length = atoi(data->header_field["Content-Length"].c_str());
+		if (content_length > this->data->client_body_size)
+			return (setError(413));
+	}
 	this->parsing_pointer = start + 2;
-	return ;
+	return (HEADER_FIELD);
 }
 
 void	RequestMessage::printHeaderField(void) {

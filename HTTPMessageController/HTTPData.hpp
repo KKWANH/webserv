@@ -23,9 +23,9 @@ class HTTPData {
 		std::string								file_extension;
 		std::string								cgi_pass;
 		std::string								cgi_extension;
-		bool        							is_cgi;
+		
 		double									http_version;
-		bool									is_autoindex;
+		
 		std::string								url_directory;
 		// Header Field
 		std::map<std::string, std::string>		header_field;
@@ -36,6 +36,13 @@ class HTTPData {
 		std::string								str_buffer;
 		bool									is_buffer_write;
 		int										status_code;
+
+		bool        							is_cgi;
+		bool									is_autoindex;
+		bool									is_redirect;
+		bool									is_error;
+
+		int										client_body_size;
 
 		int	getSBlock(void);
 

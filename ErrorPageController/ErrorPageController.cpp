@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #include "ErrorPageController.hpp"
 
 std::string ErrorPageController::getErrorBody(std::string _error_code) {

@@ -34,10 +34,9 @@ void	check_argv_str (std::string& _conf_uri, std::string  _tmp) {
 
 int		main(int argc, char** argv) {
 	try {
-		std::string
-			_conf_uri = CONF_PATH,
-			_mime_uri = MIME_PATH,
-			_stat_uri = STAT_PATH;
+		std::string	_conf_uri = CONF_PATH;
+		std::string	_mime_uri = MIME_PATH;
+		std::string	_stat_uri = STAT_PATH;
 		if (argc == 2)
 			check_argv_str(_conf_uri, argv[1]);
 		else if (argc != 1)

@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #include "TimeController.hpp"
 
 void TimeController::init_time(int id, void *ob, int timeout) {

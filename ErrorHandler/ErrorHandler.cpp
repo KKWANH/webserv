@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #include "ErrorHandler.hpp"
 
 ErrorHandler::ErrorHandler() {};

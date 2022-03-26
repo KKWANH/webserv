@@ -19,6 +19,17 @@ extern NginxConfig::GlobalConfig _config;
 class HTTPConnection : public ClassController {
 	public:
 		typedef enum		e_Seq {
+			HTTP_READ,
+			READY_AUTOINDEX,
+			READY_REDIRECT,
+			ERROR,
+			READY_CGI_INPUT,
+			CGI_INPUT_READ,
+			CGI_INPUT_WRITE,
+			FINISH_CGI_INPUT,
+			CGI_GET_HEADER,
+			SET_RESPONSE,
+
 			REQUEST,
 			READY_TO_MESSAGE_BODY,
 			MESSAGE_BODY_READ,
@@ -52,8 +63,7 @@ class HTTPConnection : public ClassController {
 		int					readLength;
 		int					writeLength;
 		bool				keep_alive;
-		int					current_size;	
-		int					limit_size;
+		int					current_size;
 
 	public:
 		HTTPConnection(int fd, int block, int server_port, std::string client_ip, std::string client_port, std::string host_ip, std::string host_port);

@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #ifndef ERRORPAGECONTROLLER_HPP
 # define ERRORPAGECONTROLLER_HPP
 

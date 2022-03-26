@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #ifndef PROCESSCONTROLLER_HPP
 # define PROCESSCONTROLLER_HPP
 

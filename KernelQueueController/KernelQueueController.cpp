@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #include "KernelQueueController.hpp"
 
 KernelQueueController::KernelQueueController(size_t events_size) : get_events_size(events_size), set_events_size(0) {

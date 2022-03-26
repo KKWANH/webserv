@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #ifndef		FILECONTROLLER_HPP
 # define	FILECONTROLLER_HPP
 

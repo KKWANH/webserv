@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 # include	"FileController.hpp"
 
 FileController::FileController(void) : fd(-1) { };
@@ -6,8 +5,7 @@ FileController::FileController(void) : fd(-1) { };
 FileController::FileController(std::string path, Mode mode) {
 	if (path.empty() || setPath(path) == -1) {
 		this->path = std::string("");
-		throw ErrorHandler(__FILE__, __func__, __LINE__,
-			"something wrong about your path.", ErrorHandler::CRIT);
+		throw ErrorHandler(__FILE__, __func__, __LINE__, "something wrong about your path.", ErrorHandler::CRIT);
 	}
 	this->mode = mode;
 	if (this->mode == READ) {
@@ -15,12 +13,15 @@ FileController::FileController(std::string path, Mode mode) {
 		if (this->type == FileController::FILE) {
 			this->meta = getMetaData(path);
 			this->fd = open(path.c_str(), O_RDONLY);
-		} else if (type == FileController::DIRECTORY) {
+		}
+		else if (type == FileController::DIRECTORY) {
 			this->meta = getMetaData(path);
 			getFilesOfFolder(path, this->files_meta);
-		} else
+		}
+		else
 			throw ErrorHandler(__FILE__, __func__, __LINE__, "file not found.", ErrorHandler::CRIT);
-	} else {
+	}
+	else {
 		this->type = FileController::FILE;
 		this->fd = open(path.c_str(), O_WRONLY | O_CREAT, S_IRWXU | S_IRWXG);
 	}

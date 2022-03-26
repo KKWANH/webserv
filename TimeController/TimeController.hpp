@@ -1,4 +1,3 @@
-// NOTE: modified coding convention by joopark
 #ifndef TIMECONTROLLER_HPP
 # define TIMECONTROLLER_HPP
 
@@ -11,8 +10,8 @@
 class TimeController {
 private:
 	struct timer_info {
-		void 	*obj;
-		time_t start;
+		void	*obj;
+		time_t	start;
 		int		keepalive_timeout;
 	};
 	std::map<int, timer_info> timer_list;
