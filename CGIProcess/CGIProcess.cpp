@@ -5,13 +5,6 @@ CGIProcess::CGIProcess(
 {
 	setCGIArgv(data);
 	setEnvp(data);
-
-	#if 0
-	for (int i = 0; i < 3; i++)
-		std::cout << "this->argv[" << i << "] :" << this->argv[i] << std::endl;
-	for (int i = 0; i < env_size; i++)
-		std::cout << envp[i] << std::endl;
-	#endif
 }
 
 CGIProcess::~CGIProcess(
@@ -156,11 +149,6 @@ void
 		_envMap[key] = iter->second;
 	}
 	envp = generateEnvp(_envMap);
-
-	// 환경변수가 잘들갔나
-	// for (std::map<std::string, std::string>::iterator iter = _envMap.begin(); iter != _envMap.end(); iter++) {
-	// 	std::cout << iter->first << " = " << iter->second << std::endl;
-	// 	}
 }
 
 int&

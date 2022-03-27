@@ -78,6 +78,5 @@ std::string
 
 	_pos = _block_end + 1;
 
-	// std::cout << "test : " << _buf.substr(_block_stt + 1, _block_end - _block_stt - 1) << std::endl;
 	return _buf.substr(_block_stt + 1, _block_end - _block_stt - 1);
 }

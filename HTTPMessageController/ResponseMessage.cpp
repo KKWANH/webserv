@@ -70,7 +70,6 @@ void	ResponseMessage::setStartLine() {
 void	ResponseMessage::setHeaderField() {
 	std::string
 		_path = _config._http._server[this->_data->server_block]._dir_map["root"] + this->_data->uri_dir + this->_data->uri_file;
-	std::cout << "PATH : " << _path << std::endl;
 	if (this->_data->isCGI == true) {
 		// FIXME
 		// CGI의 경우, Chunked _data를 받아야 함.

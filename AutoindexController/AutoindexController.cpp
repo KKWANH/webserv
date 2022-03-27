@@ -24,9 +24,6 @@ std::string
 			_file_name = _folder.getFiles(_idx)->_name + std::string("/");
 		else
 			_file_name = _folder.getFiles(_idx)->_name;
-		std::cout << "Autoindex test : " << _file_name << std::endl;
-
-		// _msg_body << "<a href=\"" + _file_name + "\">";
 
 		_msg_body << "<a href=\"http://localhost:";
 		_msg_body << _config._http._server[1]._dir_map["listen"];

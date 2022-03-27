@@ -30,6 +30,8 @@
 $upload_dir = "/uploads";
 //$dir = $_SERVER['DOCUMENT_ROOT'] . $upload_dir;
 $dir = getcwd() . $upload_dir;
+echo $dir;
+echo '<br>';
 if (is_dir($dir) == false) {
     mkdir($dir);
 }

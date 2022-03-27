@@ -9,7 +9,6 @@ void	ServerProcess::serverProcess() {
 	SocketController *socketController = new SocketController[_config._http._server.size()];
 
 	for (int i = 0; i < (int)_config._http._server.size(); i++) {
-		std::cout << "BIND PORT : " << atoi(_config._http._server[i]._dir_map["listen"].c_str()) << std::endl;
 		socketController[i].generator(atoi(_config._http._server[i]._dir_map["listen"].c_str()));
 		serverFd = socketController[i].binding();
 		if (serverFd != 0)
@@ -58,7 +57,6 @@ void	ServerProcess::serverProcess() {
 						else if (keepalive_timeout < 0)
 							keepalive_timeout = 60;
 						timer.init_time(conn_socket, httpConnection, keepalive_timeout);
-						std::cout << "conn :" << conn_socket << std::endl;
 					}
 					// HTTPConnection 처리
 					else if (dynamic_cast<HTTPConnection*>(udata) != NULL) {
@@ -66,7 +64,6 @@ void	ServerProcess::serverProcess() {
 
 						int fd = kq.getFdByEventIndex(i);
 						if (kq.isCloseByEventIndex(i) && fd == hc->getSocketFd()) {
-							std::cout << "Client closed socket : " << fd << std::endl;
 							timer.del_time(hc->getSocketFd());
 							delete hc;
 							//continue ;
@@ -108,12 +105,10 @@ void	ServerProcess::serverProcess() {
 								kq.enableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 							} else if (result == HTTPConnection::CLOSE) {
 								// 이벤트 제거
-								// std::cout << "kq(w) : " << fd << std::endl;
 									timer.del_time(hc->getSocketFd());
 									delete hc;
 									//continue ;
 							} else if (result == HTTPConnection::RE_KEEPALIVE) {
-								// std::cout << "re" << std::endl;
 								kq.disableEvent(hc->getSocketFd(), EVFILT_WRITE, udata);
 								kq.enableEvent(hc->getSocketFd(), EVFILT_READ, udata);
 								timer.clean_time(hc->getSocketFd());
@@ -126,7 +121,6 @@ void	ServerProcess::serverProcess() {
 					HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
 					int fd = hc->getSocketFd();
 					timer.del_time(fd);
-					// std::cout << " fd : " << fd << std::endl;
 					//아마 요 사이에 에러 페이지를 만들고 보내는 코드가 추가되어야 할듯함(였던거)
 					if (fd > 5)
 					{
@@ -141,7 +135,6 @@ void	ServerProcess::serverProcess() {
 				}
 			}
 		} else {
-			// std::cout << "waiting..." << std::endl;
 		}
 		timer.check_time(HTTPConnection::killConnection);
 	}

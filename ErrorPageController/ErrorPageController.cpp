@@ -42,20 +42,16 @@ std::vector<std::string>
 	ErrorPageController::findLocation(
 		std::string _uri)
 {
-	std::cout << "findLocation uri : ";
 	std::vector<NginxConfig::LocationBlock>
 		_location = _config._http._server[
 			this->_data->server_block]._location;
-	std::cout << "findLocation uri : " << this->_data->server_block << std::endl;
 	std::vector<NginxConfig::LocationBlock>::iterator
 		_itr = _location.begin();
-	std::cout << "findLocation uri : " << this->_data->server_block << std::endl;
 	for (_itr = _location.begin();
 		 _itr != _location.end();
 		 _itr++)
 		if (_itr->_location.compare(_uri) == 0)
 			return (_itr->_error_page);
-	std::cout << "findLocation uri : " << this->_data->server_block << std::endl;
 	return (_config._http._server[
 		this->_data->server_block]._error_page);
 }
@@ -78,11 +74,8 @@ std::string
 	ErrorPageController::findErrorPage(
 		std::string _error_code)
 {
-	std::cout << "check 1\n";
-	std::cout << "check 2" << this->_data->is_autoindex << std::endl;
 	std::vector<std::string>
 		_error_page = findLocation(this->_data->url_directory);
-	std::cout << "check 3\n";
 	int
 		_idx = 0;
 	std::string

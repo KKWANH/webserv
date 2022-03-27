@@ -74,7 +74,6 @@ int		RequestMessage::parsingRequestMessage() {
 		else
 			this->seq = FINISH_PARSE;
 	}
-	std::cout << "request sequence : " << this->seq << std::endl;
 	return (this->seq);
 }
 
@@ -117,6 +116,15 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	this->parsing_pointer = start + 2;
 	if (data->uri_file.compare("") == 0) {
 		checkTarget();
+	}
+	std::string
+		_abs_path = _config._http._server[this->data->server_block]._dir_map["root"] + data->uri_dir + data->uri_file;
+	_abs_path = FileController::toAbsPath(_abs_path);
+	if (this->data->status_code != 403 &&
+		FileController::checkType(_abs_path) == FileController::NON)
+	{
+		this->seq = ERROR;
+		this->data->status_code = 404;
 	}
 	if (this->has_index == false)
 	{
@@ -266,54 +274,63 @@ void	RequestMessage::checkTarget(void) {
 	// root값이 없다는 것을 알려주여야 status 코드를 띄울 수 있음 (304)
 	if (rootFinder == _config._http._server[this->data->server_block]._dir_map.end()) {
 		root = "./static_html";
-		std::cout << "여기서 default root 값을 넣어주여야 함!" << std::endl;
 	}
 
 	root = _config._http._server[this->data->server_block]._dir_map["root"];
 	this->data->url_directory = data->uri_dir;
+	std::string
+		_abs_path = root + data->uri_dir + data->uri_file;
+	_abs_path = FileController::toAbsPath(_abs_path);
+	if (FileController::checkType(_abs_path) == FileController::NON)
+	{
+		this->seq = ERROR;
+		this->data->status_code = 404;
+	}
+	else
+	{
+		std::vector<std::string> index = checkURIDIR();
+		std::vector<std::string>::iterator it;
 
-	std::vector<std::string> index = checkURIDIR();
-	std::vector<std::string>::iterator it;
+		std::vector<std::string> error_page = checkErrorPage();
+		// index 자체가 없을 때
+		// root 경로에  default index.html을 띄워준다.
+		// index.html이 없는 경우에는 403
+		if (index.empty()) {
+			std::string	filePath = root + data->uri_dir + "index.html";
+			if (access(filePath.c_str(), F_OK) == 0) {
+				data->uri_file = "index.html";
+				data->file_extension = "html";
+				data->status_code = 304;
+				this->seq = ERROR;
+				this->has_index = true;
+				return ;
+			} else {
+				data->uri_file = getErrorPage(error_page, root);
+				data->file_extension = "html";
+				data->status_code = 403;
+				this->seq = ERROR;
+				this->has_index = true;
+				return ;
+			}
+		}
 
-	std::vector<std::string> error_page = checkErrorPage();
-	// index 자체가 없을 때
-	// root 경로에  default index.html을 띄워준다.
-	// index.html이 없는 경우에는 403
-	if (index.empty()) {
-		std::string	filePath = root + data->uri_dir + "index.html";
-		if (access(filePath.c_str(), F_OK) == 0) {
-			data->uri_file = "index.html";
-			data->file_extension = "html";
-			data->status_code = 304;
-			this->seq = ERROR;
-			this->has_index = true;
-			return ;
-		} else {
+		for(it = index.begin(); it != index.end(); it++) {
+			std::string	filePath = root + data->uri_dir + "/" + *it;
+			if (access(filePath.c_str(), F_OK) == 0) {
+				data->file_extension = (*it).substr((*it).find_last_of('.') + 1);
+				data->uri_file = *it;
+				data->status_code = 200;
+				this->has_index = true;
+				return ;
+			}
+		}
+		if (it == index.end()) {
 			data->uri_file = getErrorPage(error_page, root);
 			data->file_extension = "html";
 			data->status_code = 403;
 			this->seq = ERROR;
-			this->has_index = true;
-			return ;
+			this->has_index = false;
 		}
-	}
-
-	for(it = index.begin(); it != index.end(); it++) {
-		std::string	filePath = root + data->uri_dir + "/" + *it;
-		if (access(filePath.c_str(), F_OK) == 0) {
-			data->file_extension = (*it).substr((*it).find_last_of('.') + 1);
-			data->uri_file = *it;
-			data->status_code = 200;
-			this->has_index = true;
-			return ;
-		}
-	}
-	if (it == index.end()) {
-		data->uri_file = getErrorPage(error_page, root);
-		data->file_extension = "html";
-		data->status_code = 403;
-		this->seq = ERROR;
-		this->has_index = false;
 	}
 }
 

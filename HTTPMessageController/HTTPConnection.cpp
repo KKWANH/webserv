@@ -56,9 +56,7 @@ int	HTTPConnection::getCgiOutputFd(void)	{ return (this->cgi_output_fd); }
 int	HTTPConnection::getCgiInputFd(void)		{ return (this->cgi_input_fd); }
 
 int HTTPConnection::run() {
-	std::cout << "sequence : " << seq << std::endl;
 	if (seq == REQUEST) {
-		std::cout << "[REQUEST]\n";
 		readLength = read(socket_fd, buffer, BUF_SIZ-1);
 		buffer[readLength] = '\0';
 		if (readLength > 0)
@@ -67,7 +65,7 @@ int HTTPConnection::run() {
 		if (request_result == RequestMessage::ERROR)
 		{
 			std::string
-				_msg_body = error_page_controller->getDefaultErrorBody(std::to_string(http_data->status_code));
+				_msg_body = error_page_controller->findErrorPage(std::to_string(http_data->status_code));
 			std::stringstream ss;
 			ss << _msg_body.size();
 			http_data->str_buffer = "Content-Length: ";
@@ -101,7 +99,7 @@ int HTTPConnection::run() {
 				atoi(http_data->header_field["Content-Length"].c_str()) > limit_size)
 			{
 				std::string
-					_msg_body = error_page_controller->getDefaultErrorBody("413");
+					_msg_body = error_page_controller->findErrorPage("413");
 				http_data->str_buffer = "Content-Length: ";
 				std::stringstream ss;
 				ss << _msg_body.size();
@@ -130,7 +128,7 @@ int HTTPConnection::run() {
 				atoi(http_data->header_field["Content-Length"].c_str()) > limit_size)
 			{
 				std::string
-					_msg_body = ErrorPageController::getDefaultErrorBody("413");
+					_msg_body = error_page_controller->findErrorPage("413");
 				http_data->str_buffer = "Content-Length: ";
 				std::stringstream ss;
 				ss << _msg_body.size();
@@ -143,7 +141,6 @@ int HTTPConnection::run() {
 		}
 	}
 	else if (seq == READY_TO_MESSAGE_BODY) {
-		std::cout << "[READY_TO_MESSAGE_BODY]\n";
 		write(cgi_input_fd, request_message->getMessage().data(), request_message->getMessage().size());
 		std::stringstream ss;
 		ss << request_message->getMessage().size();
@@ -153,11 +150,9 @@ int HTTPConnection::run() {
 			seq = MESSAGE_BODY_READ;
 	}
 	else if (seq == BODY_TO_RESPONSE) {
-		std::cout << "[BODY_TO_RESPONSE]\n";
 		seq = REQUEST_TO_RESPONSE;
 	}
 	else if (seq == MESSAGE_BODY_READ) {
-		std::cout << "[MESSAGE_BODY_READ]" << std::endl;
 		readLength = read(socket_fd, buffer, BUF_SIZ - 1);
 		buffer[readLength] = '\0';
 		if (readLength > 0) {
@@ -169,7 +164,6 @@ int HTTPConnection::run() {
 		}
 	}
 	else if (seq == MESSAGE_BODY_WRITE) {
-		std::cout << "[MESSAGE_BODY_WRITE]" << std::endl;
 		writeLength = write(cgi_input_fd, buffer, readLength);
 		if (writeLength == BUF_SIZ - 1)
 			seq = MESSAGE_BODY_READ;
@@ -177,24 +171,18 @@ int HTTPConnection::run() {
 			seq = REQUEST_TO_RESPONSE;
 	}
 	else if (seq == REQUEST_TO_RESPONSE) {
-		std::cout << "[REQUEST_TO_RESPONSE]" << std::endl;
 		response_message->setResponseMessage();
-		std::cout << "-----\n";
 		response_message->printStartLine();
 		response_message->printHeaderField();
 		seq = RESPONSE;
 	}
 	else if (seq == RESPONSE) {
-		std::cout << "RESPONSE" << std::endl;
 		int
 			write_size = ((int)response_message->getMessage().size() < BUF_SIZ ? (int)response_message->getMessage().size() : BUF_SIZ);
 		writeLength = write(socket_fd, response_message->getMessage().data(), write_size);
 		if (http_data->is_buffer_write == true)
 		{
-			size_t r = write(socket_fd, http_data->str_buffer.data(), http_data->str_buffer.size());
-			std::cout << "after write : " << http_data->str_buffer << std::endl;
-			std::cout << "r : " << r << std::endl;
-			std::cout << "buffer_size : " << http_data->str_buffer.size() << std::endl;
+			write(socket_fd, http_data->str_buffer.data(), http_data->str_buffer.size());
 			http_data->is_buffer_write = false;
 			seq = CLOSE;
 		}
@@ -231,18 +219,15 @@ int HTTPConnection::run() {
 			response_message->resetMessage(writeLength);
 	}
 	else if (seq == READY_TO_CGI) {
-		std::cout << "[READY_TO_CGI]" << std::endl;
 		close(cgi_input_fd);
 		seq = CGI_READ;
 	}
 	else if (seq == CGI_READ) {
-		std::cout << "[CGI_READ]" << std::endl;
 		readLength = read(cgi_output_fd, buffer, BUF_SIZ - 1);
 		buffer[readLength] = '\0';
 		seq = CGI_WRITE;
 	}
 	else if (seq == CGI_WRITE) {
-		std::cout << "[CGI_WRITE]" << std::endl;
 		if (readLength == 0)
 			seq = CLOSE;
 		else if (readLength == -1)
@@ -250,15 +235,11 @@ int HTTPConnection::run() {
 				"exit -1 replaced", ErrorHandler::CRIT);
 		else {
 			writeLength = write(socket_fd, buffer, readLength);
-			std::cout << "---CGI_WRITE---" << std::endl << buffer << std::endl;
 			if (readLength != writeLength) {
 				throw ErrorHandler(__FILE__, __func__, __LINE__,
 					"exit -1 replaced", ErrorHandler::CRIT);
 			}/*
 			if (writeLength != BUF_SIZ - 1) {
-				std::cout << "READ LEN : " << readLength << std::endl;
-				std::cout << "WRITE LEN : " << writeLength << std::endl;
-				std::cout << "test1" << std::endl;
 				close(cgi_output_fd);
 				seq = CLOSE;
 			}
@@ -268,17 +249,13 @@ int HTTPConnection::run() {
 		}
 	}
 	else if (seq == READY_TO_FILE) {
-		std::cout << "[READY_TO_FILE]" << std::endl;
 		seq = FILE_READ;
 	}
 	else if (seq == FILE_READ) {
-		std::cout << "[FILE_READ]" << std::endl;
 		readLength = read(file_fd, buffer, BUF_SIZ);
-		std::cout << buffer << std::endl;
 		seq = FILE_WRITE;
 	}
 	else if (seq == FILE_WRITE) {
-		std::cout << "[FILE_WRITE]" << std::endl;
 		if (readLength == 0)
 			seq = CLOSE;
 		else if (readLength == -1)
@@ -332,6 +309,5 @@ int HTTPConnection::run() {
 		response_message = new ResponseMessage(http_data);
 		seq = REQUEST;
 	}
-	std::cout << "sequence : " << seq << std::endl;
 	return seq;
 };

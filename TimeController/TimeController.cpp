@@ -22,7 +22,7 @@ double TimeController::get_time(int id)
 void TimeController::del_time(int id)
 {
 	timer_list.erase(id);
-	std::cout << "timer delete : " << id << std::endl;
+	// std::cout << "timer delete : " << id << std::endl;
 }
 
 void TimeController::clean_time(int id)

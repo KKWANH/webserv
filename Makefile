@@ -48,29 +48,33 @@ SRCS 			=	./server.cpp\
 OBJS			=	$(SRCS:.cpp=.o)
 
 %.o: %.cpp
-	@printf "\033[34m[WEBSERV]\033[0m Generating file : "
+	@printf "\033[34m[WEBSERV]\033[0m Compiling file  : "
+	@printf "\033[35m[ %-47s ] \033[0m" $<
 	@$(COMP) $(FLAG) $(HEADER) -c -o $@ $<
-	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
+	@sleep 0.08 && printf "." && sleep 0.08 && printf "." && sleep 0.08 && printf ". "
 	@printf "\033[32mOK\033[0m\n"
 
 $(NAME): $(OBJS)
-	@printf "\033[34m[WEBSERV]\033[0m Compiling file  : "
+	@printf "\033[34m[WEBSERV]\033[0m\n"
+	@printf "\033[34m[WEBSERV]\033[0m Linking         : \033[36m[ %-47s ]\033[0m " "obj file (*.o) to $(NAME) binary"
 	@$(COMP) $(FLAG) $(HEADER) $(OBJS) -o $(NAME)
-	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
+	@sleep 0.08 && printf "." && sleep 0.08 && printf "." && sleep 0.08 && printf ". "
 	@printf "\033[32mOK\033[0m\n"
-	@printf "\n\033[34m[WEBSERV]\033[0m Now \033[32mWEBSERV\033[0m is executable.\n"
-	@printf "\033[34m[WEBSERV]\033[0m Launch this with \033[33m./webserv [config] [mime setting]\033[0m\n"
+	@printf "\033[34m[WEBSERV]\033[0m"
+	@printf "\n\033[34m[WEBSERV]\033[0m Now \033[32mWEBSERV\033[0m is executable."
+	@printf "\n\033[34m[WEBSERV]\033[0m"
+	@printf "\n\033[34m[WEBSERV]\033[0m \033[33mmake help\033[0m to get help.\n"
+	@printf "\033[34m[WEBSERV]\033[0m Launch with ./webserv [config] [mime setting] [status_code][\033[0m\n"
 
 help:
-	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make]\033[0m :        make ./webserv, delete object files\n"
-	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make clean]\033[0m :  delete object files\n"
-	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make fclean]\033[0m : delete ./webserv and object files\n"
-	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make re]\033[0m :     execute \033[33m[make fclean]\033[0m and \033[33m[make]\033[0m\n"
-	@printf "\033[34m[WEBSERV]\033[0m \033[33m[make run]\033[0m :    \033[33m[make]\033[0m and execute ./webserv.\n"
-	@printf "\033[34m[WEBSERV]\033[0m \033[33m          \033[0m      \033[3m\033[4m./webserv nginx.conf mime.types status_code.txt\033[0m\n"
+	@printf "\033[34m[WEBSERV]\033[0m \033[35m[%-11s]\033[0m : make ./webserv, delete object files\n" "make"
+	@printf "\033[34m[WEBSERV]\033[0m \033[35m[%-11s]\033[0m : delete object files\n" "make clean"
+	@printf "\033[34m[WEBSERV]\033[0m \033[35m[%-11s]\033[0m : delete ./webserv and object files\n" "make fclean"
+	@printf "\033[34m[WEBSERV]\033[0m \033[35m[%-11s]\033[0m : execute \033[33m[make fclean]\033[0m and \033[33m[make]\033[0m\n" "make re"
+	@printf "\033[34m[WEBSERV]\033[0m \033[35m[%-11s]\033[0m : \033[33m[make]\033[0m and execute ./webserv.\n" "make run"
+	@printf "\033[34m[WEBSERV]\033[0m               : \033[0m\033[4m./webserv nginx.conf mime.types status_code.txt\033[0m\n"
 
 all:
-	@make clean
 	@$(NAME)
 
 run:
@@ -80,16 +84,17 @@ run:
 clean:
 	@printf "\033[34m[WEBSERV]\033[0m Removing object : "
 	@rm -rf $(OBJS)
-	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
+	@sleep 0.08 && printf "." && sleep 0.08 && printf "." && sleep 0.08 && printf ". "
 	@printf "\033[32mOK\033[0m\n"
 
 fclean:
 	@make clean
 	@printf "\033[34m[WEBSERV]\033[0m Removing result : "
 	@rm -rf $(NAME)
-	@sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m." && sleep 0.05 && printf "\033[33m. "
+	@sleep 0.08 && printf "." && sleep 0.08 && printf "." && sleep 0.08 && printf ". "
 	@printf "\033[32mOK\033[0m\n"
 
 re:
 	@make fclean
+	@printf "\033[34m[WEBSERV]\033[0m\n"
 	@make

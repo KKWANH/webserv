@@ -47,5 +47,5 @@ void
 		void)
 	{
 		for (std::map<std::string, std::string>::iterator _itr = _mime_map.begin(); _itr != _mime_map.end(); _itr++)
-			std::cout	<< _itr->first << "\t:\t" << _itr->second << std::endl;
+			std::cout << _itr->first << "\t:\t" << _itr->second << std::endl;
 	}
