@@ -23,7 +23,7 @@ HTTPConnection::HTTPConnection(
 	if (_config._http._server[
 			this->http_data->server_block]._dir_map[
 				"client_max_body_size"].empty() == true)
-		limit_size = 1024;
+		limit_size = 1024 * 1024;
 	else
 		limit_size =
 			atoi(
@@ -174,8 +174,7 @@ int HTTPConnection::run() {
 	}
 	else if (seq == REQUEST_TO_RESPONSE) {
 		std::cout << "[REQUEST_TO_RESPONSE]" << std::endl;
-		if (http_data->is_buffer_write == false)
-			response_message->setResponseMessage();
+		response_message->setResponseMessage();
 		seq = RESPONSE;
 	}
 	else if (seq == RESPONSE) {
