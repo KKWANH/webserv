@@ -1,6 +1,7 @@
 #include "HTTPConnection.hpp"
 
-extern NginxConfig::GlobalConfig _config;
+extern NginxConfig::GlobalConfig
+	_config;
 
 HTTPConnection::HTTPConnection(
 	int fd,
@@ -14,6 +15,8 @@ HTTPConnection::HTTPConnection(
 	seq = REQUEST;
 	socket_fd = fd;
 	http_data = new HTTPData(block, server_port, client_ip);
+	error_page_controller = new ErrorPageController();
+	error_page_controller->setHTTPData(http_data);
 	http_data->client_ip = client_ip;
 	http_data->client_port = client_port;
 	http_data->host_ip = host_ip;
@@ -64,10 +67,10 @@ int HTTPConnection::run() {
 		if (request_result == RequestMessage::ERROR)
 		{
 			std::string
-				_msg_body = ErrorPageController::getErrorBody(request_message->error_code);
-			http_data->str_buffer = "Content-Length: ";
+				_msg_body = error_page_controller->getDefaultErrorBody(std::to_string(http_data->status_code));
 			std::stringstream ss;
 			ss << _msg_body.size();
+			http_data->str_buffer = "Content-Length: ";
 			http_data->str_buffer += ss.str();
 			http_data->str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
 			http_data->str_buffer += _msg_body;
@@ -87,7 +90,7 @@ int HTTPConnection::run() {
 				if (fcntl(cgi_input_fd, F_SETFL, O_NONBLOCK) == -1 ||
 					fcntl(cgi_output_fd, F_SETFL, O_NONBLOCK) == -1)
 					throw ErrorHandler(__FILE__, __func__, __LINE__,
-						"something wrong with fd. check the file exists : ?", ErrorHandler::NON_CRIT);
+						"something wong with fd. check the file exists : ?", ErrorHandler::NON_CRIT);
 			}
 			if (http_data->header_field.find("Content-Length") != http_data->header_field.end() &&
 				(http_data->header_field["Content-Length"] != "0" && http_data->header_field["Content-Length"] != ""))
@@ -98,13 +101,14 @@ int HTTPConnection::run() {
 				atoi(http_data->header_field["Content-Length"].c_str()) > limit_size)
 			{
 				std::string
-					_msg_body = ErrorPageController::getErrorBody("413");
+					_msg_body = error_page_controller->getDefaultErrorBody("413");
 				http_data->str_buffer = "Content-Length: ";
 				std::stringstream ss;
 				ss << _msg_body.size();
 				http_data->str_buffer += ss.str();
 				http_data->str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
 				http_data->str_buffer += _msg_body;
+				http_data->is_buffer_write = true;
 				seq = REQUEST_TO_RESPONSE;
 			}
 		}
@@ -126,7 +130,7 @@ int HTTPConnection::run() {
 				atoi(http_data->header_field["Content-Length"].c_str()) > limit_size)
 			{
 				std::string
-					_msg_body = ErrorPageController::getErrorBody("413");
+					_msg_body = ErrorPageController::getDefaultErrorBody("413");
 				http_data->str_buffer = "Content-Length: ";
 				std::stringstream ss;
 				ss << _msg_body.size();
@@ -175,6 +179,9 @@ int HTTPConnection::run() {
 	else if (seq == REQUEST_TO_RESPONSE) {
 		std::cout << "[REQUEST_TO_RESPONSE]" << std::endl;
 		response_message->setResponseMessage();
+		std::cout << "-----\n";
+		response_message->printStartLine();
+		response_message->printHeaderField();
 		seq = RESPONSE;
 	}
 	else if (seq == RESPONSE) {
@@ -185,6 +192,7 @@ int HTTPConnection::run() {
 		if (http_data->is_buffer_write == true)
 		{
 			size_t r = write(socket_fd, http_data->str_buffer.data(), http_data->str_buffer.size());
+			std::cout << "after write : " << http_data->str_buffer << std::endl;
 			std::cout << "r : " << r << std::endl;
 			std::cout << "buffer_size : " << http_data->str_buffer.size() << std::endl;
 			http_data->is_buffer_write = false;

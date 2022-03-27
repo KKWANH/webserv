@@ -38,7 +38,7 @@ void
 	NginxConfig::LocationBlock::checkLocationBlock(
 		void)
 {
-	checkValidErrorPage(_error_page);
+	// checkValidErrorPage(_error_page);
 	checkAutoIndexValue(*this);
 	checkValidNumberValue(*this, "client_max_body_size");
 

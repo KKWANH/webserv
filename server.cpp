@@ -29,9 +29,6 @@ StatusConfig
 extern StatusConfig
 	_status;
 
-ErrorPageController
-	_error_page;
-
 void
 	check_argv_str(
 		std::string& _conf_uri,

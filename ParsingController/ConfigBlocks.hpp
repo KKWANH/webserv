@@ -38,8 +38,8 @@ namespace				NginxConfig
 
 			void
 				checkValidNumberValue(NginxBlock& _block, std::string _dir);
-			void
-				checkValidErrorPage(const std::vector<std::string>& _err_page);
+			// void
+			// 	checkValidErrorPage(const std::vector<std::string>& _err_page);
 			void
 				checkAutoIndexValue(NginxBlock& _block);
 	};
@@ -122,6 +122,8 @@ namespace				NginxConfig
 				_error_page;
 			std::vector<class LocationBlock>
 				_location;
+			std::vector<std::string>
+				_limit_except;
 
 			ServerBlock(
 				void) {}

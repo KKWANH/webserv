@@ -1,27 +1,51 @@
 #ifndef ERRORPAGECONTROLLER_HPP
 # define ERRORPAGECONTROLLER_HPP
 
-#include <dirent.h>
-#include <cstring>
-#include <iostream>
-#include <sstream>
-#include <iomanip>
-#include "FileController.hpp"
-#include "ConfigStatus.hpp"
+# include	<dirent.h>
+# include	<cstring>
+# include	<iostream>
+# include	<sstream>
+# include	<iomanip>
+# include	<vector>
+
+# include	"FileController.hpp"
+# include	"ConfigBlocks.hpp"
+# include	"ConfigStatus.hpp"
+# include	"HTTPData.hpp"
 
 extern StatusConfig
 	_status;
+extern NginxConfig::GlobalConfig
+	_config;
 
-class ErrorPageController {
+class ErrorPageController
+{
 	public:
-    /*
-        해당 디렉토리가 존재하지 않는 경우 -1 반환
-        해당 디렉토리 내 index 존재할 경우 0 반환
-        해당 디렉토리 내 index 존재하지 않는 경우, autoindex로 표시할 파일 및 폴더 수 반환
-    */
-	static std::string
-		getErrorBody(
-			std::string _error_code);
+		HTTPData*
+			_data;
+	public:
+		ErrorPageController(
+				void);
+		
+		void
+			setHTTPData(
+				HTTPData *_arg_data);
+
+		static std::string
+			getDefaultErrorBody(
+				std::string _error_code);
+
+		std::vector<std::string>
+			findLocation(
+				std::string _uri);
+		
+		std::string
+			findRoot(
+				void);
+		
+		std::string
+			findErrorPage(
+				std::string _error_code);
 };
 
 #endif

@@ -77,8 +77,10 @@ void	ResponseMessage::setHeaderField() {
 		//this->_header_field += "Transfer-Encoding: chunked\r\n";
 		//this->_header_field += "Content-Length: 51\r\n";
 	}
-	else if (this->_data->is_autoindex == true)
+	else if (this->_data->is_autoindex == true ||
+			 (this->_data->status_code >= 400 && this->_data->status_code <= 600))
 	{
+		this->_header_field += ("Content-Type: " + _mime.getMIME(this->_data->file_extension) + "\r\n");
 
 	}
 	else {
@@ -115,7 +117,8 @@ int
 	this->_message += (this->_start_line + "\r\n");
 	this->_message += this->_header_field;
 	if (this->_data->isCGI == false &&
-		this->_data->is_autoindex == false)
+		this->_data->is_autoindex == false &&
+		(this->_data->status_code < 400 || this->_data->status_code >= 600))
 		this->_message += "\r\n";
 	return (0);
 }

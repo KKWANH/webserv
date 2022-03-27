@@ -1,7 +1,7 @@
 NAME			=	webserv
 
 COMP			=	c++
-FLAG			=	-Wall -Werror -Wextra -std=c++98
+FLAG			=	-Wall -Werror -Wextra -std=c++98 -g -fsanitize=address
 
 CONF			=	
 MIME			=	

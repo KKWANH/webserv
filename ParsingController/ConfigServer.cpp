@@ -22,6 +22,7 @@ void
 	_dir_case.push_back("location");
 	_dir_case.push_back("client_max_body_size");
 	_dir_case.push_back("keepalive_timeout");
+	_dir_case.push_back("limit_except");
 }
 
 NginxConfig::InheritData
@@ -91,6 +92,8 @@ void
 				_tmp_val = Parser::sideSpaceTrim(Parser::getIdentifier(_tmp_line, _tmp_pos, ";", true));
 			if (_tmp_dir		== "index")
 				_index			=	Parser::getSplitBySpace(_tmp_val);
+			else if (_tmp_dir	== "limit_except")
+				_limit_except	=	Parser::getSplitBySpace(_tmp_val);
 			else if (_tmp_dir	== "root")
 				_dir_map["root"]=	_tmp_val;
 			else if (_tmp_dir	== "error_page")
@@ -125,7 +128,7 @@ void
 	checkValidNumberValue(*this, "listen");
 	checkValidNumberValue(*this, "client_max_body_size");
 	checkValidNumberValue(*this, "keepalive_timeout");
-	checkValidErrorPage(  _error_page);
+	// checkValidErrorPage(  _error_page);
 	checkAutoIndexValue(  *this);
 }
 

@@ -11,17 +11,17 @@ void
 			"Invalid number value for directive: " + _dir);
 }
 
-void
-	NginxConfig::NginxBlock::checkValidErrorPage(const std::vector<std::string>& _err_page)
-{
-	std::vector<std::string>::const_iterator
-		_itr;
-	if (!_err_page.empty())
-		for (_itr = _err_page.begin(); _itr != _err_page.end() - 1; ++_itr)
-			if (!Parser::isNumber(*_itr))
-				throw ErrorHandler(__FILE__, __func__, __LINE__,
-					"Invalid number value for error page: " + *_itr);
-}
+// void
+// 	NginxConfig::NginxBlock::checkValidErrorPage(const std::vector<std::string>& _err_page)
+// {
+// 	std::vector<std::string>::const_iterator
+// 		_itr;
+// 	if (!_err_page.empty())
+// 		for (_itr = _err_page.begin(); _itr != _err_page.end(); ++_itr)
+// 			if (!Parser::isNumber(*_itr))
+// 				throw ErrorHandler(__FILE__, __func__, __LINE__,
+// 					"Invalid number value for error page: " + *_itr);
+// }
 
 void
 	NginxConfig::NginxBlock::checkAutoIndexValue(NginxBlock& _block)

@@ -18,7 +18,7 @@ extern NginxConfig::GlobalConfig _config;
 
 class HTTPConnection : public ClassController {
 	public:
-		typedef enum		e_Seq {
+		typedef enum			e_Seq {
 			REQUEST,
 			READY_TO_MESSAGE_BODY,
 			MESSAGE_BODY_READ,
@@ -35,27 +35,36 @@ class HTTPConnection : public ClassController {
 			CLOSE,
 			RE_KEEPALIVE,
 			AUTOINDEX_WRITE
-		}					Seq;
+		}						Seq;
 
 	private:
-		Seq					seq;
-		int					socket_fd;
-		int					file_fd;
-		int					cgi_output_fd;
-		int					cgi_input_fd;
-		char				buffer[BUF_SIZ];
-		HTTPData*			http_data;
-		RequestMessage*		request_message;
-		ResponseMessage*	response_message;
-		CGIProcess*			cgi_process;
-		int					readLength;
-		int					writeLength;
-		bool				keep_alive;
-		int					current_size;	
-		int					limit_size;
+		Seq						seq;
+		int						socket_fd;
+		int						file_fd;
+		int						cgi_output_fd;
+		int						cgi_input_fd;
+		char					buffer[BUF_SIZ];
+		HTTPData*				http_data;
+		RequestMessage*			request_message;
+		ResponseMessage*		response_message;
+		CGIProcess*				cgi_process;
+		ErrorPageController*	error_page_controller;
+		int						readLength;
+		int						writeLength;
+		bool					keep_alive;
+		int						current_size;	
+		int						limit_size;
 
 	public:
-		HTTPConnection(int fd, int block, int server_port, std::string client_ip, std::string client_port, std::string host_ip, std::string host_port);
+		HTTPConnection(
+			int fd,
+			int block,
+			int server_port,
+			std::string client_ip,
+			std::string client_port,
+			std::string host_ip,
+			std::string host_port);
+
 		virtual ~HTTPConnection();
 		static void killConnection(void* hc);
 
