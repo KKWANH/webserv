@@ -54,7 +54,7 @@ void
 		}
 		else if (!_dir_map[_tmp_dir].empty())
 			throw ErrorHandler(__FILE__, __func__, __LINE__,
-				"Duplicate directive: " + _tmp_dir + " in http context");
+				_tmp_dir + " in http context is not empty");
 		else if (_tmp_dir == "types")
 		{
 			if (!_types_only_one_flag)

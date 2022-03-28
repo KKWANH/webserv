@@ -8,10 +8,11 @@ ResponseMessage::ResponseMessage(HTTPData* _tmp) {
 	this->_status_msg_path = "./setting/status_code.txt";
 }
 
-std::string	returnRedirectMessage() {
+std::string
+	ResponseMessage::returnRedirectMessage() {
 	std::string
 		redirectMessage = "HTTP/1.1 302\nLocation: ";
-	redirectMessage += _config._http._server[1]._location[6]._rewrite[1];
+	redirectMessage += _config._http._server[_data->server_block]._location[6]._rewrite[1];
 	redirectMessage += "\nContent-Type: text/html;charset=UTF-8\nContent-Length: 0\r\n";
 	return (redirectMessage);
 }
@@ -101,11 +102,11 @@ int
 	ResponseMessage::setResponseMessage(
 		void)
 {
-	for (int _idx=0; _idx<(int)(_config._http._server[1]._location.size()); _idx++)
+	for (int _idx=0; _idx<(int)(_config._http._server[this->_data->server_block]._location.size()); _idx++)
 	{
-		if (_config._http._server[1]._location[_idx]._location == this->_data->url_directory &&
-			(int)_config._http._server[1]._location[_idx]._rewrite.size() != 0 &&
-			_config._http._server[1]._location[_idx]._rewrite[0] == this->_data->url_directory)
+		if (_config._http._server[this->_data->server_block]._location[_idx]._location == this->_data->url_directory &&
+			(int)_config._http._server[this->_data->server_block]._location[_idx]._rewrite.size() != 0 &&
+			_config._http._server[this->_data->server_block]._location[_idx]._rewrite[0] == this->_data->url_directory)
 		{
 			this->_message += returnRedirectMessage();
 			return (1);

@@ -1,5 +1,10 @@
 #include "AutoindexController.hpp"
 
+AutoindexController::AutoindexController(
+		HTTPData* _arg_data)
+	:	_data(_arg_data)
+{ }
+
 std::string
 	AutoindexController::getAutoIndexBody(
 		std::string _root,
@@ -26,7 +31,7 @@ std::string
 			_file_name = _folder.getFiles(_idx)->_name;
 
 		_msg_body << "<a href=\"http://localhost:";
-		_msg_body << _config._http._server[1]._dir_map["listen"];
+		_msg_body << _config._http._server[this->_data->server_block]._dir_map["listen"];
 		_msg_body << _path;
 		if (_path.find_last_of("/") != _path.length() - 1)
 			_msg_body << "/";

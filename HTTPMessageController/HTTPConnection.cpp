@@ -15,12 +15,13 @@ HTTPConnection::HTTPConnection(
 	seq = REQUEST;
 	socket_fd = fd;
 	http_data = new HTTPData(block, server_port, client_ip);
-	error_page_controller = new ErrorPageController();
-	error_page_controller->setHTTPData(http_data);
 	http_data->client_ip = client_ip;
 	http_data->client_port = client_port;
 	http_data->host_ip = host_ip;
 	http_data->host_port = host_port;
+	error_page_controller = new ErrorPageController();
+	error_page_controller->setHTTPData(http_data);
+	autoindex = new AutoindexController(http_data);
 	request_message = new RequestMessage(http_data);
 	response_message = new ResponseMessage(http_data);
 	if (_config._http._server[
@@ -42,6 +43,8 @@ HTTPConnection::~HTTPConnection() {
 	delete request_message;
 	delete response_message;
 	delete http_data;
+	delete error_page_controller;
+	delete autoindex;
 	close(socket_fd);
 }
 
@@ -193,7 +196,7 @@ int HTTPConnection::run() {
 			}
 			else if (this->http_data->is_autoindex == true) {
 				std::string
-					_msg_body = AutoindexController::getAutoIndexBody(_config._http._server[1]._dir_map["root"], this->http_data->url_directory);
+					_msg_body = autoindex->getAutoIndexBody(_config._http._server[http_data->server_block]._dir_map["root"], this->http_data->url_directory);
 				http_data->str_buffer = "Content-Length: ";
 				std::stringstream ss;
 				ss << _msg_body.size();
@@ -293,6 +296,7 @@ int HTTPConnection::run() {
 		delete response_message;
 		delete http_data;
 		delete error_page_controller;
+		delete autoindex;
 		buffer[0] = '\0';
 		readLength = -2;
 		writeLength = -2;
@@ -311,6 +315,7 @@ int HTTPConnection::run() {
 		response_message = new ResponseMessage(http_data);
 		error_page_controller = new ErrorPageController();
 		error_page_controller->setHTTPData(http_data);
+		autoindex = new AutoindexController(http_data);
 		seq = REQUEST;
 	}
 	return seq;

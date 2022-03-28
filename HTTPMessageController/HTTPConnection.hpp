@@ -49,6 +49,7 @@ class HTTPConnection : public ClassController {
 		ResponseMessage*			response_message;
 		CGIProcess*					cgi_process;
 		ErrorPageController*		error_page_controller;
+		AutoindexController*		autoindex;
 		int							readLength;
 		int							writeLength;
 		bool						keep_alive;

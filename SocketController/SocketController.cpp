@@ -57,6 +57,7 @@ int		SocketController::binding() {
 	int e2 = listen(serverSocket, 42);
 	int e3 = fcntl(serverSocket, F_SETFL, O_NONBLOCK);
 	if (e1 < 0 || e2 < 0 || e3 < 0) {
+		// non-critical로 변경
 		std::cout << "바인드 에러~" << std::endl;
 		return (0);
 	}

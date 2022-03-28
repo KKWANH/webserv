@@ -35,6 +35,8 @@ class ResponseMessage {
 		FileController::Type
 				_type;
 		ResponseMessage(HTTPData* _data);
+		std::string
+			returnRedirectMessage(void);
 		void
 			setStartLine(void);
 		std::string

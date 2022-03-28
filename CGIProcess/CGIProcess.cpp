@@ -12,6 +12,7 @@ CGIProcess::~CGIProcess(
 {
 	int
 		status;
+	std::cout << "hello world!" << std::endl;
 	if (_pid > 0)
 	{
 		waitpid(_pid, &status, 0);
@@ -19,13 +20,12 @@ CGIProcess::~CGIProcess(
 			kill(_pid, SIGTERM);
 	}
 
-	// for (int i = 0; i < 3; i++)
-	// 	delete argv[i];
-	// delete argv;
+	for (int i = 0; i < 3; i++)
+		delete argv[i];
 
-	// for (int i = 0; i < env_size; i++)
-	// 	delete envp[i];
-	// delete envp;
+	for (int i = 0; i < env_size; i++)
+		delete envp[i];
+	delete envp;
 }
 
 char*
