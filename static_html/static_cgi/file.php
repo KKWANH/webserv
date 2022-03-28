@@ -30,8 +30,6 @@
 $upload_dir = "/uploads";
 //$dir = $_SERVER['DOCUMENT_ROOT'] . $upload_dir;
 $dir = getcwd() . $upload_dir;
-echo $dir;
-echo '<br>';
 if (is_dir($dir) == false) {
     mkdir($dir);
 }
@@ -60,13 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     $upload_file = $dir . '/' . basename($_FILES["fileToUpload"]["name"]);
     $imageFileType = strtolower(pathinfo($upload_file, PATHINFO_EXTENSION));
     $uploadOk = 1;
-    var_dump($_FILES);
 
-    echo $_FILES["fileToUpload"]["tmp_name"];
-    
     // Check if image file is a actual image or fake image
     if(isset($_POST["submit"])) {
-      echo $_FILES["fileToUpload"]["tmp_name"];
       $check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
       if($check !== false) {
         echo "File is an image - " . $check["mime"] . ".";
@@ -82,20 +76,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
       echo "Sorry, file already exists.";
       $uploadOk = 0;
     }
-
+    
     // Check file size
     if ($_FILES["fileToUpload"]["size"] > 3000000) {
       echo "Sorry, your file is too large.";
       $uploadOk = 0;
     }
-
+    
     // Allow certain file formats
     if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
     && $imageFileType != "gif") {
       echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
       $uploadOk = 0;
     }
-
+    
     // Check if $uploadOk is set to 0 by an error
     if ($uploadOk == 0) {
       echo "Sorry, your file was not uploaded.";
@@ -107,7 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         echo "Sorry, there was an error uploading your file.";
       }
     }
-    
     echo "<br />";
 }
 

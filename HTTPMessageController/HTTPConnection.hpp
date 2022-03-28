@@ -18,42 +18,42 @@ extern NginxConfig::GlobalConfig _config;
 
 class HTTPConnection : public ClassController {
 	public:
-		typedef enum			e_Seq {
-			REQUEST,
-			READY_TO_MESSAGE_BODY,
-			MESSAGE_BODY_READ,
-			MESSAGE_BODY_WRITE,
-			REQUEST_TO_RESPONSE,
-			BODY_TO_RESPONSE,
-			RESPONSE,
-			READY_TO_CGI,
-			CGI_READ,
-			CGI_WRITE,
-			READY_TO_FILE,
-			FILE_READ,
-			FILE_WRITE,
-			CLOSE,
-			RE_KEEPALIVE,
-			AUTOINDEX_WRITE
-		}						Seq;
+		typedef enum				e_Seq {
+			REQUEST, 				// 00
+			READY_TO_MESSAGE_BODY,	// 01
+			MESSAGE_BODY_READ,		// 02
+			MESSAGE_BODY_WRITE,		// 03
+			REQUEST_TO_RESPONSE,	// 04
+			BODY_TO_RESPONSE,		// 05
+			RESPONSE,				// 06
+			READY_TO_CGI,			// 07
+			CGI_READ,				// 08
+			CGI_WRITE,				// 09
+			READY_TO_FILE,			// 10
+			FILE_READ,				// 11
+			FILE_WRITE,				// 12
+			CLOSE,					// 13
+			RE_KEEPALIVE,			// 14
+			AUTOINDEX_WRITE			// 15
+		}							Seq;
 
 	private:
-		Seq						seq;
-		int						socket_fd;
-		int						file_fd;
-		int						cgi_output_fd;
-		int						cgi_input_fd;
-		char					buffer[BUF_SIZ];
-		HTTPData*				http_data;
-		RequestMessage*			request_message;
-		ResponseMessage*		response_message;
-		CGIProcess*				cgi_process;
-		ErrorPageController*	error_page_controller;
-		int						readLength;
-		int						writeLength;
-		bool					keep_alive;
-		int						current_size;	
-		int						limit_size;
+		Seq							seq;
+		int							socket_fd;
+		int							file_fd;
+		int							cgi_output_fd;
+		int							cgi_input_fd;
+		char						buffer[BUF_SIZ];
+		HTTPData*					http_data;
+		RequestMessage*				request_message;
+		ResponseMessage*			response_message;
+		CGIProcess*					cgi_process;
+		ErrorPageController*		error_page_controller;
+		int							readLength;
+		int							writeLength;
+		bool						keep_alive;
+		int							current_size;	
+		int							limit_size;
 
 	public:
 		HTTPConnection(

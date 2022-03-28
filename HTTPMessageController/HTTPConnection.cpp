@@ -62,7 +62,8 @@ int HTTPConnection::run() {
 		if (readLength > 0)
 			request_message->setMessage(buffer);
 		int request_result = request_message->parsingRequestMessage();
-		if (request_result == RequestMessage::ERROR)
+		if (request_result == RequestMessage::ERROR
+			)
 		{
 			std::string
 				_msg_body = error_page_controller->findErrorPage(std::to_string(http_data->status_code));
@@ -245,7 +246,7 @@ int HTTPConnection::run() {
 			}
 			else
 			*/
-				seq = CGI_READ;
+			seq = CGI_READ;
 		}
 	}
 	else if (seq == READY_TO_FILE) {
@@ -291,6 +292,7 @@ int HTTPConnection::run() {
 		delete request_message;
 		delete response_message;
 		delete http_data;
+		delete error_page_controller;
 		buffer[0] = '\0';
 		readLength = -2;
 		writeLength = -2;
@@ -301,12 +303,14 @@ int HTTPConnection::run() {
 		if (cgi_input_fd > 0)
 			cgi_input_fd = -2;
 
-		//keep_alive = false;
+		// keep_alive = false;
 		//다음 연결에서 keep-alive가 안되는 경우도 있다?
 
 		http_data = new HTTPData(backup_block, backup_port, backup_ip);
 		request_message = new RequestMessage(http_data);
 		response_message = new ResponseMessage(http_data);
+		error_page_controller = new ErrorPageController();
+		error_page_controller->setHTTPData(http_data);
 		seq = REQUEST;
 	}
 	return seq;

@@ -125,6 +125,7 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 	{
 		this->seq = ERROR;
 		this->data->status_code = 404;
+		data->file_extension = "html";
 	}
 	if (this->has_index == false)
 	{
@@ -285,6 +286,7 @@ void	RequestMessage::checkTarget(void) {
 	{
 		this->seq = ERROR;
 		this->data->status_code = 404;
+		data->file_extension = "html";
 	}
 	else
 	{
