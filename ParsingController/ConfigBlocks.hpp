@@ -20,7 +20,7 @@ namespace				NginxConfig
 	}					InheritData;
 
 	#define				DEFAULT_ROOT					std::string("/usr/share/nginx/html")
-	#define				DEFAULT_CLIENT_MAX_BODY_SIZE	std::string("100000000")
+	#define				DEFAULT_CLIENT_MAX_BODY_SIZE	std::string("1000000")
 
 	class				NginxBlock
 	{

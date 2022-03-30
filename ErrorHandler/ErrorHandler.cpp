@@ -43,15 +43,6 @@ const char *ErrorHandler::what() const throw()
 	_rst += "\033[38;5;220m";
 	_rst += std::to_string(_lin);
 
-	//yamkim님의 것에선 저걸 넣었는데 read,write만 아니면 되는건가
-	if (errno)
-	{
-		_rst += "\n";
-		//_rst += ANSI_BLU;
-		_rst += "[INF] ";
-		//_rst += ANSI_RES;
-		_rst += (std::strerror(errno));
-	}
 	_rst += "\033[38;5;196m";
 	_rst += "\n~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~";
 	_rst += "\033[0m";

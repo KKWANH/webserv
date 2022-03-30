@@ -118,7 +118,8 @@ int
 	this->_message += this->_header_field;
 	if (this->_data->isCGI == false &&
 		this->_data->is_autoindex == false &&
-		(this->_data->status_code < 400 || this->_data->status_code >= 600))
+		(this->_data->status_code < 400 || this->_data->status_code >= 600) &&
+		this->_data->is_buffer_write == false)
 		this->_message += "\r\n";
 	return (0);
 }

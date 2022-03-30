@@ -12,7 +12,6 @@ CGIProcess::~CGIProcess(
 {
 	int
 		status;
-	std::cout << "hello world!" << std::endl;
 	if (_pid > 0)
 	{
 		waitpid(_pid, &status, 0);

@@ -3,7 +3,6 @@
 
 # include <exception>
 # include <string>
-# include <sys/errno.h>
 
 //throw ErrorHandler(__FILE__, __func__, __LINE__, "Error Message", ErrorHandler::에러의 치명도);
 //요로케 던지면 됩니다

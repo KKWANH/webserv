@@ -21,8 +21,9 @@ void	ServerProcess::serverProcess() {
 		int events = kq.accessEvents();
 		if (events) {
 			for (int i = 0; i < events; i++) {
+				ClassController* udata;
 				try {
-					ClassController* udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
+					udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
 					// 바인딩 처리
 					if (dynamic_cast<SocketController*>(udata) != NULL) {
 						SocketController* socketController = reinterpret_cast<SocketController*>(udata);
@@ -45,7 +46,8 @@ void	ServerProcess::serverProcess() {
 						int server_port = (int)ntohs((socketController->getServerAddr()).sin_port);
 						HTTPConnection* httpConnection = new HTTPConnection(conn_socket, server_block, server_port, client_ip, std::string(clientPortString.str()), host_ip, std::string(hostPortString.str()));
 						if (fcntl(conn_socket, F_SETFL, O_NONBLOCK) == -1)
-							exit(-1);
+							throw ErrorHandler(__FILE__, __func__, __LINE__,
+								"fcntl", ErrorHandler::NON_CRIT);
 						kq.addEvent(conn_socket, EVFILT_READ, httpConnection);
 						kq.addEvent(conn_socket, EVFILT_WRITE, httpConnection);
 						kq.disableEvent(conn_socket, EVFILT_WRITE, httpConnection);
@@ -117,17 +119,13 @@ void	ServerProcess::serverProcess() {
 					}
 				}
 				catch (const ErrorHandler& err) {
-					ClassController* udata = reinterpret_cast<ClassController*>(kq.getInstanceByEventIndex(i));
-					HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
-					int fd = hc->getSocketFd();
-					timer.del_time(fd);
-					//아마 요 사이에 에러 페이지를 만들고 보내는 코드가 추가되어야 할듯함(였던거)
-					if (fd > 5)
-					{
-					//	close(hc->getSocketFd());
-					//	if (hc->getFileFd() > 0)
-					//		close (hc->getFileFd());
-						delete hc;
+					if (err.getLevel() == ErrorHandler::NON_CRIT) {
+						if (dynamic_cast<HTTPConnection*>(udata) != NULL) {
+							HTTPConnection* hc = reinterpret_cast<HTTPConnection*>(udata);
+							int fd = hc->getSocketFd();
+							timer.del_time(fd);
+							delete hc;
+						}
 					}
 					std::cerr << err.what() << std::endl;
 					if (err.getLevel() == ErrorHandler::CRIT)

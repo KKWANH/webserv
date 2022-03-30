@@ -127,6 +127,12 @@ void	RequestMessage::parseStartLine(std::string &msg) {
 		this->data->status_code = 404;
 		data->file_extension = "html";
 	}
+	if (this->data->is_405 == true)
+	{
+		this->seq = ERROR;
+		this->data->status_code = 405;
+		this->data->file_extension = "html";
+	}
 	if (this->has_index == false)
 	{
 		if (checkAutoIndex(
@@ -150,36 +156,27 @@ void	RequestMessage::parseMethod(int &start, int &end, std::string &msg) {
 
 	if (data->method.compare("GET") == 0)
 		return ;
-
 	// nginc.conf 에 내의 accepted_method 검색
 	// get 은 무조건 되어야 한ㄷ
-	std::vector<std::string> accepted_method = _config._http._server[data->server_block]._limit_except;
-
-	if (!accepted_method.empty() ) {
-		std::vector<std::string>::iterator it = accepted_method.begin();
+	std::vector<std::string> accepted_method =
+		_config._http._server[data->server_block]._limit_except;
+	if (!accepted_method.empty() ) { 
+		std::vector<std::string>::iterator
+			it = accepted_method.begin();
 		for (; it != accepted_method.end(); it++)
 		{
 			if (data->method.compare(*it) == 0 &&
 				(data->method.compare("POST") == 0 ||
-				data->method.compare("DELETE") == 0))
+				 data->method.compare("DELETE") == 0))
 				return ;
 		}
 		if (it == accepted_method.end())
 		{
 			this->data->status_code = 405;
 			this->seq = ERROR;
+			this->data->is_405 = true;
 			return ;
 		}
-
-	}
-	if (data->method.compare("GET") == 0 ||
-		data->method.compare("POST") == 0 ||
-		data->method.compare("DELETE") == 0)
-		return ;
-	else
-	{
-		this->data->status_code = 405;
-		this->seq = ERROR;
 	}
 }
 
@@ -401,7 +398,6 @@ void	RequestMessage::parseMessageBody(std::string &msg) {
 	data->message_body = msg.substr(start);
 	if (data->isCGI) {
 	//	data->message_body += data->CGI_read;
-	//	write(cgi->getInputPair(), data->message_body.c_str(), data->message_body.length());
 	}
 }
 

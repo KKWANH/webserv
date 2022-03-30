@@ -36,6 +36,7 @@ class HTTPData {
 		std::string								str_buffer;
 		bool									is_buffer_write;
 		int										status_code;
+		bool									is_405;
 
 		int	getSBlock(void);
 

@@ -24,11 +24,14 @@ HTTPConnection::HTTPConnection(
 	autoindex = new AutoindexController(http_data);
 	request_message = new RequestMessage(http_data);
 	response_message = new ResponseMessage(http_data);
+	limit_size = 1048576;
+	// if (_config._http._server[
+	// 		this->http_data->server_block]._dir_map[
+	// 			"client_max_body_size"].empty() == true)
+	// 	limit_size = 1024 * 1024;
 	if (_config._http._server[
 			this->http_data->server_block]._dir_map[
-				"client_max_body_size"].empty() == true)
-		limit_size = 1024 * 1024;
-	else
+				"client_max_body_size"].empty() == false)
 		limit_size =
 			atoi(
 				_config._http._server[
@@ -84,16 +87,6 @@ int HTTPConnection::run() {
 			if ((res = this->http_data->header_field.find("Connection")) != this->http_data->header_field.end())
 				if (res->second == "keep-alive")
 					keep_alive = true;
-			if (this->http_data->isCGI == true) {
-				cgi_process = new CGIProcess(http_data);
-				cgi_process->run();
-				cgi_input_fd = cgi_process->getInputPair();
-				cgi_output_fd = cgi_process->getOutputPair();
-				if (fcntl(cgi_input_fd, F_SETFL, O_NONBLOCK) == -1 ||
-					fcntl(cgi_output_fd, F_SETFL, O_NONBLOCK) == -1)
-					throw ErrorHandler(__FILE__, __func__, __LINE__,
-						"something wong with fd. check the file exists : ?", ErrorHandler::NON_CRIT);
-			}
 			if (http_data->header_field.find("Content-Length") != http_data->header_field.end() &&
 				(http_data->header_field["Content-Length"] != "0" && http_data->header_field["Content-Length"] != ""))
 				seq = READY_TO_MESSAGE_BODY;
@@ -105,16 +98,29 @@ int HTTPConnection::run() {
 				std::string
 					_msg_body = error_page_controller->findErrorPage("413");
 				http_data->str_buffer = "Content-Length: ";
+				http_data->status_code = 413;
+				http_data->isCGI = false;
 				std::stringstream ss;
-				ss << _msg_body.size();
+				ss << _msg_body.length();
 				http_data->str_buffer += ss.str();
 				http_data->str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
 				http_data->str_buffer += _msg_body;
 				http_data->is_buffer_write = true;
 				seq = REQUEST_TO_RESPONSE;
 			}
+			if (this->http_data->isCGI == true) {
+				cgi_process = new CGIProcess(http_data);
+				cgi_process->run();
+				cgi_input_fd = cgi_process->getInputPair();
+				cgi_output_fd = cgi_process->getOutputPair();
+				if (fcntl(cgi_input_fd, F_SETFL, O_NONBLOCK) == -1 ||
+					fcntl(cgi_output_fd, F_SETFL, O_NONBLOCK) == -1)
+					throw ErrorHandler(__FILE__, __func__, __LINE__,
+						"something wong with fd. check the file exists : ?", ErrorHandler::NON_CRIT);
+			}
 		}
 		else if (request_result == RequestMessage::MESSAGE_BODY) {
+			/*
 			if (this->http_data->isCGI == true) {
 				cgi_process = new CGIProcess(http_data);
 				cgi_process->run();
@@ -128,20 +134,36 @@ int HTTPConnection::run() {
 			}
 			else
 				seq = REQUEST_TO_RESPONSE;
+				*/
 			if (http_data->header_field["Content-Length"].empty() == false &&
 				atoi(http_data->header_field["Content-Length"].c_str()) > limit_size)
 			{
 				std::string
 					_msg_body = error_page_controller->findErrorPage("413");
 				http_data->str_buffer = "Content-Length: ";
+				http_data->status_code = 413;
+				http_data->isCGI = false;
 				std::stringstream ss;
-				ss << _msg_body.size();
+				ss << _msg_body.length();
 				http_data->str_buffer += ss.str();
 				http_data->str_buffer += "\r\nContent-Type: text/html\r\n\r\n";
 				http_data->str_buffer += _msg_body;
 				http_data->is_buffer_write = true;
 				seq = REQUEST_TO_RESPONSE;
 			}
+			if (this->http_data->isCGI == true) {
+				cgi_process = new CGIProcess(http_data);
+				cgi_process->run();
+				cgi_input_fd = cgi_process->getInputPair();
+				cgi_output_fd = cgi_process->getOutputPair();
+				if (fcntl(cgi_input_fd, F_SETFL, O_NONBLOCK) == -1 ||
+					fcntl(cgi_output_fd, F_SETFL, O_NONBLOCK) == -1)
+					throw ErrorHandler(__FILE__, __func__, __LINE__,
+						"something wrong with fd. check the file exists : ?", ErrorHandler::NON_CRIT);
+				seq = READY_TO_MESSAGE_BODY;
+			}
+			else
+				seq = REQUEST_TO_RESPONSE;
 		}
 	}
 	else if (seq == READY_TO_MESSAGE_BODY) {
