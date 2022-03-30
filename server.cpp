@@ -7,9 +7,6 @@
 # include	"ErrorHandler.hpp"
 # include	"ErrorPageController.hpp"
 
-# include	<iostream>
-# include	<cstring>
-
 # define	CONF_PATH	"./setting/nginx.conf"
 # define	MIME_PATH	"./setting/mime.types"
 # define	STAT_PATH	"./setting/status_code.txt"
