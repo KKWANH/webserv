@@ -11,9 +11,18 @@ ResponseMessage::ResponseMessage(HTTPData* _tmp) {
 std::string
 	ResponseMessage::returnRedirectMessage() {
 	std::string
-		redirectMessage = "HTTP/1.1 302\nLocation: ";
-	redirectMessage += _config._http._server[_data->server_block]._location[6]._rewrite[1];
-	redirectMessage += "\nContent-Type: text/html;charset=UTF-8\nContent-Length: 0\r\n";
+		redirectMessage = "HTTP/1.1 308 Permanent Redirect\r\nLocation: ";
+	int location_code = 6;
+	for (int i=0; i<(int)_config._http._server[_data->server_block]._location.size(); i++)
+	{
+		if (this->_data->uri_dir == _config._http._server[_data->server_block]._location[i]._location)
+		{
+			location_code = i;
+			break;
+		}
+	}
+	redirectMessage += _config._http._server[_data->server_block]._location[location_code]._rewrite[1];
+	redirectMessage += "\r\nContent-Type: text/html;charset=UTF-8\r\nContent-Length: 0\r\n\r\n";
 	return (redirectMessage);
 }
 
